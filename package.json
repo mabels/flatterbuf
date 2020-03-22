@@ -1,0 +1,26 @@
+{
+  "name": "flatterbuf",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "author": "Meno Abels",
+  "license": "AFL-2.0",
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "tsc",
+    "test": "jest -c jest.unit.js",
+    "lint": "tslint --project ."
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.12",
+    "jest": "^24.8.0",
+    "jest-cli": "^24.8.0",
+    "prettier": "1.15.3",
+    "rimraf": "*",
+    "ts-jest": "^24.0.2",
+    "ts-lint": "^4.5.1",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+    "@types/node": "^13.9.3"
+  }
+}
