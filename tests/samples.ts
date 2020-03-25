@@ -19,7 +19,7 @@ export function FixArrayOfFixArrayScalarType(l1: number, l2: number) {
 
 export function StructOfScalar() {
   return new Definition.Types.Struct({
-    name: 'HansWurst',
+    name: 'StructOfScalar',
     attributes: Definition.Types.ScalarTypesList.map(i => ({
       name: `Name${i.type}`,
       type: new i(),
@@ -29,17 +29,32 @@ export function StructOfScalar() {
 
 export function StructOfNestedStruct() {
   return new Definition.Types.Struct({
-    name: 'HansWurst',
+    name: 'StructOfNestedStruct',
     attributes: [
+    {
+      name: 'Yu',
+      type: new Definition.Types.Int({ initial: 4711 })
+    },
     {
       name: 'Max',
       type: new Definition.Types.Struct({
         name: 'Bux',
         attributes: [
+          {
+            name: 'Zu',
+            type: new Definition.Types.Int({ initial: 4712 })
+          },
         {
           name: 'Plax',
-          type: new Definition.Types.Boolean(),
-        },
+          type: new Definition.Types.Struct({
+            name: 'Wurx',
+            attributes: [
+              {
+              name: 'Uhu',
+              type: new Definition.Types.Char({ initial: 'a'}),
+              }
+            ]
+        })},
       ]}),
     },
   ]});
@@ -47,7 +62,7 @@ export function StructOfNestedStruct() {
 
 export function StructOfNestedArrayOfScalar() {
   return new Definition.Types.Struct({
-    name: 'HansWurst',
+    name: 'StructOfNestedArrayOfScalar',
     attributes: [
     {
       name: `Bytes`,
@@ -61,7 +76,7 @@ export function StructOfNestedArrayOfScalar() {
 
 export function StructOfNestedArrayOfStruct() {
   return new Definition.Types.Struct({
-    name: 'HansWurst',
+    name: 'StructOfNestedArrayOfStruct',
     attributes: [
     {
       name: `Bytes`,

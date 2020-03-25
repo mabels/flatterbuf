@@ -1,31 +1,34 @@
 import { create } from 'domain';
+import { Definition } from '../definition';
 
 export namespace Runtime {
-  export enum ReflectionType {
-    Struct,
-    Ushort,
-    Uchar,
-    Uint,
-    ULong,
-    Float,
-    Double,
-    Int64,
-    Vector,
-  }
-  export interface ReflectionAttribute {
-    readonly name: string;
-    readonly type: ReflectionType;
-    readonly ofs: number;
-    readonly len: number;
-    readonly elements: number;
-    readonly element?: ReflectionAttribute;
-  }
-  export interface ReflectionProps {
-    self: ReflectionAttribute;
-    attributes: ReflectionAttribute[];
-  }
+  // export enum ReflectionType {
+  //   Struct,
+  //   Ushort,
+  //   Uchar,
+  //   Uint,
+  //   ULong,
+  //   Float,
+  //   Double,
+  //   Int64,
+  //   Vector,
+  // }
+  // export interface ReflectionAttribute<T = unknown> {
+  //   readonly name: string;
+  //   readonly type: Definition.Types.TypeName;
+  //   readonly ofs: number;
+  //   readonly bytes: number;
+  //   readonly notRequired: boolean;
+  //   readonly elements?: number;
+  //   readonly element?: ReflectionAttribute<T>;
+  //   readonly initial?: T;
+  // }
+  // export interface ReflectionProps {
+  //   self: ReflectionAttribute;
+  //   attributes: ReflectionAttribute[];
+  // }
   export class Reflection {
-    constructor(public readonly prop: ReflectionProps) {}
+    constructor(public readonly prop: Definition.Types.Struct) {}
   }
 
   // export interface ReadStreamBuffer {
@@ -50,16 +53,18 @@ export namespace Runtime {
     export const defaultValue = create();
     export function toStream(
       data: Partial<Type>,
-      wb: ChunkBuffer
+      wb: StreamBuffer
     ) {
         const hl = create(data);
-        wb.writeUint32(hl.low);
-        wb.writeUint32(hl.high);
+        const c = wb.currentWriteChunk('HighLow', 8);
+        c.writeUint32(hl.low);
+        c.writeUint32(hl.high);
     }
-    export function fromStream(wb: ChunkBuffer) {
+    export function fromStream(wb: StreamBuffer) {
+      const c = wb.currentReadChunk('HighLow', 8);
       return {
-        low: wb.readUint32(),
-        high: wb.readUint32()
+        low: c.readUint32(),
+        high: c.readUint32()
       }
     }
   }
@@ -68,6 +73,7 @@ export namespace Runtime {
     constructor(
       public readonly name: string,
       public readonly bytes: number,
+      public readonly sbuf: StreamBuffer,
       public readonly buffer = Buffer.alloc(bytes),
       public ofs = 0,
     ) {}
@@ -81,8 +87,8 @@ export namespace Runtime {
       this.buffer.writeUInt8(~~val, this.ofs);
       this.ofs += 1;
     }
-    public writeChar(val: number) {
-      this.buffer.writeInt8(~~val, this.ofs);
+    public writeChar(val: string) {
+      this.buffer.writeInt8(val.charCodeAt(0), this.ofs);
       this.ofs += 1;
     }
     public writeUint16(val: number) {
@@ -111,7 +117,7 @@ export namespace Runtime {
       //     this.buffer.writeBigUInt64BE(val, this.ofs);
       // } else {
       // const my = this.ofs;
-      HighLow.toStream(val, this);
+      HighLow.toStream(val, this.sbuf);
       // console.log(`OFS`, my, this.ofs);
       // this.buffer.writeUInt32LE(val.high, this.ofs + 4);
       // this.buffer.writeUInt32LE(val.low, this.ofs);
@@ -119,7 +125,7 @@ export namespace Runtime {
       // this.ofs += 8;
     }
     public writeLong(val: HighLow.Type) {
-      HighLow.toStream(val, this);
+      HighLow.toStream(val, this.sbuf);
       // this.buffer.writeBigInt64LE(val, this.ofs);
       // this.buffer.writeUInt32LE(val.high, this.ofs + 4);
       // this.buffer.writeUInt32LE(val.low, this.ofs);
@@ -143,7 +149,7 @@ export namespace Runtime {
     public readChar() {
       const ret = this.buffer.readInt8(this.ofs);
       this.ofs += 1;
-      return ret;
+      return String.fromCharCode(ret);
     }
     public readUint16() {
       const ret = this.buffer.readUInt16LE(this.ofs);
@@ -175,13 +181,13 @@ export namespace Runtime {
       // if (this.buffer.writeBigUInt64BE) {
       //     this.buffer.writeBigUInt64BE(val, this.ofs);
       // } else {
-      return HighLow.fromStream(this);
+      return HighLow.fromStream(this.sbuf);
       // this.buffer.writeUInt32LE(val.high, this.ofs + 4);
       // this.buffer.writeUInt32LE(val.low, this.ofs);
       // }
     }
     public readLong() {
-      return HighLow.fromStream(this);
+      return HighLow.fromStream(this.sbuf);
       // HighLow.toStream(val, this);
       // this.buffer.writeBigInt64LE(val, this.ofs);
       // this.buffer.writeUInt32LE(val.high, this.ofs + 4);
@@ -194,7 +200,7 @@ export namespace Runtime {
       return ret;
     }
   }
-  export class StreamBuffer<T> {
+  export class StreamBuffer {
     public buffers: ChunkBuffer[] = [];
 
     public constructor(u8s: Uint8Array[] = []) {
@@ -207,25 +213,49 @@ export namespace Runtime {
       }, { buf: Buffer.alloc(totalLen), ofs: 0 });
       if (totalLen > 0) {
         // console.log('Read:', totalLen, buf.buf);
-        this.buffers.push(new ChunkBuffer('reader', totalLen, buf.buf, 0));
+        this.buffers.push(new ChunkBuffer('reader', totalLen, this, buf.buf, 0));
       }
     }
-    public async prepareRead(
-      name: string,
-      bytes: number,
-      cb: (wb: ChunkBuffer) => T,
-    ): Promise<T> {
-      const buffer = this.buffers.shift();
-      return cb(buffer);
+
+    public currentWriteChunk(name: string, bytes: number): ChunkBuffer {
+      let lastPos = this.buffers.length - 1;
+      let last: ChunkBuffer;
+      if (lastPos >= 0) {
+        last = this.buffers[lastPos];
+        if (last.ofs + bytes > last.bytes) {
+          // not nice but fast
+          lastPos = -1;
+        }
+      }
+      if (lastPos < 0) {
+        last = new ChunkBuffer(name, bytes, this);
+        this.buffers.push(last);
+      }
+      return last;
     }
 
-    public async prepareWrite(
+    public currentReadChunk(name: string, bytes: number): ChunkBuffer {
+      const c = this.buffers[this.buffers.length - 1];
+      if (c.ofs + bytes > c.bytes) {
+        throw Error(`currentReadChunk: ${name}-${bytes}`);
+      }
+      return c;
+    }
+
+    public prepareRead<T>(
       name: string,
       bytes: number,
       cb: (wb: ChunkBuffer) => T,
-    ): Promise<StreamBuffer<T>> {
-      const buffer = new ChunkBuffer(name, bytes);
-      this.buffers.push(buffer);
+    ): T {
+      return cb(this.currentReadChunk(name, bytes));
+    }
+
+    public prepareWrite<T>(
+      name: string,
+      bytes: number,
+      cb: (wb: ChunkBuffer) => void,
+    ): StreamBuffer {
+      const buffer = this.currentWriteChunk(name, bytes);
       cb(buffer);
       return this;
     }

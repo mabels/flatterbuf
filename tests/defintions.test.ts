@@ -10,12 +10,12 @@ import {
   NestedArrayOfStruct,
 } from './samples';
 
-test('empty type', () => {
-  const fb = Generator.fromString('');
-  expect(fb.js.diagnostics).toEqual([]);
-  expect(fb.js.outputText).toEqual('');
-  expect(() => eval(fb.js.outputText)).not.toThrow();
-});
+// test('empty type', () => {
+//   const fb = Generator.fromString('');
+//   expect(fb.js.diagnostics).toEqual([]);
+//   expect(fb.js.outputText).toEqual('');
+//   expect(() => eval(fb.js.outputText)).not.toThrow();
+// });
 
 Definition.Types.ScalarTypesList.forEach((scalar, len) => {
   test(`simple scalar ${scalar.type}`, () => {
@@ -45,7 +45,7 @@ test('structed of scalar types', () => {
   const my = StructOfScalar();
   // console.log(my);
   expect(my.type).toBe(Definition.Types.Struct.type);
-  expect(my.name).toBe('HansWurst');
+  expect(my.name).toBe('StructOfScalar');
   expect(my.bytes).toBe(Definition.Types.ScalarTypesList.reduce((p, r) => p + r.bytes, 0));
   expect(my.attributes.length).toBe(Definition.Types.ScalarTypesList.length);
   expect(my.attributes.map(i => i.name)).toEqual(
@@ -55,22 +55,31 @@ test('structed of scalar types', () => {
 
 test('struct of nested struct', () => {
   const my = StructOfNestedStruct();
-  expect(my.name).toBe('HansWurst');
-  expect(my.bytes).toBe(1);
-  expect(my.attributes.length).toBe(1);
-  const maxAttribute = my.attributes[0];
+  expect(my.name).toBe('StructOfNestedStruct');
+  expect(my.bytes).toBe(9);
+  expect(my.attributes.length).toBe(2);
+  expect(my.attributes[0].name).toBe('Yu');
+  const maxAttribute = my.attributes[1];
   expect(maxAttribute.name).toBe('Max');
   const buxStruct = maxAttribute.type as Definition.Types.Struct;
   expect(buxStruct.name).toBe('Bux');
-  expect(buxStruct.bytes).toBe(1);
-  expect(buxStruct.attributes.length).toBe(1);
-  expect(buxStruct.attributes[0].name).toBe('Plax');
-  expect(buxStruct.attributes[0].type.type).toBe('Boolean');
+  expect(buxStruct.bytes).toBe(5);
+  expect(buxStruct.attributes.length).toBe(2);
+  expect(buxStruct.attributes[0].name).toBe('Zu');
+  expect(buxStruct.attributes[1].name).toBe('Plax');
+  const wurzStruct = buxStruct.attributes[1].type as Definition.Types.Struct;
+  expect(wurzStruct.type).toBe('Struct');
+  expect(wurzStruct.name).toBe('Wurx');
+  expect(wurzStruct.alignFuncName).toBe('byte');
+  expect(wurzStruct.attributes.length).toBe(1);
+  expect(wurzStruct.attributes[0].name).toBe('Uhu');
+  expect(wurzStruct.attributes[0].ofs).toBe(0);
+  expect(wurzStruct.attributes[0].type.type).toBe('Char');
 });
 
 test('struct of nested array scalar', () => {
   const my = StructOfNestedArrayOfScalar();
-  expect(my.name).toBe('HansWurst');
+  expect(my.name).toBe('StructOfNestedArrayOfScalar');
   expect(my.bytes).toBe(6);
   expect(my.attributes.length).toBe(1);
   expect(my.attributes[0].name).toBe('Bytes');
@@ -81,7 +90,7 @@ test('struct of nested array scalar', () => {
 
 test('struct of nested array struct', () => {
   const my = StructOfNestedArrayOfStruct();
-  expect(my.name).toBe('HansWurst');
+  expect(my.name).toBe('StructOfNestedArrayOfStruct');
   expect(my.bytes).toBe(6);
   expect(my.attributes.length).toBe(1);
   expect(my.attributes[0].name).toBe('Bytes');

@@ -1,41 +1,47 @@
-import { TSGenerator, TSWriter } from '../src/generator/ts';
+import { TSGenerator, TSWriter, TSStructWriter } from '../src/generator/ts';
 import { Definition } from '../src/definition';
 import { Runtime } from '../src/runtime';
-import { StructOfScalar } from './samples';
+import { StructOfScalar, StructOfNestedStruct } from './samples';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as ts from 'typescript';
-import { forStatement } from '@babel/types';
 
 // Definition.Types.ScalarTypesList.forEach(scalar => {
 //   test('TS Generate Scalar', () => {
 
 //   });
 // })
+const TmpId = `${crypto
+  .createHash('sha256')
+  .update(Math.random().toString())
+  .digest('hex')}.tmp`;
+const ProjectRelativ = `./tests/${TmpId}`;
+// console.log(`WTF=>`, projectRelativ);
+fs.mkdirSync(ProjectRelativ);
 
-function transpile(inTs: string) {
-  const js = ts.transpileModule(inTs, {
-    compilerOptions: {
-      module: ts.ModuleKind.CommonJS,
-    },
+const Files: string[] = [];
+
+function transpile(inTss: TSStructWriter[]) {
+  const ret = inTss.forEach(inTs => {
+    // console.log(`transpile =>`, inTss.length, inTs.fname);
+    const js = ts.transpileModule(inTs.toString(), {
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+      },
+    });
+    fs.writeFileSync(`${ProjectRelativ}/${inTs.fname}.js`, js.outputText);
+    Files.push(`${ProjectRelativ}/${inTs.fname}.js`);
+    fs.writeFileSync(`${ProjectRelativ}/${inTs.fname}.ts`, inTs.toString());
+    Files.push(`${ProjectRelativ}/${inTs.fname}.ts`);
   });
-  const fname = `${crypto
-    .createHash('sha256')
-    .update(js.outputText)
-    .digest('hex')}.tmp.js`;
-  const projectRelativ = `./tests/${fname}`;
-  fs.writeFileSync(projectRelativ, js.outputText);
-  const obj = require(`./${fname}`);
-  // console.log(`TS=`, projectRelativ, inTs);
-  fs.unlinkSync(projectRelativ);
-  return obj;
+  return require(`./${TmpId}/${inTss[0].fname}`);
 }
 
-let HansWurst: any;
-const initHansWurst = {
+let HansWurstStructOfScalar: any;
+const initHansWurstStructOfScalar = {
   NameBoolean: true,
   NameUint8: 1,
-  NameChar: 2,
+  NameChar: 'a',
   NameUint16: 3,
   NameShort: 4,
   NameUint32: 5,
@@ -43,23 +49,49 @@ const initHansWurst = {
   NameFloat: 9.9,
   NameUint64: { high: 77, low: 88 },
   NameLong: { high: 99, low: 1111 },
-  NameDouble: 10.10,
+  NameDouble: 10.1,
 };
+
+let HansWurstStructOfNestedStruct: any;
+const initHansWurstStructOfNestedStruct =
+{ Max: { Plax: { Uhu: false } } }
+
 beforeAll(() => {
-  const my = TSGenerator(StructOfScalar(), new TSWriter({ runtimePath: '../src/runtime' }));
-  HansWurst = transpile(my.getTs()).HansWurst;
-  // console.log(my.getTs());
-  // console.log(js.outputText);
-  // const type = eval(js.outputText)
+  {
+    const my = TSGenerator(
+      StructOfScalar(),
+      new TSWriter({
+        runtimePath: '../../src/runtime',
+        definitionPath: '../../src/definition',
+      }),
+    );
+    HansWurstStructOfScalar = transpile(my.getStructs()).StructOfScalar;
+  }
+  {
+    const my = TSGenerator(
+      StructOfNestedStruct(),
+      new TSWriter({
+        runtimePath: '../../src/runtime',
+        definitionPath: '../../src/definition',
+      }),
+    );
+    const structs = my.getStructs();
+    HansWurstStructOfNestedStruct = transpile(structs).StructOfNestedStruct;
+  }
+});
+
+afterAll(() => {
+  Files.forEach(fname => fs.unlinkSync(fname));
+  fs.rmdirSync(ProjectRelativ);
 });
 
 test('test default in create', async () => {
   // create
-  const val = HansWurst.create();
+  const val = HansWurstStructOfScalar.create();
   const init = {
     NameBoolean: false,
     NameUint8: 0,
-    NameChar: 0,
+    NameChar: ' ',
     NameUint16: 0,
     NameShort: 0,
     NameUint32: 0,
@@ -67,114 +99,94 @@ test('test default in create', async () => {
     NameFloat: 0,
     NameUint64: { high: 0, low: 0 },
     NameLong: { high: 0, low: 0 },
-    NameDouble: 0
+    NameDouble: 0,
   };
   expect(typeof val === 'object').toBeTruthy();
   expect(val).toEqual(init);
 });
 
 test('test with value in create', async () => {
-  expect(HansWurst.create(initHansWurst)).toEqual(initHansWurst);
+  expect(HansWurstStructOfScalar.create(initHansWurstStructOfScalar)).toEqual(
+    initHansWurstStructOfScalar,
+  );
 });
 
 test('test reflection', async () => {
   // create
-  const ret = HansWurst.Reflection;
+  const ret = HansWurstStructOfScalar.Reflection;
   expect(ret.prop).toEqual({
+    alignFuncName: "byte",
     attributes: [
       {
-        bytes: 1,
-        initial: false,
         name: 'NameBoolean',
         notRequired: false,
         ofs: 0,
-        type: 'Boolean',
+        type: new Definition.Types.Boolean()
       },
       {
-        bytes: 1,
-        initial: 0,
         name: 'NameUint8',
         notRequired: false,
         ofs: 1,
-        type: 'Uint8',
+        type: new Definition.Types.Uint8()
       },
       {
-        bytes: 1,
-        initial: 0,
         name: 'NameChar',
         notRequired: false,
         ofs: 2,
-        type: 'Char',
+        type: new Definition.Types.Char()
       },
       {
-        bytes: 2,
-        initial: 0,
         name: 'NameUint16',
         notRequired: false,
         ofs: 3,
-        type: 'Uint16',
+        type: new Definition.Types.Uint16()
       },
       {
-        bytes: 2,
-        initial: 0,
         name: 'NameShort',
         notRequired: false,
         ofs: 5,
-        type: 'Short',
+        type: new Definition.Types.Short()
       },
       {
-        bytes: 4,
-        initial: 0,
         name: 'NameUint32',
         notRequired: false,
         ofs: 7,
-        type: 'Uint32',
+        type: new Definition.Types.Uint32()
       },
       {
-        bytes: 4,
-        initial: 0,
         name: 'NameInt',
         notRequired: false,
         ofs: 11,
-        type: 'Int',
+        type: new Definition.Types.Int()
       },
       {
-        bytes: 4,
-        initial: 0,
         name: 'NameFloat',
         notRequired: false,
         ofs: 15,
-        type: 'Float',
+        type: new Definition.Types.Float()
       },
       {
-        bytes: 8,
-        initial: Runtime.HighLow.defaultValue,
         name: 'NameUint64',
         notRequired: false,
         ofs: 19,
-        type: 'Uint64',
+        type: new Definition.Types.Uint64()
       },
       {
-        bytes: 8,
-        initial: Runtime.HighLow.defaultValue,
         name: 'NameLong',
         notRequired: false,
         ofs: 27,
-        type: 'Long',
+        type: new Definition.Types.Long()
       },
       {
-        bytes: 8,
-        initial: 0,
         name: 'NameDouble',
         notRequired: false,
         ofs: 35,
-        type: 'Double',
-      }
+        type: new Definition.Types.Double()
+      },
     ],
     bytes: 43,
-    name: 'HansWurst',
-    notRequired: false,
-    ofs: 0,
+    name: "StructOfScalar",
+    // notRequire: false,
     type: 'Struct',
   });
 });
@@ -183,11 +195,13 @@ test('test reflection', async () => {
 //   fromStream(rb: Runtime.ReadStreamBuffer):
 // })
 
-test('toStream', async () => {
-  const data = HansWurst.create(initHansWurst);
+test('toStream StructOfScalar', async () => {
+  const data = HansWurstStructOfScalar.create(initHansWurstStructOfScalar);
   // console.log(data);
-  const buf = await HansWurst.toStream(data, new Runtime.StreamBuffer());
-  const type = await HansWurst.fromStream(new Runtime.StreamBuffer([buf.asUint8Array()]));
+  const buf = await HansWurstStructOfScalar.toStream(data, new Runtime.StreamBuffer());
+  const type = await HansWurstStructOfScalar.fromStream(
+    new Runtime.StreamBuffer([buf.asUint8Array()]),
+  );
   expect(Math.abs(data.NameFloat - type.NameFloat)).toBeLessThan(0.1);
   data.NameFloat = type.NameFloat;
   expect(Math.abs(data.NameDouble - type.NameDouble)).toBeLessThan(0.1);
@@ -196,6 +210,16 @@ test('toStream', async () => {
   expect(data).toEqual(type);
 });
 
+test('toStream StructOfNestStructOfScalar', async () => {
+  const data = HansWurstStructOfNestedStruct.create(initHansWurstStructOfNestedStruct);
+  // console.log(data);
+  const buf = await HansWurstStructOfNestedStruct.toStream(data, new Runtime.StreamBuffer());
+  const type = await HansWurstStructOfNestedStruct.fromStream(
+    new Runtime.StreamBuffer([buf.asUint8Array()]),
+  );
+  expect(data).toEqual(type);
+  // console.log(data);
+});
 // test('toStream', async () => {
 //   const data = HansWurst.create();
 //   console.log(data);
