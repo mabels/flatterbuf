@@ -48,7 +48,7 @@ export function typeDefinition(t: Definition.Types.Type): string {
       return 'number';
     case Definition.Types.Uint64.type:
     case Definition.Types.Long.type:
-      return 'Runtime.HighLow.Type';
+      return 'Runtime.Types.HighLow.Type';
     case Definition.Types.Struct.type:
       return `${(t as Definition.Types.Struct).name}.Type`;
     case Definition.Types.FixedArray.type:
@@ -102,7 +102,7 @@ function initialValue(wr: TSWriter, def: Definition.Types.Type): string {
       return (def as Definition.Types.ScalarType<number>).initial.toString();
     case Definition.Types.Uint64.type:
     case Definition.Types.Long.type:
-      const hl = (def as Definition.Types.ScalarType<Runtime.HighLow.Type>).initial;
+      const hl = (def as Definition.Types.ScalarType<Runtime.Types.HighLow.Type>).initial;
       return `{ high: ${hl.high}, low: ${hl.low} }`;
     case Definition.Types.Struct.type:
     case Definition.Types.FixedArray.type:
@@ -190,7 +190,7 @@ export class TSStructWriter {
       case Definition.Types.Long.type:
         {
           const val = { high: 0, low: 0 };
-          const sdef = (attr as Definition.Types.ScalarType<Runtime.HighLow.Type>).initial;
+          const sdef = (attr as Definition.Types.ScalarType<Runtime.Types.HighLow.Type>).initial;
           if (sdef && typeof sdef.high) {
             val.high = sdef.high;
           }
@@ -227,12 +227,8 @@ export class TSStructWriter {
     }
     if (Definition.Types.isFixedArray(def)) {
       const adef = def as Definition.Types.FixedArray;
-      throw Error('need');
-      // const m = new TSImport({
-      //   fname: `${wr.args.generationPath}/${adef.}`,
-      //   adef.element.type
-      // });
-      // this.imports.set(m.name, m);
+      this.addTypeReference(wr, adef.element);
+      return;
     }
     if (Definition.Types.isStruct(def)) {
       const sdef = def as Definition.Types.Struct;
@@ -268,44 +264,57 @@ export class TSStructWriter {
     this.wl.writeLine(2, ']');
     this.wl.writeLine(1, '}));');
   }
+  public createType(level: number, wr: TSWriter, aname: string, type: Definition.Types.Type): string {
+    switch (type.type) {
+      case Definition.Types.Boolean.type:
+      case Definition.Types.Char.type:
+      case Definition.Types.Uint8.type:
+      case Definition.Types.Uint16.type:
+      case Definition.Types.Short.type:
+      case Definition.Types.Uint32.type:
+      case Definition.Types.Int.type:
+      case Definition.Types.Float.type:
+      case Definition.Types.Double.type:
+        return `typeof ${aname} === ${wr.quote(typeDefinition(type))} ? ${aname} : ${initialValue(wr, type)}`;
+      case Definition.Types.Uint64.type:
+      case Definition.Types.Long.type:
+        return `Runtime.Types.HighLow.create(${aname})`;
+      case Definition.Types.Struct.type:
+        const sdef = type as Definition.Types.Struct;
+        return `${sdef.name}.create(${aname})`;
+      case Definition.Types.FixedArray.type:
+        const adef = type as Definition.Types.FixedArray;
+        return `Runtime.Types.FixedArray.create(${adef.length}, (idx${level}) => ${this.createType(level + 1, wr, `(${aname} || [])[idx${level}]`, adef.element)})`;
+      default:
+        throw Error(`writeReflection failed for: ${type}`);
+    }
+  }
   writeCreateFunction(wr: TSWriter) {
     this.wl.writeLine(1, 'export function create(args: Partial<Type> = {}): Type {');
     this.wl.writeLine(2, 'return {');
     this.def.attributes.forEach(i => {
-      const adef = i.name;
-      switch (i.type.type) {
-        case Definition.Types.Boolean.type:
-        case Definition.Types.Char.type:
-        case Definition.Types.Uint8.type:
-        case Definition.Types.Uint16.type:
-        case Definition.Types.Short.type:
-        case Definition.Types.Uint32.type:
-        case Definition.Types.Int.type:
-        case Definition.Types.Float.type:
-        case Definition.Types.Double.type:
-          this.wl.writeLine(
-            3,
-            `${adef}: typeof args.${adef} === '${typeDefinition(
-              i.type,
-            )}' ? args.${adef} : ${initialValue(wr, i.type)},`,
-          );
-          break;
-        case Definition.Types.Uint64.type:
-        case Definition.Types.Long.type:
-          this.wl.writeLine(3, `${adef}: Runtime.HighLow.create(args.${adef}),`);
-          break;
-        case Definition.Types.Struct.type:
-          const sdef = i.type as Definition.Types.Struct;
-          this.wl.writeLine(3, `${adef}: ${sdef.name}.create(args.${adef})`);
-          this.addTypeReference(wr, sdef);
-          break;
-        case Definition.Types.FixedArray.type:
-        default:
-          throw Error(`writeReflection failed for: ${i.type}`);
+      const aname = i.name;
+      this.wl.writeLine(3, `${aname}: ${this.createType(0, wr, `args.${aname}`, i.type)},`);
+      if (Definition.Types.isStruct(i.type)) {
+        this.addTypeReference(wr, i.type);
       }
     });
     this.wl.writeLine(2, '};');
     this.wl.writeLine(1, '}');
+  }
+
+  fromStreamAction(level: number, wr: TSWriter, type: Definition.Types.Type): string {
+    switch (Definition.Types.toAttributeType(type)) {
+      case Definition.Types.AttributeType.Scalar:
+        return `nrb.read${type.type}()`
+      case Definition.Types.AttributeType.Struct:
+        const sdef = type as Definition.Types.Struct;
+        return `${sdef.name}.fromStream(nrb.sbuf)`;
+      case Definition.Types.AttributeType.FixedArray:
+        const adef = type as Definition.Types.FixedArray;
+        return `Runtime.Types.FixedArray.fromStream(${adef.length}, (idx${level}) => ${this.fromStreamAction(level+1, wr, adef.element)})`;
+    }
+    // throw Error(`fromStreamAction: ${type.type}`);
   }
 
   writeFromStream(wr: TSWriter) {
@@ -315,21 +324,25 @@ export class TSStructWriter {
     );
     this.wl.writeLine(2, `return rb.prepareRead(${wr.quote(this.def.name)}, ${this.def.bytes}, (nrb) => ({`);
     this.def.attributes.forEach(i => {
-      switch (Definition.Types.toAttributeType(i.type)) {
-        case Definition.Types.AttributeType.Scalar:
-          this.wl.writeLine(3, `${i.name}: nrb.read${i.type.type}(),`);
-          break;
-        case Definition.Types.AttributeType.Struct:
-          const sdef = i.type as Definition.Types.Struct;
-          this.wl.writeLine(3, `${i.name}: ${sdef.name}.fromStream(nrb.sbuf),`);
-          break;
-        case Definition.Types.AttributeType.FixedArray:
-          throw Error('rotodoewfjrw');
-          break;
-      }
+      this.wl.writeLine(3, `${i.name}: ${this.fromStreamAction(0, wr, i.type)},`);
     });
     this.wl.writeLine(2, '}));');
     this.wl.writeLine(1, '}');
+  }
+
+  toStreamAction(level: number, wr: TSWriter, aname: string, type: Definition.Types.Type): string {
+    switch (Definition.Types.toAttributeType(type)) {
+      case Definition.Types.AttributeType.Scalar:
+        return `nwb.write${type.type}(${aname})`
+      case Definition.Types.AttributeType.Struct:
+        const sdef = type as Definition.Types.Struct;
+        return `${sdef.name}.toStream(${aname}, nwb.sbuf)`;
+        break;
+      case Definition.Types.AttributeType.FixedArray:
+        const adef = type as Definition.Types.FixedArray;
+        return `Runtime.Types.FixedArray.toStream(${adef.length}, (idx${level}) => ${this.toStreamAction(level+1, wr, `(${aname} || [])[idx${level}]`, adef.element)})`;
+    }
+    // throw Error(`fromStreamAction: ${type.type}`);
   }
 
   writeToStream(wr: TSWriter) {
@@ -337,20 +350,8 @@ export class TSStructWriter {
     this.wl.writeLine(2, 'wb: Runtime.StreamBuffer): Runtime.StreamBuffer {');
     this.wl.writeLine(2, `return wb.prepareWrite(${wr.quote(this.def.name)}, ${this.def.bytes}, (nwb) => {`);
     this.wl.writeLine(3, 'const tmp = create(data);');
-    // this.wl.writeLine(3, 'console.log(tmp, data);');
     this.def.attributes.forEach(i => {
-      switch (Definition.Types.toAttributeType(i.type)) {
-        case Definition.Types.AttributeType.Scalar:
-          this.wl.writeLine(3, `nwb.write${i.type.type}(tmp.${i.name});`);
-          break;
-        case Definition.Types.AttributeType.Struct:
-          const sdef = i.type as Definition.Types.Struct;
-          this.wl.writeLine(3, `${sdef.name}.toStream(tmp.${i.name}, nwb.sbuf);`);
-          break;
-        case Definition.Types.AttributeType.FixedArray:
-          throw Error('rotodoewfjrw');
-          break;
-      }
+      this.wl.writeLine(3, this.toStreamAction(0, wr, `tmp.${i.name}`, i.type) + ';');
     });
     this.wl.writeLine(2, '});');
     this.wl.writeLine(1, '}');

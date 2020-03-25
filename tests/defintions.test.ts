@@ -3,11 +3,8 @@ import { Definition } from '../src/definition';
 import {
   FixArrayOfScalarType,
   FixArrayOfFixArrayScalarType,
-  StructOfScalar,
-  StructOfNestedStruct,
-  StructOfNestedArrayOfScalar,
-  StructOfNestedArrayOfStruct,
-  NestedArrayOfStruct,
+  Samples,
+  NestedArrayOfStruct
 } from './samples';
 
 // test('empty type', () => {
@@ -42,7 +39,7 @@ test(`nested arrays of scalar`, () => {
 });
 
 test('structed of scalar types', () => {
-  const my = StructOfScalar();
+  const my = Samples.StructOfScalar.Type;
   // console.log(my);
   expect(my.type).toBe(Definition.Types.Struct.type);
   expect(my.name).toBe('StructOfScalar');
@@ -54,7 +51,7 @@ test('structed of scalar types', () => {
 });
 
 test('struct of nested struct', () => {
-  const my = StructOfNestedStruct();
+  const my = Samples.StructOfNestedStruct.Type;
   expect(my.name).toBe('StructOfNestedStruct');
   expect(my.bytes).toBe(9);
   expect(my.attributes.length).toBe(2);
@@ -78,30 +75,44 @@ test('struct of nested struct', () => {
 });
 
 test('struct of nested array scalar', () => {
-  const my = StructOfNestedArrayOfScalar();
+  const my = Samples.StructOfNestedArrayOfScalar.Type;
   expect(my.name).toBe('StructOfNestedArrayOfScalar');
-  expect(my.bytes).toBe(6);
-  expect(my.attributes.length).toBe(1);
-  expect(my.attributes[0].name).toBe('Bytes');
+  expect(my.bytes).toBe(231);
+  expect(my.attributes.length).toBe(2);
+  expect(my.attributes[0].name).toBe('Nested');
   expect(my.attributes[0].type.type).toBe('FixedArray');
   const arrayType = my.attributes[0].type as Definition.Types.FixedArray;
-  expect(arrayType.element.type).toBe('Boolean');
+  expect(arrayType.length).toBe(17);
+  expect(arrayType.element.type).toBe('FixedArray');
+  const arrayType1 = arrayType.element as Definition.Types.FixedArray;
+  expect(arrayType1.length).toBe(13);
+  expect(my.attributes[1].name).toBe('Flat');
+  const arrayType2 = my.attributes[1].type as Definition.Types.FixedArray;
+  expect(arrayType2.length).toBe(10);
+  expect(arrayType2.element.type).toBe('Char');
 });
 
 test('struct of nested array struct', () => {
-  const my = StructOfNestedArrayOfStruct();
+  const my = Samples.StructOfNestedArrayOfStruct.Type;
   expect(my.name).toBe('StructOfNestedArrayOfStruct');
-  expect(my.bytes).toBe(6);
-  expect(my.attributes.length).toBe(1);
-  expect(my.attributes[0].name).toBe('Bytes');
+  expect(my.bytes).toBe(5160);
+  expect(my.attributes.length).toBe(2);
+  expect(my.attributes[0].name).toBe('Nested');
   expect(my.attributes[0].type.type).toBe('FixedArray');
-  const arrayType = my.attributes[0].type as Definition.Types.FixedArray;
-  expect(arrayType.element.type).toBe('Struct');
+  const arrayType0 = my.attributes[0].type as Definition.Types.FixedArray;
+  expect(arrayType0.element.type).toBe('FixedArray');
+  const arrayType = arrayType0.element as Definition.Types.FixedArray;
+  expect(arrayType.length).toBe(11);
   const structType = arrayType.element as Definition.Types.Struct;
-  expect(structType.name).toBe('Bluchs');
-  expect(structType.attributes.length).toBe(1);
+  expect(structType.name).toBe('StructOfScalar');
+  expect(structType.attributes.length).toBe(11);
   expect(structType.attributes[0].type.bytes).toBe(1);
   expect(structType.attributes[0].type.type).toBe('Boolean');
+  expect(my.attributes[1].name).toBe('Flat');
+  const arrayType1 = my.attributes[1].type as Definition.Types.FixedArray;
+  expect(arrayType1.type).toBe('FixedArray')
+  expect(arrayType1.length).toBe(10);
+  expect(arrayType1.element.type).toBe('Struct');
 });
 
 test('nested arrays of structed', () => {

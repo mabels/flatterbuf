@@ -159,26 +159,26 @@ export namespace Definition {
         this.initial = ~~arg.initial;
       }
     }
-    export class Uint64 implements ScalarType<Runtime.HighLow.Type> {
+    export class Uint64 implements ScalarType<Runtime.Types.HighLow.Type> {
       public static readonly type: TypeName = 'Uint64';
       public readonly type = Uint64.type;
       public static readonly bytes = 8;
       public readonly bytes = Uint64.bytes;
       // public readonly notRequire: boolean;
-      public readonly initial: Runtime.HighLow.Type;
-      public constructor(arg: ScalarTypeArg<Runtime.HighLow.Type> = { initial: Runtime.HighLow.defaultValue }) {
-        this.initial = Runtime.HighLow.create(arg.initial);
+      public readonly initial: Runtime.Types.HighLow.Type;
+      public constructor(arg: ScalarTypeArg<Runtime.Types.HighLow.Type> = { initial: Runtime.Types.HighLow.defaultValue }) {
+        this.initial = Runtime.Types.HighLow.create(arg.initial);
       }
     }
-    export class Long implements ScalarType<Runtime.HighLow.Type> {
+    export class Long implements ScalarType<Runtime.Types.HighLow.Type> {
       public static readonly type: TypeName = 'Long';
       public readonly type = Long.type;
       public static readonly bytes = 8;
       public readonly bytes = Long.bytes;
       // public readonly notRequire: boolean;
-      public readonly initial: Runtime.HighLow.Type;
-      public constructor(arg: ScalarTypeArg<Runtime.HighLow.Type> = { initial: Runtime.HighLow.defaultValue }) {
-        this.initial = Runtime.HighLow.create(arg.initial)
+      public readonly initial: Runtime.Types.HighLow.Type;
+      public constructor(arg: ScalarTypeArg<Runtime.Types.HighLow.Type> = { initial: Runtime.Types.HighLow.defaultValue }) {
+        this.initial = Runtime.Types.HighLow.create(arg.initial)
       }
     }
     export class Double implements ScalarType<number> {

@@ -1,4 +1,3 @@
-import { create } from 'domain';
 import { Definition } from '../definition';
 
 export namespace Runtime {
@@ -38,33 +37,57 @@ export namespace Runtime {
   //   readUint(): Promise<number>;
   //   readInt64(): Promise<BigInt>;
   // }
-
-  export namespace HighLow {
-    export interface Type {
-      readonly high: number;
-      readonly low: number;
-    }
-    export function create(data: Partial<Type> = { high: 0, low: 0 }): Type {
-      return {
-        high: data && typeof data.high === 'number' ? data.high : 0,
-        low: data && typeof data.low === 'number' ? data.low : 0,
-      };
-    }
-    export const defaultValue = create();
-    export function toStream(
-      data: Partial<Type>,
-      wb: StreamBuffer
-    ) {
+  export namespace Types {
+    export namespace HighLow {
+      export interface Type {
+        readonly high: number;
+        readonly low: number;
+      }
+      export function create(data: Partial<Type> = { high: 0, low: 0 }): Type {
+        return {
+          high: data && typeof data.high === 'number' ? data.high : 0,
+          low: data && typeof data.low === 'number' ? data.low : 0,
+        };
+      }
+      export const defaultValue = create();
+      export function toStream(data: Partial<Type>, wb: StreamBuffer) {
         const hl = create(data);
         const c = wb.currentWriteChunk('HighLow', 8);
         c.writeUint32(hl.low);
         c.writeUint32(hl.high);
+      }
+      export function fromStream(wb: StreamBuffer) {
+        const c = wb.currentReadChunk('HighLow', 8);
+        return {
+          low: c.readUint32(),
+          high: c.readUint32(),
+        };
+      }
     }
-    export function fromStream(wb: StreamBuffer) {
-      const c = wb.currentReadChunk('HighLow', 8);
-      return {
-        low: c.readUint32(),
-        high: c.readUint32()
+    export namespace FixedArray {
+      // export type Type = []
+      export type Factory<T> = (idx: number) => T;
+
+      export function create<T>(length: number, val: Factory<T>): T[] {
+        const ret = Array(length);
+        for (let i = 0; i < length; ++i) {
+          ret[i] = val(i);
+        }
+        return ret;
+      }
+
+      export function toStream<T>(length: number, wbf: Factory<T>) {
+        for (let i = 0; i < length; ++i) {
+          wbf(i)
+        }
+      }
+
+      export function fromStream<T>(length: number, rb: Factory<T>): T[] {
+        const ret = Array<T>(length);
+        for (let i = 0; i < length; ++i) {
+          ret[i] = rb(i);
+        }
+        return ret;
       }
     }
   }
@@ -88,6 +111,7 @@ export namespace Runtime {
       this.ofs += 1;
     }
     public writeChar(val: string) {
+      // console.log(`writeChar:[${val}]:${val.charCodeAt(0)}`);
       this.buffer.writeInt8(val.charCodeAt(0), this.ofs);
       this.ofs += 1;
     }
@@ -112,27 +136,27 @@ export namespace Runtime {
       this.buffer.writeFloatLE(val, this.ofs);
       this.ofs += 4;
     }
-    public writeUint64(val: HighLow.Type) {
+    public writeUint64(val: Types.HighLow.Type) {
       // if (this.buffer.writeBigUInt64BE) {
       //     this.buffer.writeBigUInt64BE(val, this.ofs);
       // } else {
       // const my = this.ofs;
-      HighLow.toStream(val, this.sbuf);
+      Types.HighLow.toStream(val, this.sbuf);
       // console.log(`OFS`, my, this.ofs);
       // this.buffer.writeUInt32LE(val.high, this.ofs + 4);
       // this.buffer.writeUInt32LE(val.low, this.ofs);
       // }
       // this.ofs += 8;
     }
-    public writeLong(val: HighLow.Type) {
-      HighLow.toStream(val, this.sbuf);
+    public writeLong(val: Types.HighLow.Type) {
+      Types.HighLow.toStream(val, this.sbuf);
       // this.buffer.writeBigInt64LE(val, this.ofs);
       // this.buffer.writeUInt32LE(val.high, this.ofs + 4);
       // this.buffer.writeUInt32LE(val.low, this.ofs);
       // this.ofs += 8;
     }
     public writeDouble(val: number) {
-      this.buffer.writeDoubleLE(~~val, this.ofs);
+      this.buffer.writeDoubleLE(val, this.ofs);
       this.ofs += 8;
     }
 
@@ -149,6 +173,7 @@ export namespace Runtime {
     public readChar() {
       const ret = this.buffer.readInt8(this.ofs);
       this.ofs += 1;
+      // console.log(`readChar:${ret}:[${String.fromCharCode(ret)}]`);
       return String.fromCharCode(ret);
     }
     public readUint16() {
@@ -181,13 +206,13 @@ export namespace Runtime {
       // if (this.buffer.writeBigUInt64BE) {
       //     this.buffer.writeBigUInt64BE(val, this.ofs);
       // } else {
-      return HighLow.fromStream(this.sbuf);
+      return Types.HighLow.fromStream(this.sbuf);
       // this.buffer.writeUInt32LE(val.high, this.ofs + 4);
       // this.buffer.writeUInt32LE(val.low, this.ofs);
       // }
     }
     public readLong() {
-      return HighLow.fromStream(this.sbuf);
+      return Types.HighLow.fromStream(this.sbuf);
       // HighLow.toStream(val, this);
       // this.buffer.writeBigInt64LE(val, this.ofs);
       // this.buffer.writeUInt32LE(val.high, this.ofs + 4);
@@ -205,12 +230,15 @@ export namespace Runtime {
 
     public constructor(u8s: Uint8Array[] = []) {
       const totalLen = u8s.reduce((r, u8) => r + u8.length, 0);
-      const buf = u8s.reduce((b, u8) => {
-        // console.log(b.ofs, u8);
-        b.buf.set(u8, b.ofs);
-        b.ofs += u8.length;
-        return b;
-      }, { buf: Buffer.alloc(totalLen), ofs: 0 });
+      const buf = u8s.reduce(
+        (b, u8) => {
+          // console.log(b.ofs, u8);
+          b.buf.set(u8, b.ofs);
+          b.ofs += u8.length;
+          return b;
+        },
+        { buf: Buffer.alloc(totalLen), ofs: 0 },
+      );
       if (totalLen > 0) {
         // console.log('Read:', totalLen, buf.buf);
         this.buffers.push(new ChunkBuffer('reader', totalLen, this, buf.buf, 0));
@@ -242,11 +270,7 @@ export namespace Runtime {
       return c;
     }
 
-    public prepareRead<T>(
-      name: string,
-      bytes: number,
-      cb: (wb: ChunkBuffer) => T,
-    ): T {
+    public prepareRead<T>(name: string, bytes: number, cb: (wb: ChunkBuffer) => T): T {
       return cb(this.currentReadChunk(name, bytes));
     }
 
@@ -269,7 +293,6 @@ export namespace Runtime {
       }, 0);
       return out;
     }
-
   }
 
   //   export function Resolver<T, O>(name: string, val: T, bs: ReadStreamBuffer, cb: () => Promise<O>): Promise<O> {
