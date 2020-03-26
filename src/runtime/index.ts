@@ -1,52 +1,20 @@
 import { Definition } from '../definition';
 
 export namespace Runtime {
-  // export enum ReflectionType {
-  //   Struct,
-  //   Ushort,
-  //   Uchar,
-  //   Uint,
-  //   ULong,
-  //   Float,
-  //   Double,
-  //   Int64,
-  //   Vector,
-  // }
-  // export interface ReflectionAttribute<T = unknown> {
-  //   readonly name: string;
-  //   readonly type: Definition.Types.TypeName;
-  //   readonly ofs: number;
-  //   readonly bytes: number;
-  //   readonly notRequired: boolean;
-  //   readonly elements?: number;
-  //   readonly element?: ReflectionAttribute<T>;
-  //   readonly initial?: T;
-  // }
-  // export interface ReflectionProps {
-  //   self: ReflectionAttribute;
-  //   attributes: ReflectionAttribute[];
-  // }
   export class Reflection {
     constructor(public readonly prop: Definition.Types.Struct) {}
   }
 
-  // export interface ReadStreamBuffer {
-  //   readUshort(): Promise<number>;
-  //   readFloat(): Promise<number>;
-  //   readUchar(): Promise<number>;
-  //   readUint(): Promise<number>;
-  //   readInt64(): Promise<BigInt>;
-  // }
   export namespace Types {
     export namespace HighLow {
       export interface Type {
         readonly high: number;
         readonly low: number;
       }
-      export function create(data: Partial<Type> = { high: 0, low: 0 }): Type {
+      export function create(data?: Partial<Type>, def: Type = { high: 0, low: 0 }): Type {
         return {
-          high: data && typeof data.high === 'number' ? data.high : 0,
-          low: data && typeof data.low === 'number' ? data.low : 0,
+          high: data && typeof data.high === 'number' ? data.high : def.high,
+          low: data && typeof data.low === 'number' ? data.low : def.low,
         };
       }
       export const defaultValue = create();
@@ -78,7 +46,7 @@ export namespace Runtime {
 
       export function toStream<T>(length: number, wbf: Factory<T>) {
         for (let i = 0; i < length; ++i) {
-          wbf(i)
+          wbf(i);
         }
       }
 
@@ -88,6 +56,17 @@ export namespace Runtime {
           ret[i] = rb(i);
         }
         return ret;
+      }
+    }
+    export namespace Char {
+      export function create(data?: string | number, def = 0): number {
+        if (typeof data === 'string') {
+          return data.charCodeAt(0) || 0;
+        }
+        if (typeof data === 'number') {
+          return ~~data;
+        }
+        return def;
       }
     }
   }
@@ -110,10 +89,8 @@ export namespace Runtime {
       this.buffer.writeUInt8(~~val, this.ofs);
       this.ofs += 1;
     }
-    public writeChar(val: string) {
-      // console.log(`writeChar:[${val}]:${val.charCodeAt(0)}`);
-      this.buffer.writeInt8(val.charCodeAt(0), this.ofs);
-      this.ofs += 1;
+    public writeChar(val: number) {
+      this.writeUint8(val);
     }
     public writeUint16(val: number) {
       this.buffer.writeUInt16LE(val, this.ofs);
@@ -137,24 +114,13 @@ export namespace Runtime {
       this.ofs += 4;
     }
     public writeUint64(val: Types.HighLow.Type) {
-      // if (this.buffer.writeBigUInt64BE) {
-      //     this.buffer.writeBigUInt64BE(val, this.ofs);
-      // } else {
-      // const my = this.ofs;
       Types.HighLow.toStream(val, this.sbuf);
-      // console.log(`OFS`, my, this.ofs);
-      // this.buffer.writeUInt32LE(val.high, this.ofs + 4);
-      // this.buffer.writeUInt32LE(val.low, this.ofs);
-      // }
-      // this.ofs += 8;
     }
+
     public writeLong(val: Types.HighLow.Type) {
       Types.HighLow.toStream(val, this.sbuf);
-      // this.buffer.writeBigInt64LE(val, this.ofs);
-      // this.buffer.writeUInt32LE(val.high, this.ofs + 4);
-      // this.buffer.writeUInt32LE(val.low, this.ofs);
-      // this.ofs += 8;
     }
+
     public writeDouble(val: number) {
       this.buffer.writeDoubleLE(val, this.ofs);
       this.ofs += 8;
@@ -171,10 +137,7 @@ export namespace Runtime {
       return ret;
     }
     public readChar() {
-      const ret = this.buffer.readInt8(this.ofs);
-      this.ofs += 1;
-      // console.log(`readChar:${ret}:[${String.fromCharCode(ret)}]`);
-      return String.fromCharCode(ret);
+      return this.readUint8();
     }
     public readUint16() {
       const ret = this.buffer.readUInt16LE(this.ofs);
@@ -203,21 +166,10 @@ export namespace Runtime {
       return ret;
     }
     public readUint64() {
-      // if (this.buffer.writeBigUInt64BE) {
-      //     this.buffer.writeBigUInt64BE(val, this.ofs);
-      // } else {
       return Types.HighLow.fromStream(this.sbuf);
-      // this.buffer.writeUInt32LE(val.high, this.ofs + 4);
-      // this.buffer.writeUInt32LE(val.low, this.ofs);
-      // }
     }
     public readLong() {
       return Types.HighLow.fromStream(this.sbuf);
-      // HighLow.toStream(val, this);
-      // this.buffer.writeBigInt64LE(val, this.ofs);
-      // this.buffer.writeUInt32LE(val.high, this.ofs + 4);
-      // this.buffer.writeUInt32LE(val.low, this.ofs);
-      // this.ofs += 8;
     }
     public readDouble() {
       const ret = this.buffer.readDoubleLE(this.ofs);
@@ -294,27 +246,4 @@ export namespace Runtime {
       return out;
     }
   }
-
-  //   export function Resolver<T, O>(name: string, val: T, bs: ReadStreamBuffer, cb: () => Promise<O>): Promise<O> {
-  //     return cb();
-  //   }
-
-  //   export function Intercept<T>(name: string, val: T, bs: WriteStreamBuffer, cb: () => Promise<unknown>): Promise<unknown> {
-  //     return cb();
-  //   }
-
-  //   export function ReadArrayFn<T>(len: number, dst: T[], cb: () => Promise<T>): () => Promise<unknown> {
-  //     return () => {
-  //       const ps = Array(len).fill(undefined).map(async (_, idx) => dst[idx] = await cb());
-  //       return Promise.all(ps)
-  //     }
-  //   }
-
-  //   export type TypedArrays = Uint8Array|Uint16Array|Uint32Array;
-  //   export function ReadTypedArrayFn(len: number, dst: TypedArrays, cb: () => Promise<number>): () => Promise<unknown> {
-  //     return () => {
-  //       const ps = Array(len).fill(undefined).map(async (_, idx) => dst[idx] = await cb());
-  //       return Promise.all(ps)
-  //     }
-  //   }
 }

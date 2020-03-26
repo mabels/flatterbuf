@@ -4,7 +4,7 @@ import { Runtime } from '../runtime';
 import { wrap } from 'module';
 
 export class TSWriteLine {
-  readonly lines: string[] = [];
+  private readonly lines: string[] = [];
 
   public prependLine(i: number, line: string) {
     this.action(i, line + '\n', Array.prototype.unshift);
@@ -37,7 +37,6 @@ export function typeDefinition(t: Definition.Types.Type): string {
     case Definition.Types.Boolean.type:
       return 'boolean';
     case Definition.Types.Char.type:
-      return 'string';
     case Definition.Types.Uint8.type:
     case Definition.Types.Uint16.type:
     case Definition.Types.Short.type:
@@ -62,36 +61,11 @@ export function attributeDefinition(def: Definition.Types.StructAttributeOfs) {
   return def.name + (def.notRequired ? '?' : '');
 }
 
-// export function scalar2default(t: Definition.Types.ScalarType<unknown>): string {
-//   switch (t.type) {
-//     case Definition.Types.Boolean.type:
-//       return t.initial ? 'true' : 'false';
-//     case Definition.Types.Char.type:
-//       return ' ';
-//     case Definition.Types.Uint8.type:
-//     case Definition.Types.Uint16.type:
-//     case Definition.Types.Short.type:
-//     case Definition.Types.Uint32.type:
-//     case Definition.Types.Int.type:
-//     case Definition.Types.Float.type:
-//     case Definition.Types.Double.type:
-//       return '' + ~~t.initial;
-//     case Definition.Types.Uint64.type:
-//     case Definition.Types.Long.type:
-//       return '{ high: 0, low: 0 }';
-//     default:
-//       throw Error(`Scalar2Ts failed for: ${t.type}`);
-//   }
-// }
-
 function initialValue(wr: TSWriter, def: Definition.Types.Type): string {
   switch (def.type) {
     case Definition.Types.Boolean.type:
       return (def as Definition.Types.ScalarType<boolean>).initial.toString();
-      break;
     case Definition.Types.Char.type:
-      return wr.quote((def as Definition.Types.ScalarType<string>).initial);
-      break;
     case Definition.Types.Uint8.type:
     case Definition.Types.Uint16.type:
     case Definition.Types.Short.type:
@@ -112,12 +86,12 @@ function initialValue(wr: TSWriter, def: Definition.Types.Type): string {
 }
 
 export class TSStructWriter {
-  readonly wl = new TSWriteLine();
+  private readonly wl = new TSWriteLine();
   public readonly fname: string;
 
   private written = false; // SideEffect not moderated
 
-  readonly imports = new Map<string, TSImport>();
+  private readonly imports = new Map<string, TSImport>();
 
   constructor(
     public readonly def: Definition.Types.Struct,
@@ -171,10 +145,6 @@ export class TSStructWriter {
         wl.write(ident + 1, `})`);
         break;
       case Definition.Types.Char.type:
-        wl.writeLine(0, `new Definition.Types.Char({`);
-        wl.writeLine(ident + 2, `initial: ${wr.quote((attr as Definition.Types.ScalarType<string>).initial)}`);
-        wl.write(ident + 1, `})`);
-        break;
       case Definition.Types.Uint8.type:
       case Definition.Types.Uint16.type:
       case Definition.Types.Short.type:
@@ -203,9 +173,11 @@ export class TSStructWriter {
         }
         break;
       case Definition.Types.Struct.type:
-        const sdef = attr as Definition.Types.Struct;
-        this.addTypeReference(wr, sdef);
-        wl.writeLine(ident + 1, `${sdef.name}.Reflection.prop`);
+        {
+          const sdef = attr as Definition.Types.Struct;
+          this.addTypeReference(wr, sdef);
+          wl.writeLine(ident + 1, `${sdef.name}.Reflection.prop`);
+        }
         break;
       case Definition.Types.FixedArray.type:
         const adef = attr as Definition.Types.FixedArray;
@@ -241,7 +213,7 @@ export class TSStructWriter {
     throw Error(`addTypeReferenced for unknown type:${def.type}`);
   }
 
-  writeInterface(wr: TSWriter) {
+  public writeInterface(wr: TSWriter) {
     this.wl.writeLine(1, `export interface Type {`);
     this.def.attributes.forEach(i => {
       this.addTypeReference(wr, i.type);
@@ -250,7 +222,7 @@ export class TSStructWriter {
     this.wl.writeLine(1, '}');
   }
 
-  writeReflection(wr: TSWriter) {
+  public writeReflection(wr: TSWriter) {
     this.wl.writeLine(1, `export const Reflection = new Runtime.Reflection(new Definition.Types.Struct({`);
     this.wl.writeLine(2, `name: ${wr.quote(this.def.name)},`);
     this.wl.writeLine(2, `alignFuncName: ${wr.quote(this.def.alignFuncName)},`);
@@ -266,8 +238,9 @@ export class TSStructWriter {
   }
   public createType(level: number, wr: TSWriter, aname: string, type: Definition.Types.Type): string {
     switch (type.type) {
-      case Definition.Types.Boolean.type:
       case Definition.Types.Char.type:
+        return `Runtime.Types.Char.create(${aname}, ${initialValue(wr, type)})`;
+      case Definition.Types.Boolean.type:
       case Definition.Types.Uint8.type:
       case Definition.Types.Uint16.type:
       case Definition.Types.Short.type:
@@ -278,7 +251,7 @@ export class TSStructWriter {
         return `typeof ${aname} === ${wr.quote(typeDefinition(type))} ? ${aname} : ${initialValue(wr, type)}`;
       case Definition.Types.Uint64.type:
       case Definition.Types.Long.type:
-        return `Runtime.Types.HighLow.create(${aname})`;
+        return `Runtime.Types.HighLow.create(${aname}, ${initialValue(wr, type)})`;
       case Definition.Types.Struct.type:
         const sdef = type as Definition.Types.Struct;
         return `${sdef.name}.create(${aname})`;
@@ -289,7 +262,7 @@ export class TSStructWriter {
         throw Error(`writeReflection failed for: ${type}`);
     }
   }
-  writeCreateFunction(wr: TSWriter) {
+  public writeCreateFunction(wr: TSWriter) {
     this.wl.writeLine(1, 'export function create(args: Partial<Type> = {}): Type {');
     this.wl.writeLine(2, 'return {');
     this.def.attributes.forEach(i => {
@@ -303,7 +276,7 @@ export class TSStructWriter {
     this.wl.writeLine(1, '}');
   }
 
-  fromStreamAction(level: number, wr: TSWriter, type: Definition.Types.Type): string {
+  public fromStreamAction(level: number, wr: TSWriter, type: Definition.Types.Type): string {
     switch (Definition.Types.toAttributeType(type)) {
       case Definition.Types.AttributeType.Scalar:
         return `nrb.read${type.type}()`

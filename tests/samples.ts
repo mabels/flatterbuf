@@ -34,17 +34,34 @@ export function NestedArrayOfStruct() {
 
 export namespace Samples {
   export namespace StructOfScalar {
-    export const Type = new Definition.Types.Struct({
-      name: 'StructOfScalar',
-      attributes: Definition.Types.ScalarTypesList.map(i => ({
-        name: `Name${i.type}`,
-        type: new i(),
-      })),
-    });
+    export function Builder(name: string) {
+      return new Definition.Types.Struct({
+        name,
+        attributes: Definition.Types.ScalarTypesList.map(i => ({
+          name: `Name${i.type}`,
+          type: new i(),
+        })),
+      });
+    }
+    export const Default = {
+      NameBoolean: false,
+      NameUint8: 0,
+      NameChar: 0, // 'a'
+      NameUint16: 0,
+      NameShort: 0,
+      NameUint32: 0,
+      NameInt: 0,
+      NameFloat: 0,
+      NameUint64: { high: 0, low: 0 },
+      NameLong: { high: 0, low: 0 },
+      NameDouble: 0,
+    };
+    export const Type = Builder('StructOfScalar');
+
     export const Init = {
       NameBoolean: true,
       NameUint8: 1,
-      NameChar: 'a',
+      NameChar: 97, // 'a'
       NameUint16: 3,
       NameShort: 4,
       NameUint32: 5,
@@ -53,7 +70,23 @@ export namespace Samples {
       NameUint64: { high: 77, low: 88 },
       NameLong: { high: 99, low: 1111 },
       NameDouble: 10.7392,
+      // NameFixedString: 'Hund'
     };
+  }
+
+  export namespace InitStructOfScalar {
+    export const Default = StructOfScalar.Init;
+    export const Init = StructOfScalar.Default;
+    export function Builder(name: string) {
+      return new Definition.Types.Struct({
+        name,
+        attributes: Definition.Types.ScalarTypesList.map(i => ({
+          name: `Name${i.type}`,
+          type: new i({ initial: (StructOfScalar.Init as any)[`Name${i.type}`] as any }),
+        })),
+      });
+    }
+    export const Type = Builder('InitStructOfScalar');
   }
 
   export namespace StructOfNestedStruct {
@@ -91,15 +124,61 @@ export namespace Samples {
       ],
     });
 
+    export const Default = {
+      Yu: 0,
+      Max: {
+        Zu: 0,
+        Plax: {
+          Uhu: 0,
+        },
+      },
+    };
     export const Init = {
       Yu: 4711,
       Max: {
         Zu: 4712,
         Plax: {
-          Uhu: 'a',
-        }
-      }
+          Uhu: 97,
+        },
+      },
     };
+  }
+  export namespace InitStructOfNestedStruct {
+    export const Default = StructOfNestedStruct.Init;
+    export const Init = StructOfNestedStruct.Default;
+    export const Type = new Definition.Types.Struct({
+      name: 'InitStructOfNestedStruct',
+      attributes: [
+        {
+          name: 'Yu',
+          type: new Definition.Types.Int({initial: 4711}),
+        },
+        {
+          name: 'Max',
+          type: new Definition.Types.Struct({
+            name: 'InitBux',
+            attributes: [
+              {
+                name: 'Zu',
+                type: new Definition.Types.Int({initial: 4712}),
+              },
+              {
+                name: 'Plax',
+                type: new Definition.Types.Struct({
+                  name: 'InitWurx',
+                  attributes: [
+                    {
+                      name: 'Uhu',
+                      type: new Definition.Types.Char({initial: 'a'}),
+                    },
+                  ],
+                }),
+              },
+            ],
+          }),
+        },
+      ],
+    });
   }
 
   export namespace StructOfNestedArrayOfScalar {
@@ -125,13 +204,44 @@ export namespace Samples {
         },
       ],
     });
-    export const Init = {
-      Nested: Array(3).fill(Array(4).fill('u')),
-      Flat: Array(10).fill('s'),
+    export const Default = {
+      Nested: Array(3).fill(Array(4).fill(0)),
+      Flat: Array(10).fill(0),
     };
+    export const Init = {
+      Nested: Array(3).fill(Array(4).fill(117)),
+      Flat: Array(10).fill(115),
+    };
+  }
+  export namespace InitStructOfNestedArrayOfScalar {
+    export const Default = StructOfNestedArrayOfScalar.Init;
+    export const Init = StructOfNestedArrayOfScalar.Default;
+    export const Type = new Definition.Types.Struct({
+      name: 'InitStructOfNestedArrayOfScalar',
+      attributes: [
+        {
+          name: `Nested`,
+          type: new Definition.Types.FixedArray({
+            length: 3,
+            element: new Definition.Types.FixedArray({
+              length: 4,
+              element: new Definition.Types.Char({ initial: 'u' }),
+            }),
+          }),
+        },
+        {
+          name: `Flat`,
+          type: new Definition.Types.FixedArray({
+            length: 10,
+            element: new Definition.Types.Char({ initial: 's' }),
+          }),
+        },
+      ],
+    });
   }
 
   export namespace StructOfNestedArrayOfStruct {
+    const element = StructOfScalar.Builder('sonasNested');
     export const Type = new Definition.Types.Struct({
       name: 'StructOfNestedArrayOfStruct',
       attributes: [
@@ -141,7 +251,7 @@ export namespace Samples {
             length: 3,
             element: new Definition.Types.FixedArray({
               length: 4,
-              element: StructOfScalar.Type,
+              element
             }),
           }),
         },
@@ -149,20 +259,55 @@ export namespace Samples {
           name: `Flat`,
           type: new Definition.Types.FixedArray({
             length: 10,
-            element: StructOfScalar.Type,
+            element
           }),
         },
       ],
     });
+    export const Default = {
+      Nested: Array(3).fill(Array(4).fill(StructOfScalar.Default)),
+      Flat: Array(10).fill(StructOfScalar.Default),
+    };
     export const Init = {
       Nested: Array(3).fill(Array(4).fill(StructOfScalar.Init)),
       Flat: Array(10).fill(StructOfScalar.Init),
     };
   }
+  export namespace InitStructOfNestedArrayOfStruct {
+    export const Init = StructOfNestedArrayOfStruct.Default;
+    export const Default = StructOfNestedArrayOfStruct.Init;
+    const element = InitStructOfScalar.Builder('isonasNested');
+    export const Type = new Definition.Types.Struct({
+      name: 'InitStructOfNestedArrayOfStruct',
+      attributes: [
+        {
+          name: `Nested`,
+          type: new Definition.Types.FixedArray({
+            length: 3,
+            element: new Definition.Types.FixedArray({
+              length: 4,
+              element
+            }),
+          }),
+        },
+        {
+          name: `Flat`,
+          type: new Definition.Types.FixedArray({
+            length: 10,
+            element
+          }),
+        },
+      ],
+    });
+  }
   export const Tests = [
     StructOfScalar,
+    InitStructOfScalar,
     StructOfNestedStruct,
+    InitStructOfNestedStruct,
     StructOfNestedArrayOfScalar,
+    InitStructOfNestedArrayOfScalar,
     StructOfNestedArrayOfStruct,
+    InitStructOfNestedArrayOfStruct,
   ];
 }

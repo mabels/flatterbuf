@@ -73,9 +73,9 @@ export namespace Definition {
 
     export class Boolean implements ScalarType<boolean> {
       public static readonly type: TypeName = 'Boolean';
-      public readonly type = Boolean.type;
-      public static readonly bytes = 1;
-      public readonly bytes = Boolean.bytes;
+      public static readonly bytes: number = 1;
+      public readonly type: TypeName = Boolean.type;
+      public readonly bytes: number = Boolean.bytes;
       // public readonly notRequire: boolean;
       public readonly initial: boolean;
       public constructor(arg: ScalarTypeArg<boolean> = { initial: false }) {
@@ -84,31 +84,36 @@ export namespace Definition {
     }
     export class Uint8 implements ScalarType<number> {
       public static readonly type: TypeName = 'Uint8';
-      public readonly type = Uint8.type;
-      public static readonly bytes = 1;
-      public readonly bytes = Uint8.bytes;
+      public static readonly bytes: number = 1;
+      public readonly type: TypeName = Uint8.type;
+      public readonly bytes: number = Uint8.bytes;
       // public readonly notRequire: boolean;
       public readonly initial: number;
       public constructor(arg: ScalarTypeArg<number> = { initial: 0 }) {
         this.initial = ~~arg.initial;
       }
     }
-    export class Char implements ScalarType<string> {
+    export type CharInitType = string | number;
+    export type CharScalarTypeArg = ScalarTypeArg<CharInitType>;
+
+    export class Char implements ScalarType<number> {
       public static readonly type: TypeName = 'Char';
-      public readonly type = Char.type;
-      public static readonly bytes = 1;
-      public readonly bytes = Char.bytes;
+      // public static readonly initial: 0;
+      public static readonly bytes: number = 1;
+      public readonly type: TypeName = Char.type;
+      public readonly bytes: number = Char.bytes;
       // public readonly notRequire: boolean;
-      public readonly initial: string;
-      public constructor(arg: ScalarTypeArg<string> = { initial: ' ' }) {
-        this.initial = (arg.initial || ' ').substr(0, 1);
+      public readonly initial: number;
+      public constructor(arg: CharScalarTypeArg = { initial: 0 }) {
+        this.initial = Runtime.Types.Char.create(arg.initial);
+        // console.log('Char=', arg, this.initial);
       }
     }
     export class Uint16 implements ScalarType<number> {
       public static readonly type: TypeName = 'Uint16';
-      public readonly type = Uint16.type;
-      public static readonly bytes = 2;
-      public readonly bytes = Uint16.bytes;
+      public static readonly bytes: number = 2;
+      public readonly type: TypeName = Uint16.type;
+      public readonly bytes: number = Uint16.bytes;
       // public readonly notRequire: boolean;
       public readonly initial: number;
       public constructor(arg: ScalarTypeArg<number> = { initial: 0 }) {
@@ -117,9 +122,9 @@ export namespace Definition {
     }
     export class Short implements ScalarType<number> {
       public static readonly type: TypeName = 'Short';
-      public readonly type = Short.type;
-      public static readonly bytes = 2;
-      public readonly bytes = Short.bytes;
+      public static readonly bytes: number = 2;
+      public readonly type: TypeName = Short.type;
+      public readonly bytes: number = Short.bytes;
       // public readonly notRequire: boolean;
       public readonly initial: number;
       public constructor(arg: ScalarTypeArg<number> = { initial: 0 }) {
@@ -128,9 +133,9 @@ export namespace Definition {
     }
     export class Uint32 implements ScalarType<number> {
       public static readonly type: TypeName = 'Uint32';
-      public readonly type = Uint32.type;
-      public static readonly bytes = 4;
-      public readonly bytes = Uint32.bytes;
+      public static readonly bytes: number = 4;
+      public readonly type: TypeName = Uint32.type;
+      public readonly bytes: number = Uint32.bytes;
       // public readonly notRequire: boolean;
       public readonly initial: number;
       public constructor(arg: ScalarTypeArg<number> = { initial: 0 }) {
@@ -139,9 +144,9 @@ export namespace Definition {
     }
     export class Int implements ScalarType<number> {
       public static readonly type: TypeName = 'Int';
-      public readonly type = Int.type;
-      public static readonly bytes = 4;
-      public readonly bytes = Int.bytes;
+      public static readonly bytes: number = 4;
+      public readonly type: TypeName = Int.type;
+      public readonly bytes: number = Int.bytes;
       // public readonly notRequire: boolean;
       public readonly initial: number;
       public constructor(arg: ScalarTypeArg<number> = { initial: 0 }) {
@@ -150,46 +155,46 @@ export namespace Definition {
     }
     export class Float implements ScalarType<number> {
       public static readonly type: TypeName = 'Float';
-      public readonly type = Float.type;
-      public static readonly bytes = 4;
-      public readonly bytes = Float.bytes;
+      public static readonly bytes: number = 4;
+      public readonly type: TypeName = Float.type;
+      public readonly bytes: number = Float.bytes;
       // public readonly notRequire: boolean;
       public readonly initial: number;
       public constructor(arg: ScalarTypeArg<number> = { initial: 0 }) {
-        this.initial = ~~arg.initial;
+        this.initial = arg.initial;
       }
     }
     export class Uint64 implements ScalarType<Runtime.Types.HighLow.Type> {
       public static readonly type: TypeName = 'Uint64';
-      public readonly type = Uint64.type;
-      public static readonly bytes = 8;
-      public readonly bytes = Uint64.bytes;
+      public static readonly bytes: number = 8;
+      public readonly type: TypeName = Uint64.type;
+      public readonly bytes: number = Uint64.bytes;
       // public readonly notRequire: boolean;
       public readonly initial: Runtime.Types.HighLow.Type;
-      public constructor(arg: ScalarTypeArg<Runtime.Types.HighLow.Type> = { initial: Runtime.Types.HighLow.defaultValue }) {
+      public constructor(arg: ScalarTypeArg<Runtime.Types.HighLow.Type> = {
+        initial: Runtime.Types.HighLow.defaultValue }) {
         this.initial = Runtime.Types.HighLow.create(arg.initial);
       }
     }
     export class Long implements ScalarType<Runtime.Types.HighLow.Type> {
       public static readonly type: TypeName = 'Long';
-      public readonly type = Long.type;
-      public static readonly bytes = 8;
-      public readonly bytes = Long.bytes;
-      // public readonly notRequire: boolean;
+      public static readonly bytes: number = 8;
+      public readonly type: TypeName = Long.type;
+      public readonly bytes: number = Long.bytes;
       public readonly initial: Runtime.Types.HighLow.Type;
-      public constructor(arg: ScalarTypeArg<Runtime.Types.HighLow.Type> = { initial: Runtime.Types.HighLow.defaultValue }) {
-        this.initial = Runtime.Types.HighLow.create(arg.initial)
+      public constructor(arg: ScalarTypeArg<Runtime.Types.HighLow.Type> = {
+        initial: Runtime.Types.HighLow.defaultValue }) {
+        this.initial = Runtime.Types.HighLow.create(arg.initial);
       }
     }
     export class Double implements ScalarType<number> {
       public static readonly type: TypeName = 'Double';
-      public readonly type = Double.type;
-      public static readonly bytes = 8;
-      public readonly bytes = Double.bytes;
-      // public readonly notRequire: boolean;
+      public static readonly bytes: number = 8;
+      public readonly type: TypeName = Double.type;
+      public readonly bytes: number = Double.bytes;
       public readonly initial: number;
       public constructor(arg: ScalarTypeArg<number> = { initial: 0 }) {
-        this.initial = ~~arg.initial;
+        this.initial = arg.initial;
       }
     }
 
@@ -197,26 +202,58 @@ export namespace Definition {
       readonly alignFuncName: string;
     }
 
-    export interface FixedArrayArg {
+    export interface FixedArrayArg<T extends Type> {
       readonly length: number;
-      readonly element: Type;
+      readonly element: T;
       readonly alignFuncName?: string;
+      readonly initial?: T[];
     }
 
-    export class FixedArray implements AlignType {
+    export class FixedArray<T extends Type = Type> implements AlignType {
       public static readonly type: TypeName = 'FixedArray';
-      public readonly type = FixedArray.type;
+      public readonly type: TypeName = FixedArray.type;
       public readonly bytes: number;
       public readonly length: number;
-      public readonly element: Type;
+      public readonly element: T;
       // public readonly notRequire: boolean;
       public readonly alignFuncName: string;
-      public constructor(el: FixedArrayArg) {
+      public readonly initial: T[];
+      public constructor(el: FixedArrayArg<T>) {
         this.length = el.length;
         const al = Align.funcMapper(el.alignFuncName);
         this.alignFuncName = al.name;
+        // TOTO ElementAligment + Overall Aligment
         this.bytes = el.length * al.func(el.element.bytes);
         this.element = el.element;
+        this.initial = Array.isArray(el.initial) ? el.initial : [];
+      }
+    }
+
+    export type FixedCStringInitType = string | number[];
+    export interface FixedCStringArg {
+      readonly length: number;
+      readonly initial?: FixedCStringInitType;
+      readonly alignFuncName?: string;
+    }
+
+    export class FixedCString extends FixedArray<Char> {
+      constructor(el: FixedCStringArg) {
+        const init = Array<number>(el.length).fill(0);
+        if (typeof el.initial === 'string') {
+          const a = Array.from(el.initial.substr(0, el.length - 1));
+          for (let i = Math.min(el.length - 2, a.length); i >= 0; --i) {
+            init[i] = typeof a[i] === 'string' ? a[i].charCodeAt(0) : 0;
+          }
+        } else if (Array.isArray(el.initial)) {
+          for (let i = Math.min(el.length - 2, el.initial.length); i >= 0; --i) {
+            init[i] = el.initial[i] || 0;
+          }
+        }
+        super({
+          ...el,
+          initial: init.map(i => new Char({initial: i})),
+          element: new Char()
+        });
       }
     }
 
@@ -239,7 +276,7 @@ export namespace Definition {
     }
     export class Struct implements AlignType {
       public static readonly type: TypeName = 'Struct';
-      public readonly type = Struct.type;
+      public readonly type: TypeName = Struct.type;
       public readonly bytes: number;
       public readonly name: string;
       public readonly alignFuncName: string;
@@ -293,7 +330,6 @@ export namespace Definition {
       Types.Double
     ];
 
-
     export function isScalar(def: Type): boolean {
       return !!ScalarTypesList.find(i => def.type === i.type);
     }
@@ -307,7 +343,7 @@ export namespace Definition {
       Scalar,
       FixedArray,
       Struct
-    };
+    }
     export function toAttributeType(def: Type) {
       if (isScalar(def)) {
         return AttributeType.Scalar;

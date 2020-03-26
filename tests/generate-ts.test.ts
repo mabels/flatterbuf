@@ -11,53 +11,58 @@ import * as ts from 'typescript';
 
 //   });
 // })
-const TmpId = `${crypto
+const TempDirectoryName = `${crypto
   .createHash('sha256')
   .update(Math.random().toString())
   .digest('hex')}.tmp`;
-const ProjectRelativ = `./tests/${TmpId}`;
+const ProjectRelativ = `./tests/${TempDirectoryName}`;
 // console.log(`WTF=>`, projectRelativ);
 fs.mkdirSync(ProjectRelativ);
 
 const Files: string[] = [];
 
 function transpile(inTss: TSStructWriter[]) {
-  return inTss.map(inTs => {
-    // console.log(`transpile =>`, inTss.length, inTs.fname);
-    const js = ts.transpileModule(inTs.toString(), {
-      compilerOptions: {
-        module: ts.ModuleKind.CommonJS,
-      },
+  return inTss
+    .map(inTs => {
+      // console.log(`transpile =>`, inTss.length, inTs.fname);
+      const js = ts.transpileModule(inTs.toString(), {
+        compilerOptions: {
+          module: ts.ModuleKind.CommonJS,
+        },
+      });
+      const jsfile = `${ProjectRelativ}/${inTs.fname}.js`;
+      fs.writeFileSync(jsfile, js.outputText);
+      const tsfile = `${ProjectRelativ}/${inTs.fname}.ts`;
+      fs.writeFileSync(tsfile, inTs.toString());
+      return {
+        jsfile,
+        tsfile,
+        inTs,
+      };
+    })
+    .map(i => ({
+      ...i,
+      ref: require(`./${TempDirectoryName}/${i.inTs.fname}`),
+    }))
+    .map(i => {
+      fs.unlinkSync(i.jsfile);
+      // fs.unlinkSync(i.tsfile);
+      return i;
     });
-    const jsfile = `${ProjectRelativ}/${inTs.fname}.js`;
-    fs.writeFileSync(jsfile, js.outputText);
-    const tsfile = `${ProjectRelativ}/${inTs.fname}.ts`;
-    fs.writeFileSync(tsfile, inTs.toString());
-    return {
-      jsfile, tsfile
-    }
-  }).map(i => ({
-    ...i,
-    ref: require(`./${TmpId}/${inTss[0].fname}`)
-  })).map(i => {
-    fs.unlinkSync(i.jsfile);
-    fs.unlinkSync(i.tsfile);
-    return i;
-  });
 }
-
 
 describe('Generator', () => {
   let Tests: {
     transpiled: {
       jsfile: string;
       tsfile: string;
-      ref: any;
-    }[],
-    clazz: any;
+      ref: {};
+    }[];
+    clazzes: any;
     sample: {
       Type: Definition.Types.Struct;
       Init: any;
+      Default: any;
     };
   }[] = Samples.Tests.map(i => {
     const my = TSGenerator(
@@ -68,32 +73,43 @@ describe('Generator', () => {
       }),
     );
     const transpiled = transpile(my.getStructs());
+    const refs = transpiled.map(j => j.ref);
+    // console.log(refs);
     return {
       transpiled,
-      clazz: transpiled[0].ref[i.Type.name],
+      clazzes: refs.reduce((r, j) => ({ ...r, ...j }), {}),
       sample: i,
     };
   });
-  fs.rmdirSync(ProjectRelativ);
+  // fs.rmdirSync(ProjectRelativ);
 
   Tests.forEach(tcase => {
-    describe(tcase.sample.Type.name, () => {
-      test(`reflection`, () => {
-        expect(tcase.clazz.Reflection.prop).toEqual(tcase.sample.Type);
+    // console.log(Object.entries<any>(tcase.clazzes));
+    Object.entries<any>(tcase.clazzes)
+      .filter(([key, _]) => key.match(/struct/i))
+      .forEach(([key, clazz]) => {
+        describe(key, () => {
+          // console.log('XXXXXX=>', tcase, key);
+          test(`reflection`, () => {
+            expect(clazz.Reflection.prop).toEqual(tcase.sample.Type);
+          });
+          test(`empty create`, () => {
+            const data = clazz.create();
+            // console.log('data', data, tcase.sample.Default);
+            const buf = clazz.toStream(data, new Runtime.StreamBuffer());
+            const type = clazz.fromStream(new Runtime.StreamBuffer([buf.asUint8Array()]));
+            expect(data).toEqual(type);
+            expect(data).toEqual(tcase.sample.Default);
+          });
+          test(`init create`, () => {
+            const data = clazz.create(tcase.sample.Init);
+            const buf = clazz.toStream(data, new Runtime.StreamBuffer());
+            const type = clazz.fromStream(new Runtime.StreamBuffer([buf.asUint8Array()]));
+            // console.log(data, buf.asUint8Array());
+            expect(tcase.sample.Init).toEqual(type);
+          });
+        });
       });
-      test(`empty create`, () => {
-        const data = tcase.clazz.create();
-        const buf = tcase.clazz.toStream(data, new Runtime.StreamBuffer());
-        const type = tcase.clazz.fromStream(new Runtime.StreamBuffer([buf.asUint8Array()]));
-        expect(data).toEqual(type);
-      });
-      test(`init create`, () => {
-        const data = tcase.clazz.create(tcase.sample.Init);
-        const buf = tcase.clazz.toStream(data, new Runtime.StreamBuffer());
-        const type = tcase.clazz.fromStream(new Runtime.StreamBuffer([buf.asUint8Array()]));
-        expect(tcase.sample.Init).toEqual(type);
-      });
-    });
   });
 });
 
