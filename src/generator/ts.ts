@@ -390,7 +390,8 @@ export class TSStructWriter<T> {
           return `Runtime.Types.${attr.type}.create([${this.getArrayLengths(adef)}], ${vname})`;
         }
       case Definition.Types.AttributeType.Struct:
-        return `xkfkdkfkkefk:${level}:${vname}:${attr}`;
+        const sdef = attr as unknown as Definition.Types.Struct;
+        return `${sdef.name}.create(${vname})`;
     }
     // switch (Definition.Types.toAttributeType(attr)) {
     //   case Definition.Types.AttributeType.Scalar:

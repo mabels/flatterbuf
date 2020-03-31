@@ -45,8 +45,8 @@ function transpile<T>(inTss: TSStructWriter<T>[]) {
       ref: require(`./${TempDirectoryName}/${i.inTs.fname}`),
     }))
     .map(i => {
-      // fs.unlinkSync(i.jsfile);
-      // fs.unlinkSync(i.tsfile);
+      fs.unlinkSync(i.jsfile);
+      fs.unlinkSync(i.tsfile);
       return i;
     });
 }
@@ -81,7 +81,7 @@ describe('Generator', () => {
       sample: i,
     };
   });
-  // fs.rmdirSync(ProjectRelativ);
+  fs.rmdirSync(ProjectRelativ);
 
   Tests.forEach(tcase => {
     // console.log(Object.entries<any>(tcase.clazzes));
