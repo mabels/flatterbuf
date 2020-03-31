@@ -2,6 +2,10 @@ import { Runtime } from '../runtime';
 
 export namespace Definition {
   export namespace Align {
+    export interface Funcs<A> {
+      readonly element: A;
+      readonly overall: A;
+    }
     export type Func = (a: number) => number;
 
     export function Byte(a: number) {
@@ -23,8 +27,26 @@ export namespace Definition {
         EightByte: EightByte
     };
 
-    export function funcMapper(name?: string): {name: string, func: Func } {
-      const fname = (name || '').toLowerCase();
+    export interface FuncAndName {
+      name: string;
+      func: Func;
+    }
+    export interface FuncNames {
+      readonly names: Funcs<string>;
+      readonly funcs: Funcs<Func>;
+    }
+
+    export function funcsMapper(funcs?: Partial<Funcs<string>>): FuncNames {
+      const element = funcMapper((funcs || {}).element);
+      const overall = funcMapper((funcs || {}).overall);
+      return {
+        names: { element: element.name, overall: overall.name },
+        funcs: { element: element.func, overall: overall.func }
+      };
+    }
+
+    export function funcMapper(a?: string): FuncAndName {
+      const fname = (a || '').toLowerCase();
       const fn = Functions[fname];
       if (fn) {
         return { name: fname, func: fn };
@@ -54,24 +76,20 @@ export namespace Definition {
         | 'Long'
         | 'Double'
         | 'FixedArray'
+        | 'FixedCString'
         | 'Struct';
 
-    export interface Type {
+    export interface Type<T> {
       readonly type: TypeName;
       readonly bytes: number;
-      // readonly notRequire: boolean;
-    }
-
-    export interface ScalarType<T> extends Type {
       readonly initial: T;
     }
 
     export interface ScalarTypeArg<T> {
       readonly initial?: T;
-      // readonly notRequire?: boolean;
     }
 
-    export class Boolean implements ScalarType<boolean> {
+    export class Boolean implements Type<boolean> {
       public static readonly type: TypeName = 'Boolean';
       public static readonly bytes: number = 1;
       public readonly type: TypeName = Boolean.type;
@@ -82,7 +100,7 @@ export namespace Definition {
         this.initial = !!arg.initial;
       }
     }
-    export class Uint8 implements ScalarType<number> {
+    export class Uint8 implements Type<number> {
       public static readonly type: TypeName = 'Uint8';
       public static readonly bytes: number = 1;
       public readonly type: TypeName = Uint8.type;
@@ -96,7 +114,7 @@ export namespace Definition {
     export type CharInitType = string | number;
     export type CharScalarTypeArg = ScalarTypeArg<CharInitType>;
 
-    export class Char implements ScalarType<number> {
+    export class Char implements Type<number> {
       public static readonly type: TypeName = 'Char';
       // public static readonly initial: 0;
       public static readonly bytes: number = 1;
@@ -109,7 +127,7 @@ export namespace Definition {
         // console.log('Char=', arg, this.initial);
       }
     }
-    export class Uint16 implements ScalarType<number> {
+    export class Uint16 implements Type<number> {
       public static readonly type: TypeName = 'Uint16';
       public static readonly bytes: number = 2;
       public readonly type: TypeName = Uint16.type;
@@ -120,7 +138,7 @@ export namespace Definition {
         this.initial = ~~arg.initial;
       }
     }
-    export class Short implements ScalarType<number> {
+    export class Short implements Type<number> {
       public static readonly type: TypeName = 'Short';
       public static readonly bytes: number = 2;
       public readonly type: TypeName = Short.type;
@@ -131,7 +149,7 @@ export namespace Definition {
         this.initial = ~~arg.initial;
       }
     }
-    export class Uint32 implements ScalarType<number> {
+    export class Uint32 implements Type<number> {
       public static readonly type: TypeName = 'Uint32';
       public static readonly bytes: number = 4;
       public readonly type: TypeName = Uint32.type;
@@ -142,7 +160,7 @@ export namespace Definition {
         this.initial = ~~arg.initial;
       }
     }
-    export class Int implements ScalarType<number> {
+    export class Int implements Type<number> {
       public static readonly type: TypeName = 'Int';
       public static readonly bytes: number = 4;
       public readonly type: TypeName = Int.type;
@@ -153,7 +171,7 @@ export namespace Definition {
         this.initial = ~~arg.initial;
       }
     }
-    export class Float implements ScalarType<number> {
+    export class Float implements Type<number> {
       public static readonly type: TypeName = 'Float';
       public static readonly bytes: number = 4;
       public readonly type: TypeName = Float.type;
@@ -164,7 +182,7 @@ export namespace Definition {
         this.initial = arg.initial;
       }
     }
-    export class Uint64 implements ScalarType<Runtime.Types.HighLow.Type> {
+    export class Uint64 implements Type<Runtime.Types.HighLow.Type> {
       public static readonly type: TypeName = 'Uint64';
       public static readonly bytes: number = 8;
       public readonly type: TypeName = Uint64.type;
@@ -176,7 +194,7 @@ export namespace Definition {
         this.initial = Runtime.Types.HighLow.create(arg.initial);
       }
     }
-    export class Long implements ScalarType<Runtime.Types.HighLow.Type> {
+    export class Long implements Type<Runtime.Types.HighLow.Type> {
       public static readonly type: TypeName = 'Long';
       public static readonly bytes: number = 8;
       public readonly type: TypeName = Long.type;
@@ -187,7 +205,7 @@ export namespace Definition {
         this.initial = Runtime.Types.HighLow.create(arg.initial);
       }
     }
-    export class Double implements ScalarType<number> {
+    export class Double implements Type<number> {
       public static readonly type: TypeName = 'Double';
       public static readonly bytes: number = 8;
       public readonly type: TypeName = Double.type;
@@ -198,109 +216,162 @@ export namespace Definition {
       }
     }
 
-    export interface AlignType extends Type {
-      readonly alignFuncName: string;
-    }
-
-    export interface FixedArrayArg<T extends Type> {
+    export interface ArrayTypeAttribute<B> extends Type<B[]> {
+      readonly element: Type<B>;
       readonly length: number;
-      readonly element: T;
-      readonly alignFuncName?: string;
-      readonly initial?: T[];
     }
 
-    export class FixedArray<T extends Type = Type> implements AlignType {
+    export interface FixedArrayArg<B> {
+      readonly element: Type<B>;
+      readonly length: number;
+      readonly initial?: B[];
+      readonly alignFuncs?: Partial<Align.Funcs<string>>;
+    }
+
+    export function FixedArraySetupInitial<B>(fa: FixedArray<B>, initial?: B[]): B[] {
+      if (fa.element.type === Definition.Types.FixedArray.type) {
+        // throw 'Nested not supported';
+        return Array(fa.length).fill(FixedArraySetupInitial<B>(fa.element as unknown as FixedArray<B>));
+      }
+      if (!Array.isArray(initial)) {
+        // return [];
+        initial = [];
+      }
+      const ret = Array<B>(fa.length).fill(fa.element.initial);
+      const tmp = [...ret];
+      for (let i = 0; i < Math.min(fa.length, initial.length); ++i) {
+        const val = initial[i];
+        if (val !== undefined) {
+          ret[i] = val;
+        }
+      }
+      // console.log('FixedArraySetupInitial', tmp, ret, initial);
+      return ret;
+    }
+
+    export class FixedArray<B> implements ArrayTypeAttribute<B> {
       public static readonly type: TypeName = 'FixedArray';
+
       public readonly type: TypeName = FixedArray.type;
       public readonly bytes: number;
       public readonly length: number;
-      public readonly element: T;
-      // public readonly notRequire: boolean;
-      public readonly alignFuncName: string;
-      public readonly initial: T[];
-      public constructor(el: FixedArrayArg<T>) {
+      public readonly element: Type<B>;
+      public readonly alignFuncs: Align.Funcs<string>;
+      public readonly initial: B[];
+
+      public constructor(el: FixedArrayArg<B>) {
         this.length = el.length;
-        const al = Align.funcMapper(el.alignFuncName);
-        this.alignFuncName = al.name;
-        // TOTO ElementAligment + Overall Aligment
-        this.bytes = el.length * al.func(el.element.bytes);
+        const al = Align.funcsMapper(el.alignFuncs);
+        this.alignFuncs = al.names;
+        this.bytes = al.funcs.overall(el.length * al.funcs.element(el.element.bytes));
         this.element = el.element;
-        this.initial = Array.isArray(el.initial) ? el.initial : [];
+        this.initial = FixedArraySetupInitial<B>(this, el.initial);
       }
     }
 
-    export type FixedCStringInitType = string | number[];
+    export type FixedCStringInitType = string | CharInitType[];
     export interface FixedCStringArg {
       readonly length: number;
       readonly initial?: FixedCStringInitType;
-      readonly alignFuncName?: string;
+      readonly alignFuncs?: Align.Funcs<string>;
     }
 
-    export class FixedCString extends FixedArray<Char> {
+    export function FixedCStringSetupInitial(length: number, ...initials: FixedCStringInitType[]) {
+      const ret = Array<number>(length).fill(0);
+      initials.reverse().forEach(init => {
+          if (typeof init === 'string') {
+            const a = Array.from(init.substr(0, length - 1));
+            for (let i = Math.min(length - 2, a.length); i >= 0; --i) {
+              ret[i] = typeof a[i] === 'string' ? a[i].charCodeAt(0) : 0;
+            }
+          } else if (Array.isArray(init)) {
+            for (let i = Math.min(length - 2, init.length); i >= 0; --i) {
+              ret[i] = Runtime.Types.Char.create(init[i]);
+            }
+          }
+        });
+      // console.log('FixedCStringSetupInitial', ret, initials);
+      return ret;
+    }
+
+    export class FixedCString extends FixedArray<number> {
+      public static readonly type: TypeName = 'FixedCString';
+
+      public readonly type: TypeName = FixedCString.type;
+
       constructor(el: FixedCStringArg) {
-        const init = Array<number>(el.length).fill(0);
-        if (typeof el.initial === 'string') {
-          const a = Array.from(el.initial.substr(0, el.length - 1));
-          for (let i = Math.min(el.length - 2, a.length); i >= 0; --i) {
-            init[i] = typeof a[i] === 'string' ? a[i].charCodeAt(0) : 0;
-          }
-        } else if (Array.isArray(el.initial)) {
-          for (let i = Math.min(el.length - 2, el.initial.length); i >= 0; --i) {
-            init[i] = el.initial[i] || 0;
-          }
-        }
         super({
           ...el,
-          initial: init.map(i => new Char({initial: i})),
+          initial: FixedCStringSetupInitial(el.length, el.initial),
           element: new Char()
         });
       }
     }
 
-    export interface StructAttribute {
+    export interface StructBaseAttribute {
       readonly name: string;
       readonly notRequired?: boolean;
-      readonly type: Type;
     }
 
-    export interface StructAttributeOfs extends StructAttribute {
+    export interface StructAttribute<T> extends StructBaseAttribute {
+      readonly initial?: T;
+      readonly type: Type<T>;
+    }
+
+    export interface StructAttributeOfs<T> extends StructAttribute<T> {
       readonly notRequired: boolean;
       readonly ofs: number;
     }
 
+    export interface TypeNameAttribute<T> extends Type<T> {
+      readonly name: string;
+    }
+
+    export type StructInitial = { [attr: string]: any };
+
     export interface StructArg {
       readonly name: string;
-      readonly alignFuncName?: string;
-      // readonly notRequired?: boolean;
-      readonly attributes: StructAttribute[];
+      readonly alignFuncs?: Partial<Align.Funcs<string>>;
+      readonly attributes: StructAttribute<unknown>[];
     }
-    export class Struct implements AlignType {
+
+    export class Struct implements TypeNameAttribute<StructInitial> {
       public static readonly type: TypeName = 'Struct';
       public readonly type: TypeName = Struct.type;
       public readonly bytes: number;
       public readonly name: string;
-      public readonly alignFuncName: string;
-      public readonly attributes: StructAttributeOfs[];
-      // public readonly notRequire: boolean;
+      public readonly alignFuncs: Align.Funcs<string>;
+      public readonly attributes: StructAttributeOfs<any>[];
       public constructor(st: StructArg) {
         this.name = st.name;
-        // this.notRequire = !!st.notRequired;
-        const al = Align.funcMapper(st.alignFuncName);
-        this.alignFuncName = al.name;
+        const al = Align.funcsMapper(st.alignFuncs);
+        this.alignFuncs = al.names;
         const tmp = st.attributes.reduce((res, attr) => {
           res.attributesInclOfs.push({
             ...attr,
             notRequired: !!attr.notRequired,
             ofs: res.bytes
           });
-          res.bytes = res.bytes + al.func(attr.type.bytes);
+          res.bytes = res.bytes + al.funcs.element(attr.type.bytes);
           return res;
         }, {
           bytes: 0,
-          attributesInclOfs: [] as StructAttributeOfs[]
+          attributesInclOfs: [] as StructAttributeOfs<any>[]
         });
-        this.bytes = tmp.bytes;
+        this.bytes = al.funcs.overall(tmp.bytes);
         this.attributes = tmp.attributesInclOfs;
+      }
+      public get initial(): StructInitial {
+        const ret = this.attributes.reduce((r, i) => {
+          if (i.initial !== undefined) {
+            r[i.name] = i.initial;
+          } else if (i.type.initial !== undefined) {
+            r[i.name] = i.type.initial;
+          }
+          return r;
+        }, {} as StructInitial);
+        // console.log(`Struct.initial:${JSON.stringify(this.attributes)}->${JSON.stringify(ret)}`);
+        return ret;
       }
     }
     export type ScalarTypes =
@@ -330,13 +401,13 @@ export namespace Definition {
       Types.Double
     ];
 
-    export function isScalar(def: Type): boolean {
+    export function isScalar<T>(def: Type<T>): boolean {
       return !!ScalarTypesList.find(i => def.type === i.type);
     }
-    export function isFixedArray(def: Type): boolean {
-      return def.type === FixedArray.type;
+    export function isFixedArray<T>(def: Type<T>): boolean {
+      return def.type === FixedArray.type || def.type == FixedCString.type;
     }
-    export function isStruct(def: Type): boolean {
+    export function isStruct<T>(def: Type<T>): boolean {
       return def.type === Struct.type;
     }
     export enum AttributeType {
@@ -344,7 +415,7 @@ export namespace Definition {
       FixedArray,
       Struct
     }
-    export function toAttributeType(def: Type) {
+    export function toAttributeType<T>(def: Type<T>) {
       if (isScalar(def)) {
         return AttributeType.Scalar;
       }

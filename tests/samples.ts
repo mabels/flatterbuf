@@ -35,12 +35,19 @@ export function NestedArrayOfStruct() {
 export namespace Samples {
   export namespace StructOfScalar {
     export function Builder(name: string) {
-      return new Definition.Types.Struct({
-        name,
-        attributes: Definition.Types.ScalarTypesList.map(i => ({
+      const m: Definition.Types.StructAttribute<unknown>[] = Definition.Types.ScalarTypesList.map(
+        i => ({
           name: `Name${i.type}`,
           type: new i(),
-        })),
+        }),
+      );
+      m.push({
+        name: `NameString`,
+        type: new Definition.Types.FixedCString({ length: 10 }),
+      });
+      return new Definition.Types.Struct({
+        name,
+        attributes: m,
       });
     }
     export const Default = {
@@ -55,9 +62,14 @@ export namespace Samples {
       NameUint64: { high: 0, low: 0 },
       NameLong: { high: 0, low: 0 },
       NameDouble: 0,
+      NameString: Array(10).fill(0),
     };
     export const Type = Builder('StructOfScalar');
 
+    const nameString = Array(10)
+      .fill(0)
+      .map((_, i) => i + 'a'.charCodeAt(0));
+    nameString[nameString.length - 1] = 0;
     export const Init = {
       NameBoolean: true,
       NameUint8: 1,
@@ -70,7 +82,7 @@ export namespace Samples {
       NameUint64: { high: 77, low: 88 },
       NameLong: { high: 99, low: 1111 },
       NameDouble: 10.7392,
-      // NameFixedString: 'Hund'
+      NameString: nameString,
     };
   }
 
@@ -78,12 +90,19 @@ export namespace Samples {
     export const Default = StructOfScalar.Init;
     export const Init = StructOfScalar.Default;
     export function Builder(name: string) {
-      return new Definition.Types.Struct({
-        name,
-        attributes: Definition.Types.ScalarTypesList.map(i => ({
+      const m: Definition.Types.StructAttribute<unknown>[] = Definition.Types.ScalarTypesList.map(
+        i => ({
           name: `Name${i.type}`,
           type: new i({ initial: (StructOfScalar.Init as any)[`Name${i.type}`] as any }),
-        })),
+        }),
+      );
+      m.push({
+        name: `NameString`,
+        type: new Definition.Types.FixedCString({ length: 10, initial: 'abcdefghijk' }),
+      });
+      return new Definition.Types.Struct({
+        name,
+        attributes: m,
       });
     }
     export const Type = Builder('InitStructOfScalar');
@@ -151,7 +170,7 @@ export namespace Samples {
       attributes: [
         {
           name: 'Yu',
-          type: new Definition.Types.Int({initial: 4711}),
+          type: new Definition.Types.Int({ initial: 4711 }),
         },
         {
           name: 'Max',
@@ -160,7 +179,7 @@ export namespace Samples {
             attributes: [
               {
                 name: 'Zu',
-                type: new Definition.Types.Int({initial: 4712}),
+                type: new Definition.Types.Int({ initial: 4712 }),
               },
               {
                 name: 'Plax',
@@ -169,7 +188,7 @@ export namespace Samples {
                   attributes: [
                     {
                       name: 'Uhu',
-                      type: new Definition.Types.Char({initial: 'a'}),
+                      type: new Definition.Types.Char({ initial: 'a' }),
                     },
                   ],
                 }),
@@ -188,10 +207,13 @@ export namespace Samples {
         {
           name: `Nested`,
           type: new Definition.Types.FixedArray({
-            length: 3,
+            length: 2,
             element: new Definition.Types.FixedArray({
-              length: 4,
-              element: new Definition.Types.Char(),
+              length: 3,
+              element: new Definition.Types.FixedArray({
+                length: 4,
+                element: new Definition.Types.Char(),
+              }),
             }),
           }),
         },
@@ -205,11 +227,11 @@ export namespace Samples {
       ],
     });
     export const Default = {
-      Nested: Array(3).fill(Array(4).fill(0)),
+      Nested: Array(2).fill(Array(3).fill(Array(4).fill(0))),
       Flat: Array(10).fill(0),
     };
     export const Init = {
-      Nested: Array(3).fill(Array(4).fill(117)),
+      Nested: Array(2).fill(Array(3).fill(Array(4).fill(117))),
       Flat: Array(10).fill(115),
     };
   }
@@ -222,10 +244,13 @@ export namespace Samples {
         {
           name: `Nested`,
           type: new Definition.Types.FixedArray({
-            length: 3,
+            length: 2,
             element: new Definition.Types.FixedArray({
-              length: 4,
-              element: new Definition.Types.Char({ initial: 'u' }),
+              length: 3,
+              element: new Definition.Types.FixedArray({
+                length: 4,
+                element: new Definition.Types.Char({initial: 'u'}),
+              }),
             }),
           }),
         },
@@ -242,6 +267,15 @@ export namespace Samples {
 
   export namespace StructOfNestedArrayOfStruct {
     const element = StructOfScalar.Builder('sonasNested');
+    // const element = new Definition.Types.Struct({
+    //   name: 'bla',
+    //   attributes: [
+    //     {
+    //     name: 'jo',
+    //     type: new Definition.Types.Char({initial: 'X'})
+    //     }
+    //   ]
+    // });
     export const Type = new Definition.Types.Struct({
       name: 'StructOfNestedArrayOfStruct',
       attributes: [
@@ -251,7 +285,7 @@ export namespace Samples {
             length: 3,
             element: new Definition.Types.FixedArray({
               length: 4,
-              element
+              element,
             }),
           }),
         },
@@ -259,7 +293,7 @@ export namespace Samples {
           name: `Flat`,
           type: new Definition.Types.FixedArray({
             length: 10,
-            element
+            element,
           }),
         },
       ],
@@ -286,7 +320,7 @@ export namespace Samples {
             length: 3,
             element: new Definition.Types.FixedArray({
               length: 4,
-              element
+              element,
             }),
           }),
         },
@@ -294,7 +328,7 @@ export namespace Samples {
           name: `Flat`,
           type: new Definition.Types.FixedArray({
             length: 10,
-            element
+            element,
           }),
         },
       ],

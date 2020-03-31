@@ -1,20 +1,67 @@
 import { Definition } from '../definition';
 
 export namespace Runtime {
-  export class Reflection {
-    constructor(public readonly prop: Definition.Types.Struct) {}
+  type ReflectionAttributeType = { [attr: string]: Definition.Types.StructAttributeOfs<unknown> };
+  export class Reflection<T> {
+    public readonly attributes: ReflectionAttributeType = {};
+    public readonly initial: T = {} as T;
+
+    constructor(public readonly prop: Definition.Types.Struct) {
+      this.prop.attributes.reduce((red, attr) => {
+        red.attributes[attr.name] = attr;
+        // order is relevant
+        // console.log(`xxxx:${attr.name}:${attr.type.initial}:${red.propInitial}`)
+        if (attr.type.initial != undefined) {
+          (red.initial as any)[attr.name] = attr.type.initial;
+        }
+        if (red.propInitial[attr.name] != undefined) {
+          (red.initial as any)[attr.name] = red.propInitial[attr.name];
+        }
+        return red;
+      }, {
+        attributes: this.attributes,
+        initial: this.initial,
+        propInitial: prop.initial || {}
+      });
+    }
   }
 
   export namespace Types {
+    export namespace Boolean {
+      export function create(...val: boolean[]): boolean {
+        return val.find(i => typeof i === 'boolean') || false;
+      }
+    }
+    export namespace Uint8 {
+      export function create(...val: number[]): number {
+        return val.find(i => typeof i === 'number') || 0;
+      }
+    }
+    export const Uint16 = Uint8;
+    export const Short = Uint8;
+    export const Uint32 = Uint8;
+    export const Int = Uint8;
+    export const Float = Uint8;
+    export const Double = Uint8;
+
     export namespace HighLow {
       export interface Type {
         readonly high: number;
         readonly low: number;
       }
-      export function create(data?: Partial<Type>, def: Type = { high: 0, low: 0 }): Type {
+      export function create(...args: Partial<Type>[]): Type {
+        const data = args.filter(i => i || {}).concat({ high: 0, low: 0 }).reduce((r, i) => {
+          if (typeof i.high === 'number') {
+            r.high.push(i.high);
+          }
+          if (typeof i.low === 'number') {
+            r.low.push(i.low);
+          }
+          return r;
+        }, { high: [], low: [] });
         return {
-          high: data && typeof data.high === 'number' ? data.high : def.high,
-          low: data && typeof data.low === 'number' ? data.low : def.low,
+          high: Uint32.create(...data.high),
+          low: Uint32.create(...data.low)
         };
       }
       export const defaultValue = create();
@@ -32,16 +79,56 @@ export namespace Runtime {
         };
       }
     }
+    export const Uint64 = HighLow;
+    export const Long = HighLow;
+
     export namespace FixedArray {
       // export type Type = []
       export type Factory<T> = (idx: number) => T;
 
-      export function create<T>(length: number, val: Factory<T>): T[] {
-        const ret = Array(length);
-        for (let i = 0; i < length; ++i) {
-          ret[i] = val(i);
+      export function assign<T>(lengths: number[], lidx: number, ret: unknown[], val: unknown[]): unknown[] {
+        if (typeof lengths[lidx + 1] !== 'number') {
+          for (let j = 0; j < Math.min(val.length, ret.length); ++j) {
+            if (val[j] !== undefined) {
+              ret[j] = val[j];
+            }
+          }
+          // console.log('end:', lidx, val.length, val, ret.length, ret);
+        } else {
+          for (let j = 0; j < ret.length; ++j) {
+            assign(lengths, lidx + 1, ret[j] as unknown[], (val[j] as unknown[] || []));
+          }
+          // console.log('empty:', lidx, val.length, val, ret.length, ret);
         }
         return ret;
+      }
+
+      export function createArray(lengths: number[], idx = 0): unknown[] {
+        if (idx < lengths.length) {
+          return Array(lengths[idx]).fill(undefined).map(_ => {
+            return createArray(lengths, idx + 1);
+          });
+        }
+        return undefined;
+      }
+
+      export function create<T>(lengths: number[], ...vals: T[][]): T[] {
+        // console.log('FixedArray.create(', length, vals, ')');
+        // const ret = Array(length);
+
+        // console.log('create:', lengths, vals);
+        return vals
+          .filter(i => Array.isArray(i))
+          .reverse()
+          .reduce((ret, val) => {
+          // console.log('create:inner:', lengths, ret, val);
+          return assign(lengths, 0, ret, val);
+        }, (createArray(lengths) || []) as any);
+
+        // for (let i = 0; i < length; ++i) {
+        //   ret[i] = val(i);
+        // }
+        // return ret;
       }
 
       export function toStream<T>(length: number, wbf: Factory<T>) {
@@ -68,6 +155,16 @@ export namespace Runtime {
         }
         return def;
       }
+    }
+
+    export namespace FixedCString {
+      export function create(length: number,
+        ...vals: Definition.Types.FixedCStringInitType[]): number[] {
+        const ret = Definition.Types.FixedCStringSetupInitial(length, ...vals);
+        return ret;
+      }
+      export const fromStream = FixedArray.fromStream;
+      export const toStream = FixedArray.fromStream;
     }
   }
 

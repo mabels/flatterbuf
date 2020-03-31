@@ -21,7 +21,7 @@ fs.mkdirSync(ProjectRelativ);
 
 const Files: string[] = [];
 
-function transpile(inTss: TSStructWriter[]) {
+function transpile<T>(inTss: TSStructWriter<T>[]) {
   return inTss
     .map(inTs => {
       // console.log(`transpile =>`, inTss.length, inTs.fname);
@@ -45,7 +45,7 @@ function transpile(inTss: TSStructWriter[]) {
       ref: require(`./${TempDirectoryName}/${i.inTs.fname}`),
     }))
     .map(i => {
-      fs.unlinkSync(i.jsfile);
+      // fs.unlinkSync(i.jsfile);
       // fs.unlinkSync(i.tsfile);
       return i;
     });
@@ -91,7 +91,17 @@ describe('Generator', () => {
         describe(key, () => {
           // console.log('XXXXXX=>', tcase, key);
           test(`reflection`, () => {
+            // console.log('prop=>', clazz.Reflection.prop.attributes[1].type.initial);
+            // console.log('type=>', tcase.sample.Type.attributes[1].type.initial);
             expect(clazz.Reflection.prop).toEqual(tcase.sample.Type);
+            expect(clazz.Reflection.attributes).toEqual(clazz.Reflection.prop.attributes.reduce((r: any, attr: any) => {
+              r[attr.name] = attr;
+              return r;
+            }, {}));
+            expect(clazz.Reflection.initial).toEqual(clazz.Reflection.prop.attributes.reduce((r: any, attr: any) => {
+              r[attr.name] = attr.type.initial;
+              return r;
+            }, {}));
           });
           test(`empty create`, () => {
             const data = clazz.create();
