@@ -6,7 +6,6 @@
   "license": "AFL-2.0",
   "scripts": {
     "clean": "rimraf dist",
-    "install": "tsc",
     "build": "tsc",
     "test": "jest -c jest.unit.js",
     "lint": "tslint --project ."
