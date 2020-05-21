@@ -1,4 +1,3 @@
-import { Generator } from '../src/generator';
 import { Definition } from '../src/definition';
 import {
   FixArrayOfScalarType,
@@ -14,12 +13,13 @@ import {
 //   expect(() => eval(fb.js.outputText)).not.toThrow();
 // });
 
-Definition.Types.ScalarTypesList.forEach((scalar, len) => {
+Definition.Types.SimpleScalarTypesList.forEach((scalar, len) => {
   test(`simple scalar ${scalar.type}`, () => {
     const my = new scalar();
     expect(my.bytes).toBe(scalar.bytes);
     expect(my.type).toBe(scalar.type);
   });
+
 
   test(`array of scalar ${scalar.type}`, () => {
     const my = FixArrayOfScalarType(len, scalar);
@@ -27,6 +27,101 @@ Definition.Types.ScalarTypesList.forEach((scalar, len) => {
     expect(my.type).toBe(Definition.Types.FixedArray.type);
     expect(my.element.type).toBe(scalar.type);
   });
+});
+
+test(`Boolean scalar no initial`, () => {
+  const my = new Definition.Types.Boolean();
+  expect(my.create()).toBe(false);
+});
+
+test(`Boolean scalar initial`, () => {
+  const my = new Definition.Types.Boolean({ initial: true });
+  expect(my.create()).toBe(true);
+});
+
+test(`Boolean scalar def initial`, () => {
+  const my = new Definition.Types.Boolean({ initial: true });
+  expect(my.create(false)).toBe(false);
+});
+
+
+test(`UInt32 scalar no initial`, () => {
+  const my = new Definition.Types.Uint32();
+  expect(my.create()).toBe(0);
+});
+
+test(`UInt32 scalar initial`, () => {
+  const my = new Definition.Types.Uint32({ initial: 4711 });
+  expect(my.create()).toBe(4711);
+});
+
+test(`UInt32 scalard def initial`, () => {
+  const my = new Definition.Types.Uint32({ initial: 4711 });
+  expect(my.create(4712)).toBe(4712);
+});
+
+test(`Char scalar no initial`, () => {
+  const my = new Definition.Types.Char();
+  expect(my.create()).toBe(0);
+});
+
+test(`Char scalar initial string`, () => {
+  const my = new Definition.Types.Char({ initial: 'A' });
+  expect(my.create()).toBe(65);
+});
+
+test(`Char scalard def initial string`, () => {
+  const my = new Definition.Types.Char({ initial: 'B' });
+  expect(my.create('A')).toBe(65);
+});
+
+test(`Char scalar initial number`, () => {
+  const my = new Definition.Types.Char({ initial: 65 });
+  expect(my.create()).toBe(65);
+});
+
+test(`Char scalard def initial number`, () => {
+  const my = new Definition.Types.Char({ initial: 65 });
+  expect(my.create('B')).toBe(66);
+});
+
+
+
+test(`HighLow empty`, () => {
+  const my = new Definition.Types.HighLowType();
+  expect(my.create()).toEqual({ high: 0, low: 0});
+});
+
+test(`HighLow scalar initial number high`, () => {
+  const my = new Definition.Types.HighLowType({initial: { high: 65 }});
+  expect(my.create()).toEqual({ high: 65, low: 0 });
+});
+test(`HighLow scalar initial number low`, () => {
+  const my = new Definition.Types.HighLowType({initial: { low: 65 }});
+  expect(my.create()).toEqual({ high: 0, low: 65 });
+});
+
+test(`HighLow scalar initial number low:high`, () => {
+  const my = new Definition.Types.HighLowType({initial: { high: 66, low: 65 }});
+  expect(my.create()).toEqual({ high: 66, low: 65 });
+});
+
+test(`HighLow create initial number high`, () => {
+  const my = new Definition.Types.HighLowType({initial: { high: 65 }});
+  expect(my.create({}, {low: 67})).toEqual({ high: 65, low: 67 });
+});
+test(`HighLow create initial number low`, () => {
+  const my = new Definition.Types.HighLowType({initial: { low: 65 }});
+  expect(my.create({}, {high: 67})).toEqual({ high: 67, low: 65 });
+});
+
+test(`HighLow create initial number low:high`, () => {
+  const my = new Definition.Types.HighLowType({initial: { high: 66, low: 65 }});
+  expect(my.create({}, { high: 68}, {low: 69})).toEqual({ high: 68, low: 69 });
+});
+test(`HighLow create initial number low:high`, () => {
+  const my = new Definition.Types.HighLowType({initial: { high: 66, low: 65 }});
+  expect(my.create({ high: 68, low: 69})).toEqual({ high: 68, low: 69 });
 });
 
 test(`nested arrays of scalar`, () => {
@@ -44,11 +139,14 @@ test('structed of scalar types', () => {
   // console.log(my);
   expect(my.type).toBe(Definition.Types.Struct.type);
   expect(my.name).toBe('StructOfScalar');
-  expect(my.bytes).toBe(Definition.Types.ScalarTypesList.reduce((p, r) => p + r.bytes, 10));
-  expect(my.attributes.length).toBe(Definition.Types.ScalarTypesList.length + 1);
-  expect(my.attributes.map(i => i.name)).toEqual([
-    ...Definition.Types.ScalarTypesList.map(i => `Name${i.type}`),
+  expect(my.bytes).toBe(
+    Definition.Types.SimpleScalarTypesList.reduce((p, r) => p + r.bytes, 10 + 2),
+  );
+  expect(my.attributes.length).toBe(Definition.Types.ScalarTypesList.length);
+  expect(my.attributes.map((i) => i.name)).toEqual([
+    ...Definition.Types.SimpleScalarTypesList.map((i) => `Name${i.type}`),
     'NameString',
+    'NameBitStruct',
   ]);
 });
 
@@ -97,7 +195,7 @@ test('struct of nested array scalar', () => {
 test('struct of nested array struct', () => {
   const my = Samples.StructOfNestedArrayOfStruct.Type;
   expect(my.name).toBe('StructOfNestedArrayOfStruct');
-  expect(my.bytes).toBe(1166);
+  expect(my.bytes).toBe(1210);
   expect(my.attributes.length).toBe(2);
   expect(my.attributes[0].name).toBe('Nested');
   expect(my.attributes[0].type.type).toBe('FixedArray');
@@ -107,7 +205,7 @@ test('struct of nested array struct', () => {
   expect(arrayType.length).toBe(4);
   const structType = arrayType.element as Definition.Types.Struct;
   expect(structType.name).toBe('sonasNested');
-  expect(structType.attributes.length).toBe(Definition.Types.ScalarTypesList.length + 1);
+  expect(structType.attributes.length).toBe(Definition.Types.ScalarTypesList.length);
   expect(structType.attributes[0].type.bytes).toBe(1);
   expect(structType.attributes[0].type.type).toBe('Boolean');
   expect(my.attributes[1].name).toBe('Flat');
@@ -129,6 +227,8 @@ test('nested arrays of structed', () => {
 });
 
 test('initial to fixed array scalar', () => {
+  // console.log(`BLALAALAL`);
+  // debugger;
   const m = new Definition.Types.FixedArray({
     length: 10,
     element: new Definition.Types.Int(),
@@ -138,7 +238,24 @@ test('initial to fixed array scalar', () => {
   expect(m.initial).toEqual([1, 4, 0, 0, 0, 0, 0, 0, 0, 0]);
 });
 
-test('initial to fixed array struct', () => {
+test('initial to fixed array struct complete', () => {
+  const m = new Definition.Types.FixedArray({
+    length: 10,
+    element: new Definition.Types.Struct({
+      name: 'Bla',
+      attributes: [
+        {
+          name: 'test',
+          type: new Definition.Types.Int(),
+        },
+      ],
+    }),
+  });
+  expect(m.initial.length).toBe(10);
+  expect(m.initial).toEqual(Array(10).fill({ test: 0 }));
+});
+test('initial to fixed array struct partial', () => {
+  // debugger;
   const m = new Definition.Types.FixedArray({
     length: 10,
     element: new Definition.Types.Struct({
@@ -156,7 +273,7 @@ test('initial to fixed array struct', () => {
   expect(m.initial).toEqual([{ test: 1 }, { test: 2 }, ...Array(8).fill({ test: 0 })]);
 });
 
-test('initial to fixed array struct', () => {
+test('initial from attribute type', () => {
   const m = new Definition.Types.Struct({
     name: 'Bla',
     attributes: [
@@ -166,24 +283,152 @@ test('initial to fixed array struct', () => {
       },
     ],
   });
+  expect(m.attributes[0].type.initial).toEqual(44);
+  // expect(m.attributes[0].initial).toEqual(undefined);
+  expect(m.givenInitial).toEqual(Definition.Utils.NoneOption);
   expect(m.initial).toEqual({ test: 44 });
 });
 
-test('initial to fixed array struct', () => {
+test('initial passed by def struct', () => {
+  const m = new Definition.Types.Struct({
+    name: 'Bla',
+    attributes: [
+      {
+        name: 'test',
+        type: new Definition.Types.Int(),
+      },
+    ],
+    initial: { bla: 1, test: 7 }
+  });
+  expect(m.create()).toEqual({ test: 7 });
+  expect(m.create({})).toEqual({ test: 7 });
+  // debugger;
+  expect(m.create({ test: 1})).toEqual({ test: 1 });
+  expect(m.create({ }, { test: 3 }, { test: 2})).toEqual({ test: 3 });
+});
+
+test('initial passed by create struct', () => {
+  const m = new Definition.Types.Struct({
+    name: 'Bla',
+    attributes: [
+      {
+        name: 'test',
+        type: new Definition.Types.Int(),
+      },
+    ],
+  });
+  expect(m.create()).toEqual({ test: 0 });
+  expect(m.create({})).toEqual({ test: 0 });
+  // debugger;
+  expect(m.create({ test: 1})).toEqual({ test: 1 });
+  expect(m.create({ }, { test: 3 }, { test: 2})).toEqual({ test: 3 });
+});
+
+test('initial attribute struct merged', () => {
+  const m = new Definition.Types.Struct({
+    name: 'Bla',
+    attributes: [
+      {
+        name: 'test0',
+        type: new Definition.Types.Int(),
+      },
+      {
+        name: 'test1',
+        type: new Definition.Types.Int(),
+      }
+    ],
+  });
+  expect(m.create()).toEqual({ test0: 0, test1: 0 });
+  expect(m.create({})).toEqual({ test0: 0, test1: 0 });
+  expect(m.create({ bla: 1 })).toEqual({ test0: 0, test1: 0 });
+  expect(m.create({ test0: 1, test1: 2 })).toEqual({ test0: 1, test1: 2 });
+  // debugger;
+  expect(m.create({ test1: 1 }, {test0: 2 })).toEqual({ test0: 2, test1: 1 });
+  expect(m.create({ test0: 1 }, {test1: 2 })).toEqual({ test0: 1, test1: 2 });
+  expect(m.create({ }, { test1: 3 }, { test0: 2}, {test0: 4, test1: 5 })).toEqual({ test0: 2, test1: 3 });
+});
+
+test('initial array', () => {
+  const x = new Definition.Types.FixedArray({
+    length: 4,
+    element: new Definition.Types.Uint8({ initial: 6 }),
+  });
+  expect(x.create()).toEqual([6, 6, 6, 6]);
+});
+describe('initial array merge', () => {
+  const x = new Definition.Types.FixedArray({
+    length: 4,
+    element: new Definition.Types.Uint8({ initial: 6 }),
+    initial: [4, 4, 4, 4],
+  });
+  test('simple', () => {
+    expect(x.create()).toEqual([4, 4, 4, 4]);
+  });
+  test('two partial', () => {
+    expect(x.create([5, 6], [7, 5])).toEqual([5, 6, 4, 4]);
+  });
+  test('split two partial', () => {
+    expect(x.create([5, undefined], [undefined, 6])).toEqual([5, 6, 4, 4]);
+  });
+  test('split partial completed', () => {
+    expect(x.create([5, undefined], undefined, [7, 6])).toEqual([5, 6, 4, 4]);
+  });
+});
+
+test('initial nested array merge', () => {
+  const x = new Definition.Types.FixedArray({
+    length: 4,
+    element: new Definition.Types.FixedArray({
+      length: 2,
+      element: new Definition.Types.Uint8({ initial: 6 }),
+    }),
+    initial: Array(4)
+      .fill([0, 0])
+      .map((_, i) => [3 + i, 3 + i]),
+  });
+  expect(x.create()).toEqual([
+    [3, 3],
+    [4, 4],
+    [5, 5],
+    [6, 6],
+  ]);
+  expect(x.create([undefined, [5, 6]], [undefined, [7, 5]])).toEqual([
+    [3, 3],
+    [5, 6],
+    [5, 5],
+    [6, 6],
+  ]);
+  expect(x.create([undefined, [5, undefined]], [undefined, [undefined, 6]])).toEqual([
+    [3, 3],
+    [5, 6],
+    [5, 5],
+    [6, 6],
+  ]);
+  expect(x.create([undefined, [5, undefined]], [undefined, [7, 6]])).toEqual([
+    [3, 3],
+    [5, 6],
+    [5, 5],
+    [6, 6],
+  ]);
+});
+
+test('initial outer struct', () => {
   const m = new Definition.Types.Struct({
     name: 'Bla',
     attributes: [
       {
         name: 'test',
         type: new Definition.Types.Int({ initial: 44 }),
-        initial: 49,
+        // initial: 49,
       },
     ],
+    initial: { test: 59 },
   });
-  expect(m.initial).toEqual({ test: 49 });
+  expect(m.attributes[0].type.initial).toEqual(44);
+  // expect(m.attributes[0].initial).toEqual(49);
+  expect(m.initial).toEqual({ test: 59 });
 });
-
-test('array init', () => {});
+// test('array init', () => {});
 
 test('default init char', () => {
   const m = new Definition.Types.Char();
@@ -217,61 +462,234 @@ test('default to fixedcstring string', () => {
   // expect(m.initial.length).toBe(10);
   const x = Array.from(ref)
     .slice(0, 10)
-    .map(i => i.charCodeAt(0));
+    .map((i) => i.charCodeAt(0));
   x[x.length - 1] = 0;
   expect(m.initial).toEqual(x);
 });
 
-test('default to fixedcstring array', () => {
-  const m = new Definition.Types.FixedCString({
-    length: 10,
-    initial: Array(12).map((_, i) => i),
-  });
-  // expect(m.initial.length).toBe(10);
-  expect(m.initial).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-});
 
 [
   { initial: undefined, compare: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
   { initial: [0, 0, 0, 0, 0, 0, 0, 0, 12, 13, 14], compare: [0, 0, 0, 0, 0, 0, 0, 0, 12, 0] },
   { initial: 'HalloHallo', compare: [72, 97, 108, 108, 111, 72, 97, 108, 108, 0] },
   { initial: 'Hallo', compare: [72, 97, 108, 108, 111, 0, 0, 0, 0, 0] },
-].forEach(v => {
+].forEach((v, i) => {
   describe('fixedcstring string', () => {
+    const m = new Definition.Types.FixedCString({
+      length: 10,
+      initial: v.initial,
+    });
+    test(`create ${v.initial}`, () => {
+      // if (i == 1) debugger;
+      const c = m.create();
+      expect(c).toEqual(v.compare);
+    });
+    test(`create with value: ${v.initial}`, () => {
+      const c = new Definition.Types.FixedCString({ length: 10 }).create(v.initial);
+      expect(c).toEqual(v.compare);
+    });
     test(`${v.initial}`, () => {
-      const m = new Definition.Types.FixedCString({
-        length: 10,
-        initial: v.initial,
-      });
       expect(m.initial.length).toBe(10);
       expect(m.initial).toEqual(v.compare);
     });
   });
 });
 
-// test('simple fixed len string("utf-8")', () => {
-//   const m = new Definition.Types.Struct({
-//     name: 'Test',
-//     attributes: [
-//       {
-//         name: 'String',
-//         type: new Definition.Types.FixedCString({ length: 10, initial: 'Katze' })
-//       }
-//     ]
-//   });
+test('range error bit fields', () => {
+  expect(
+    () =>
+      new Definition.Types.BitStruct({
+        // length: 1,
+        bits: [
+          {
+            name: '_1_1bit',
+            start: 0,
+            length: 10,
+          },
+        ],
+      }),
+  ).toThrowError('BitStruct:_1_1bit');
+});
 
-// });
+test('double defined in bits', () => {
+  expect(
+    () =>
+      new Definition.Types.BitStruct({
+        // length: 1,
+        bits: [
+          {
+            name: '_1_1bit',
+            start: 0,
+            length: 10,
+          },
+          {
+            name: '_1_1bit',
+            start: 0,
+            length: 10,
+          },
+        ],
+      }),
+  ).toThrowError('double definied');
+});
 
 test('simple bit fields', () => {
-  // for (int i = 0; i < 32; ++i) {
-  //   const fb = FlatterBuf.generate({
-  //     type: FlatterBuf.Types.BitField,
-  //     union: Array(i).fill(undefined).map(_ => {
-  //     })
-  //       name:
-  //     startBit: i,
-  //     bits: 1
-  //   });
-  //   expect(fb.type).toBe(FlatterBuf.Types.BitField);
-  // }
+  // console.log(`Hello World`);
+  const m = new Definition.Types.BitStruct({
+    bits: [
+      {
+        name: '_1_1bit',
+        start: 0,
+      },
+      {
+        name: '_2_2bit',
+        start: 1,
+        length: 2,
+        initial: 2,
+      },
+      {
+        name: '_3_3bit',
+        start: 3,
+        length: 3,
+      },
+      {
+        name: '_6_2bit',
+        start: 6,
+        length: 2,
+      },
+    ],
+  });
+  expect(m.type).toBe('BitStruct');
+  expect(m.name).toBe('_1_1bitS0L1__2_2bitS1L2I2__3_3bitS3L3__6_2bitS6L2');
+  expect(m.length).toBe(1);
+  expect(m.bits.length).toBe(4);
+  expect(m.bits[0]).toEqual({
+    name: '_1_1bit',
+    start: 0,
+    length: 1,
+    type: {
+      bytes: 1,
+      givenInitial: {
+        none: true,
+      },
+      initial: false,
+      type: 'Boolean',
+    },
+  });
+  expect(m.bits[1]).toEqual({
+    initial: 2,
+    name: '_2_2bit',
+    start: 1,
+    length: 2,
+    type: {
+      bytes: 4,
+      coerce: (m.bits[1] as any).type.coerce,
+      givenInitial: {
+        none: false,
+        some: 2,
+      },
+      initial: 2,
+      type: 'Uint32',
+    },
+  });
+  expect(Definition.Utils.isNone(m.givenInitial)).toBeTruthy();
+  expect(m.initial).toEqual({
+    _1_1bit: false,
+    _2_2bit: 2,
+    _3_3bit: 0,
+    _6_2bit: 0,
+  });
+});
+
+test('simple bit fields', () => {
+  const m = new Definition.Types.BitStruct({
+    bits: [
+      {
+        name: '_1_1bit',
+        start: 0,
+      },
+      {
+        name: '_2_2bit',
+        start: 1,
+        length: 2,
+        initial: 2,
+      },
+      {
+        name: '_3_3bit',
+        start: 3,
+        length: 3,
+      },
+      {
+        name: '_6_2bit',
+        start: 6,
+        length: 2,
+      },
+    ],
+    initial: {
+      _2_2bit: 3,
+    },
+  });
+  expect(m.type).toBe('BitStruct');
+  expect(m.name).toBe('_1_1bitS0L1__2_2bitS1L2I2__3_3bitS3L3__6_2bitS6L2');
+  expect(m.length).toBe(1);
+  expect(m.bits.length).toBe(4);
+  expect(m.bits[0]).toEqual({
+    name: '_1_1bit',
+    start: 0,
+    length: 1,
+    type: {
+      bytes: 1,
+      givenInitial: {
+        none: true,
+      },
+      initial: false,
+      type: 'Boolean',
+    },
+  });
+  expect(m.bits[1]).toEqual({
+    initial: 2,
+    name: '_2_2bit',
+    start: 1,
+    length: 2,
+    type: {
+      bytes: 4,
+      coerce: (m.bits[1] as any).type.coerce,
+      givenInitial: {
+        none: false,
+        some: 2,
+      },
+      initial: 2,
+      type: 'Uint32',
+    },
+  });
+  expect(Definition.Utils.isSome(m.givenInitial)).toBeTruthy();
+  if (Definition.Utils.isSome(m.givenInitial)) {
+    expect(m.givenInitial.some).toEqual({
+      _2_2bit: 3
+    });
+  }
+  expect(m.initial).toEqual({
+    _1_1bit: false,
+    _2_2bit: 3,
+    _3_3bit: 0,
+    _6_2bit: 0,
+  });
+});
+
+test('longer bit fields', () => {
+  const m = new Definition.Types.BitStruct({
+    length: 6,
+    bits: [
+      {
+        name: '_6_32bit',
+        start: 6,
+        length: 32,
+      },
+    ],
+    initial: { _6_32bit: 0x47114711 },
+  });
+  expect(m.length).toBe(6);
+  // console.log(m);
+  expect(m.initial).toEqual({
+    _6_32bit: 0x47114711,
+  });
 });

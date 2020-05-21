@@ -35,7 +35,7 @@ export function NestedArrayOfStruct() {
 export namespace Samples {
   export namespace StructOfScalar {
     export function Builder(name: string) {
-      const m: Definition.Types.StructAttribute<unknown>[] = Definition.Types.ScalarTypesList.map(
+      const m: Definition.Types.StructAttribute<unknown>[] = Definition.Types.SimpleScalarTypesList.map(
         i => ({
           name: `Name${i.type}`,
           type: new i(),
@@ -44,6 +44,17 @@ export namespace Samples {
       m.push({
         name: `NameString`,
         type: new Definition.Types.FixedCString({ length: 10 }),
+      });
+      m.push({
+        name: `NameBitStruct`,
+        type: new Definition.Types.BitStruct({
+          length: 2,
+          bits: [
+            { name: '_1bit', start: 1 },
+            { name: '_3bit', start: 2, length: 3 },
+            { name: '_8bit', start: 4, length: 8 },
+          ],
+        }),
       });
       return new Definition.Types.Struct({
         name,
@@ -62,11 +73,16 @@ export namespace Samples {
       NameUint64: { high: 0, low: 0 },
       NameLong: { high: 0, low: 0 },
       NameDouble: 0,
-      NameString: Array(10).fill(0),
+      NameString: Array<number>(10).fill(0),
+      NameBitStruct: {
+        _1bit: false,
+        _3bit: 0,
+        _8bit: 0,
+      },
     };
     export const Type = Builder('StructOfScalar');
 
-    const nameString = Array(10)
+    const nameString = Array<number>(10)
       .fill(0)
       .map((_, i) => i + 'a'.charCodeAt(0));
     nameString[nameString.length - 1] = 0;
@@ -83,6 +99,11 @@ export namespace Samples {
       NameLong: { high: 99, low: 1111 },
       NameDouble: 10.7392,
       NameString: nameString,
+      NameBitStruct: {
+        _1bit: true,
+        _3bit: 5,
+        _8bit: 0x75,
+      },
     };
   }
 
@@ -90,7 +111,7 @@ export namespace Samples {
     export const Default = StructOfScalar.Init;
     export const Init = StructOfScalar.Default;
     export function Builder(name: string) {
-      const m: Definition.Types.StructAttribute<unknown>[] = Definition.Types.ScalarTypesList.map(
+      const m: Definition.Types.StructAttribute<unknown>[] = Definition.Types.SimpleScalarTypesList.map(
         i => ({
           name: `Name${i.type}`,
           type: new i({ initial: (StructOfScalar.Init as any)[`Name${i.type}`] as any }),
@@ -100,12 +121,61 @@ export namespace Samples {
         name: `NameString`,
         type: new Definition.Types.FixedCString({ length: 10, initial: 'abcdefghijk' }),
       });
+      // debugger;
+      m.push({
+        name: `NameBitStruct`,
+        type: new Definition.Types.BitStruct({
+          name: `DefBitInit${name.replace(/struct/i, 'Xtruct')}`,
+          length: 2,
+          bits: [
+            { name: '_1bit', start: 1, initial: true },
+            { name: '_3bit', start: 2, length: 3, initial: 5 },
+            { name: '_8bit', start: 4, length: 8, initial: 0x75 },
+          ],
+        }),
+      });
       return new Definition.Types.Struct({
         name,
         attributes: m,
       });
     }
     export const Type = Builder('InitStructOfScalar');
+  }
+
+  export namespace ExternInitStructofScalar {
+    export const Default = StructOfScalar.Init;
+    export const Init = StructOfScalar.Default;
+    export function Builder(name: string) {
+      const m: Definition.Types.StructAttribute<unknown>[] = Definition.Types.SimpleScalarTypesList.map(
+        i => ({
+          name: `Name${i.type}`,
+          type: new i(),
+        }),
+      );
+      m.push({
+        name: `NameString`,
+        type: new Definition.Types.FixedCString({ length: 10 }),
+      });
+      // debugger;
+      m.push({
+        name: `NameBitStruct`,
+        type: new Definition.Types.BitStruct({
+          name: `DefBitInit${name.replace(/struct/i, 'Xtruct')}`,
+          length: 2,
+          bits: [
+            { name: '_1bit', start: 1 },
+            { name: '_3bit', start: 2, length: 3},
+            { name: '_8bit', start: 4, length: 8},
+          ],
+        }),
+      });
+      return new Definition.Types.Struct({
+        name,
+        attributes: m,
+        initial: Default
+      });
+    }
+    export const Type = Builder('ExternalStructOfScalar');
   }
 
   export namespace StructOfNestedStruct {
@@ -249,7 +319,7 @@ export namespace Samples {
               length: 3,
               element: new Definition.Types.FixedArray({
                 length: 4,
-                element: new Definition.Types.Char({initial: 'u'}),
+                element: new Definition.Types.Char({ initial: 'u' }),
               }),
             }),
           }),
@@ -337,11 +407,12 @@ export namespace Samples {
   export const Tests = [
     StructOfScalar,
     InitStructOfScalar,
-    StructOfNestedStruct,
-    InitStructOfNestedStruct,
-    StructOfNestedArrayOfScalar,
-    InitStructOfNestedArrayOfScalar,
-    StructOfNestedArrayOfStruct,
-    InitStructOfNestedArrayOfStruct,
+    ExternInitStructofScalar,
+    // StructOfNestedStruct,
+    // InitStructOfNestedStruct,
+    // StructOfNestedArrayOfScalar,
+    // InitStructOfNestedArrayOfScalar,
+    // StructOfNestedArrayOfStruct,
+    // InitStructOfNestedArrayOfStruct,
   ];
 }

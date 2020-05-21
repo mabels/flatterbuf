@@ -3,8 +3,6 @@
     "target": "esnext",
     "module": "commonjs",
     "outDir": "dist",
-    "jsx": "react",
-    "experimentalDecorators": true,
     "noImplicitAny": true,
     "pretty": true,
     "sourceMap": true,
