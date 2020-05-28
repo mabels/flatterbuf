@@ -1,10 +1,28 @@
 import { TSGenerator, TSWriter, Struct } from '../src/generator/ts';
-import { Definition } from '../src/definition';
-import { Runtime } from '../src/runtime';
+// import { Definition } from '../src/definition';
+// import { Runtime } from '../src/runtime';
 import { Samples } from './samples';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as ts from 'typescript';
+import { Types, StreamBuffer } from '../src/definition';
+
+function filterFunc(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(i => filterFunc(i));
+  }
+  if (typeof obj === 'object') {
+    const ret: any = {};
+    Object.entries(obj).forEach(([key, val]) => {
+      ret[key] = filterFunc(val);
+    });
+    return ret;
+  }
+  if (typeof obj === 'function') {
+    return '[Function]';
+  }
+  return obj;
+}
 
 // Definition.Types.ScalarTypesList.forEach(scalar => {
 //   test('TS Generate Scalar', () => {
@@ -57,7 +75,7 @@ describe(`Generator:${TempDirectoryName}`, () => {
     }[];
     clazzes: any;
     sample: {
-      Type: Definition.Types.Struct;
+      Type: Types.Struct.Definition;
       Init: any;
       Default: any;
     };
@@ -90,8 +108,9 @@ describe(`Generator:${TempDirectoryName}`, () => {
           test(`reflection`, () => {
             // console.log('prop=>', clazz.Reflection.prop.attributes[1].type.initial);
             // console.log('type=>', tcase.sample.Type.attributes[1].type.initial);
-            const def: Definition.Types.Struct = new clazz.Definition();
-            expect(def).toEqual(tcase.sample.Type);
+            debugger;
+            const def: Types.Struct.Definition = new clazz.Definition();
+            expect(filterFunc(def)).toEqual(filterFunc(tcase.sample.Type));
             // expect(clazz.Reflection.attributes).toEqual(clazz.Reflection.attributes.reduce((r: any, attr: any) => {
             //   r[attr.name] = attr;
             //   return r;
@@ -103,32 +122,32 @@ describe(`Generator:${TempDirectoryName}`, () => {
           });
           test(`empty create`, () => {
             // console.log(clazz);
-            const def: Definition.Types.Struct = new clazz.Definition();
+            const def: Types.Struct.Definition = new clazz.Definition();
             const data = def.create();
             expect(data).toEqual(tcase.sample.Default);
-            const buf = def.toStream(data, new Runtime.StreamBuffer());
+            const buf = def.toStream(data, new StreamBuffer());
             // console.log('data', buf, buf.asUint8Array(), data, tcase.sample.Default);
-            const type = clazz.Definition.fromStream(new Runtime.StreamBuffer([buf.asUint8Array()]));
+            const type = clazz.Definition.fromStream(new StreamBuffer([buf.asUint8Array()]));
             // console.log(data, type);
             expect(data).toEqual(type);
           });
 
           test(`init create`, () => {
-            const def: Definition.Types.Struct = new clazz.Definition();
+            const def: Types.Struct.Definition = new clazz.Definition();
             debugger;
             const data = def.create(tcase.sample.Init);
             expect(tcase.sample.Init).toEqual(data);
-            const buf = def.toStream(data, new Runtime.StreamBuffer());
-            const type = clazz.Definition.fromStream(new Runtime.StreamBuffer([buf.asUint8Array()]));
+            const buf = def.toStream(data, new StreamBuffer());
+            const type = clazz.Definition.fromStream(new StreamBuffer([buf.asUint8Array()]));
             // console.log(data, buf.asUint8Array());
             expect(tcase.sample.Init).toEqual(type);
           });
 
           test(`def init create`, () => {
-            const def: Definition.Types.Struct = new clazz.Definition({initial: tcase.sample.Init});
+            const def: Types.Struct.Definition = new clazz.Definition({initial: tcase.sample.Init});
             const data = def.create();
-            const buf = def.toStream(data, new Runtime.StreamBuffer());
-            const type = clazz.Definition.fromStream(new Runtime.StreamBuffer([buf.asUint8Array()]));
+            const buf = def.toStream(data, new StreamBuffer());
+            const type = clazz.Definition.fromStream(new StreamBuffer([buf.asUint8Array()]));
             // console.log(data, buf.asUint8Array());
             expect(tcase.sample.Init).toEqual(type);
           });

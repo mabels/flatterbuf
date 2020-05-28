@@ -1,16 +1,16 @@
-import { Definition } from '../src/definition';
+import { Types } from '../src/definition';
 
 export function FixArrayOfScalarType<T>(len: number, element: any) {
-  return new Definition.Types.FixedArray({
+  return new Types.FixedArray.Definition({
     element: new element(),
     length: len,
   });
 }
 
 export function FixArrayOfFixArrayScalarType(l1: number, l2: number) {
-  return new Definition.Types.FixedArray({
-    element: new Definition.Types.FixedArray({
-      element: new Definition.Types.Boolean(),
+  return new Types.FixedArray.Definition({
+    element: new Types.FixedArray.Definition({
+      element: new Types.Boolean.Definition(),
       length: l2,
     }),
     length: l1,
@@ -18,14 +18,14 @@ export function FixArrayOfFixArrayScalarType(l1: number, l2: number) {
 }
 
 export function NestedArrayOfStruct() {
-  return new Definition.Types.FixedArray({
+  return new Types.FixedArray.Definition({
     length: 4,
-    element: new Definition.Types.Struct({
+    element: new Types.Struct.Definition({
       name: 'Bluchs',
       attributes: [
         {
           name: 'Murks',
-          type: new Definition.Types.Boolean(),
+          type: new Types.Boolean.Definition(),
         },
       ],
     }),
@@ -35,7 +35,7 @@ export function NestedArrayOfStruct() {
 export namespace Samples {
   export namespace StructOfScalar {
     export function Builder(name: string) {
-      const m: Definition.Types.StructAttribute<unknown>[] = Definition.Types.SimpleScalarTypesList.map(
+      const m: Types.Struct.Attribute<unknown>[] = Types.Type.SimpleScalarTypesList.map(
         i => ({
           name: `Name${i.type}`,
           type: new i(),
@@ -43,11 +43,11 @@ export namespace Samples {
       );
       m.push({
         name: `NameString`,
-        type: new Definition.Types.FixedCString({ length: 10 }),
+        type: new Types.FixedCString.Definition({ length: 10 }),
       });
       m.push({
         name: `NameBitStruct`,
-        type: new Definition.Types.BitStruct({
+        type: new Types.BitStruct.Definition({
           length: 2,
           bits: [
             { name: '_1bit', start: 1 },
@@ -56,7 +56,7 @@ export namespace Samples {
           ],
         }),
       });
-      return new Definition.Types.Struct({
+      return new Types.Struct.Definition({
         name,
         attributes: m,
       });
@@ -111,7 +111,7 @@ export namespace Samples {
     export const Default = StructOfScalar.Init;
     export const Init = StructOfScalar.Default;
     export function Builder(name: string) {
-      const m: Definition.Types.StructAttribute<unknown>[] = Definition.Types.SimpleScalarTypesList.map(
+      const m: Types.Struct.Attribute<unknown>[] = Types.Type.SimpleScalarTypesList.map(
         i => ({
           name: `Name${i.type}`,
           type: new i({ initial: (StructOfScalar.Init as any)[`Name${i.type}`] as any }),
@@ -119,12 +119,12 @@ export namespace Samples {
       );
       m.push({
         name: `NameString`,
-        type: new Definition.Types.FixedCString({ length: 10, initial: 'abcdefghijk' }),
+        type: new Types.FixedCString.Definition({ length: 10, initial: 'abcdefghijk' }),
       });
       // debugger;
       m.push({
         name: `NameBitStruct`,
-        type: new Definition.Types.BitStruct({
+        type: new Types.BitStruct.Definition({
           name: `DefBitInit${name.replace(/struct/i, 'Xtruct')}`,
           length: 2,
           bits: [
@@ -134,7 +134,7 @@ export namespace Samples {
           ],
         }),
       });
-      return new Definition.Types.Struct({
+      return new Types.Struct.Definition({
         name,
         attributes: m,
       });
@@ -142,11 +142,11 @@ export namespace Samples {
     export const Type = Builder('InitStructOfScalar');
   }
 
-  export namespace ExternInitStructofScalar {
+export namespace ExternInitStructofScalar {
     export const Default = StructOfScalar.Init;
     export const Init = StructOfScalar.Default;
     export function Builder(name: string) {
-      const m: Definition.Types.StructAttribute<unknown>[] = Definition.Types.SimpleScalarTypesList.map(
+      const m: Types.Struct.Attribute<unknown>[] = Types.Type.SimpleScalarTypesList.map(
         i => ({
           name: `Name${i.type}`,
           type: new i(),
@@ -154,12 +154,12 @@ export namespace Samples {
       );
       m.push({
         name: `NameString`,
-        type: new Definition.Types.FixedCString({ length: 10 }),
+        type: new Types.FixedCString.Definition({ length: 10 }),
       });
       // debugger;
       m.push({
         name: `NameBitStruct`,
-        type: new Definition.Types.BitStruct({
+        type: new Types.BitStruct.Definition({
           name: `DefBitInit${name.replace(/struct/i, 'Xtruct')}`,
           length: 2,
           bits: [
@@ -169,7 +169,7 @@ export namespace Samples {
           ],
         }),
       });
-      return new Definition.Types.Struct({
+      return new Types.Struct.Definition({
         name,
         attributes: m,
         initial: Default
@@ -179,30 +179,30 @@ export namespace Samples {
   }
 
   export namespace StructOfNestedStruct {
-    export const Type = new Definition.Types.Struct({
+    export const Type = new Types.Struct.Definition({
       name: 'StructOfNestedStruct',
       attributes: [
         {
           name: 'Yu',
-          type: new Definition.Types.Int(),
+          type: new Types.Int.Definition(),
         },
         {
           name: 'Max',
-          type: new Definition.Types.Struct({
+          type: new Types.Struct.Definition({
             name: 'Bux',
             attributes: [
               {
                 name: 'Zu',
-                type: new Definition.Types.Int(),
+                type: new Types.Int.Definition(),
               },
               {
                 name: 'Plax',
-                type: new Definition.Types.Struct({
+                type: new Types.Struct.Definition({
                   name: 'Wurx',
                   attributes: [
                     {
                       name: 'Uhu',
-                      type: new Definition.Types.Char(),
+                      type: new Types.Char.Definition(),
                     },
                   ],
                 }),
@@ -235,30 +235,30 @@ export namespace Samples {
   export namespace InitStructOfNestedStruct {
     export const Default = StructOfNestedStruct.Init;
     export const Init = StructOfNestedStruct.Default;
-    export const Type = new Definition.Types.Struct({
+    export const Type = new Types.Struct.Definition({
       name: 'InitStructOfNestedStruct',
       attributes: [
         {
           name: 'Yu',
-          type: new Definition.Types.Int({ initial: 4711 }),
+          type: new Types.Int.Definition({ initial: 4711 }),
         },
         {
           name: 'Max',
-          type: new Definition.Types.Struct({
+          type: new Types.Struct.Definition({
             name: 'InitBux',
             attributes: [
               {
                 name: 'Zu',
-                type: new Definition.Types.Int({ initial: 4712 }),
+                type: new Types.Int.Definition({ initial: 4712 }),
               },
               {
                 name: 'Plax',
-                type: new Definition.Types.Struct({
+                type: new Types.Struct.Definition({
                   name: 'InitWurx',
                   attributes: [
                     {
                       name: 'Uhu',
-                      type: new Definition.Types.Char({ initial: 'a' }),
+                      type: new Types.Char.Definition({ initial: 'a' }),
                     },
                   ],
                 }),
@@ -271,27 +271,27 @@ export namespace Samples {
   }
 
   export namespace StructOfNestedArrayOfScalar {
-    export const Type = new Definition.Types.Struct({
+    export const Type = new Types.Struct.Definition({
       name: 'StructOfNestedArrayOfScalar',
       attributes: [
         {
           name: `Nested`,
-          type: new Definition.Types.FixedArray({
+          type: new Types.FixedArray.Definition({
             length: 2,
-            element: new Definition.Types.FixedArray({
+            element: new Types.FixedArray.Definition({
               length: 3,
-              element: new Definition.Types.FixedArray({
+              element: new Types.FixedArray.Definition({
                 length: 4,
-                element: new Definition.Types.Char(),
+                element: new Types.Char.Definition(),
               }),
             }),
           }),
         },
         {
           name: `Flat`,
-          type: new Definition.Types.FixedArray({
+          type: new Types.FixedArray.Definition({
             length: 10,
-            element: new Definition.Types.Char(),
+            element: new Types.Char.Definition(),
           }),
         },
       ],
@@ -308,27 +308,27 @@ export namespace Samples {
   export namespace InitStructOfNestedArrayOfScalar {
     export const Default = StructOfNestedArrayOfScalar.Init;
     export const Init = StructOfNestedArrayOfScalar.Default;
-    export const Type = new Definition.Types.Struct({
+    export const Type = new Types.Struct.Definition({
       name: 'InitStructOfNestedArrayOfScalar',
       attributes: [
         {
           name: `Nested`,
-          type: new Definition.Types.FixedArray({
+          type: new Types.FixedArray.Definition({
             length: 2,
-            element: new Definition.Types.FixedArray({
+            element: new Types.FixedArray.Definition({
               length: 3,
-              element: new Definition.Types.FixedArray({
+              element: new Types.FixedArray.Definition({
                 length: 4,
-                element: new Definition.Types.Char({ initial: 'u' }),
+                element: new Types.Char.Definition({ initial: 'u' }),
               }),
             }),
           }),
         },
         {
           name: `Flat`,
-          type: new Definition.Types.FixedArray({
+          type: new Types.FixedArray.Definition({
             length: 10,
-            element: new Definition.Types.Char({ initial: 's' }),
+            element: new Types.Char.Definition({ initial: 's' }),
           }),
         },
       ],
@@ -337,23 +337,23 @@ export namespace Samples {
 
   export namespace StructOfNestedArrayOfStruct {
     const element = StructOfScalar.Builder('sonasNested');
-    // const element = new Definition.Types.Struct({
+    // const element = new Types.Struct({
     //   name: 'bla',
     //   attributes: [
     //     {
     //     name: 'jo',
-    //     type: new Definition.Types.Char({initial: 'X'})
+    //     type: new Types.Char({initial: 'X'})
     //     }
     //   ]
     // });
-    export const Type = new Definition.Types.Struct({
+    export const Type = new Types.Struct.Definition({
       name: 'StructOfNestedArrayOfStruct',
       attributes: [
         {
           name: `Nested`,
-          type: new Definition.Types.FixedArray({
+          type: new Types.FixedArray.Definition({
             length: 3,
-            element: new Definition.Types.FixedArray({
+            element: new Types.FixedArray.Definition({
               length: 4,
               element,
             }),
@@ -361,7 +361,7 @@ export namespace Samples {
         },
         {
           name: `Flat`,
-          type: new Definition.Types.FixedArray({
+          type: new Types.FixedArray.Definition({
             length: 10,
             element,
           }),
@@ -381,14 +381,14 @@ export namespace Samples {
     export const Init = StructOfNestedArrayOfStruct.Default;
     export const Default = StructOfNestedArrayOfStruct.Init;
     const element = InitStructOfScalar.Builder('isonasNested');
-    export const Type = new Definition.Types.Struct({
+    export const Type = new Types.Struct.Definition({
       name: 'InitStructOfNestedArrayOfStruct',
       attributes: [
         {
           name: `Nested`,
-          type: new Definition.Types.FixedArray({
+          type: new Types.FixedArray.Definition({
             length: 3,
-            element: new Definition.Types.FixedArray({
+            element: new Types.FixedArray.Definition({
               length: 4,
               element,
             }),
@@ -396,7 +396,7 @@ export namespace Samples {
         },
         {
           name: `Flat`,
-          type: new Definition.Types.FixedArray({
+          type: new Types.FixedArray.Definition({
             length: 10,
             element,
           }),

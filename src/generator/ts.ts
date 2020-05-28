@@ -1,6 +1,11 @@
-import { Definition } from '../definition';
+// import { Definition } from '../definition';
 import { TSStructWriter } from './ts-struct-writer';
 import { TSBitStructWriter } from './ts-bit-struct-writer';
+import { Types, Optional } from '../definition';
+import { func } from '../definition/align';
+import { Type } from '../definition/types';
+import { isNone } from '../definition/optional';
+import { HighLow } from '../definition/types/high-low';
 
 export class TSWriteLine {
   private readonly lines: string[] = [];
@@ -49,38 +54,123 @@ export function writeCloneFunction(wl: TSWriteLine) {
   wl.writeLine(1, `}\n`);
 }
 
-export function typeDefinition<T>(t: Definition.Types.Type<T>, wrapStruct: (s: string) => string = (s) => s): string {
+export function tsStringify<B>(
+  iobj: unknown,
+  typ: Types.Type.Definition<B>,
+  wr: TSWriter,
+): string {
+  const wl = new TSWriteLine(wr);
+  const oval = typ.coerce(iobj);
+  if (isNone(oval)) {
+    return wl.toString();
+  }
+  const val = oval.some;
+  switch (typ.type) {
+    case Types.Boolean.Definition.type:
+      wl.write(0, val ? 'true' : 'false');
+      break;
+    case Types.Char.Definition.type:
+    case Types.Uint8.Definition.type:
+    case Types.Uint16.Definition.type:
+    case Types.Short.Definition.type:
+    case Types.Uint32.Definition.type:
+    case Types.Int.Definition.type:
+    case Types.Float.Definition.type:
+    case Types.Double.Definition.type:
+      wl.write(0, `${val}`);
+      break;
+    case Types.Uint64.Definition.type:
+    case Types.Long.Definition.type:
+      const hl = val as HighLow;
+      const out = [];
+      if (typeof hl.low === 'number') {
+        out.push(`low: ${hl.low}`);
+      }
+      if (typeof hl.high === 'number') {
+        out.push(`high: ${hl.high}`);
+      }
+      wl.write(0, `{ ${out.join(', ')} }`);
+      break;
+    case Types.BitStruct.Definition.type:
+      const bitStruct = typ as unknown as Types.BitStruct.Definition;
+      const bobj = iobj as Record<string, unknown>;
+      wl.writeLine(0, `{`);
+      bitStruct.bits.forEach((bits) => {
+        const bval = bobj[bits.name];
+        if (Optional.isSome(bits.type.coerce(bval))) {
+          wl.writeLine(1, `${bits.name}: ${tsStringify(bval, bits.type, wr)},`);
+        }
+      });
+      wl.write(0, `}`);
+      break;
+    case Types.Struct.Definition.type:
+      const struct = typ as Types.Struct.Definition;
+      const obj = iobj as Record<string, unknown>;
+      wl.writeLine(0, `{`);
+      struct.attributes.forEach((attr) => {
+        const sval = obj[attr.name];
+        if (Optional.isSome(attr.type.coerce(sval))) {
+          wl.writeLine(1, `${attr.name}: ${tsStringify(sval, attr.type, wr)},`);
+        }
+      });
+      wl.write(0, `}`);
+      break;
+    case Types.FixedCString.Definition.type:
+      // const stype = typeof val;
+      // // wl.write(0, `/*${JSON.stringify(val)}*/`);
+      // if (stype === 'string') {
+      //   wl.write(0, wr.quote(val as string));
+      // }
+      // if (stype === 'number') {
+      //   wl.write(0, `${val as number}`);
+      // }
+      // break;
+    case Types.FixedArray.Definition.type:
+      const atype = typ as unknown as Types.FixedArray.Definition<unknown>;
+      const o = (val as unknown[]).map(i => tsStringify(i, atype.element, wr));
+      wl.write(0, `[${o.join(', ')}]`);
+      break;
+    default:
+      throw Error(`tsStringify failed for: ${typ.type}`);
+  }
+  return wl.toString();
+}
+
+export function typeDefinition<T>(
+  t: Types.Type.Definition<T>,
+  wrapStruct: (s: string) => string = (s) => s,
+): string {
   switch (t.type) {
-    case Definition.Types.Boolean.type:
+    case Types.Boolean.Definition.type:
       return 'boolean';
-    case Definition.Types.Char.type:
-    case Definition.Types.Uint8.type:
-    case Definition.Types.Uint16.type:
-    case Definition.Types.Short.type:
-    case Definition.Types.Uint32.type:
-    case Definition.Types.Int.type:
-    case Definition.Types.Float.type:
-    case Definition.Types.Double.type:
+    case Types.Char.Definition.type:
+    case Types.Uint8.Definition.type:
+    case Types.Uint16.Definition.type:
+    case Types.Short.Definition.type:
+    case Types.Uint32.Definition.type:
+    case Types.Int.Definition.type:
+    case Types.Float.Definition.type:
+    case Types.Double.Definition.type:
       return 'number';
-    case Definition.Types.Uint64.type:
-    case Definition.Types.Long.type:
-      return wrapStruct('__Definition.Types.HighLow');
-    case Definition.Types.BitStruct.type:
-      return wrapStruct(`${((t as unknown) as Definition.Types.BitStruct).name}.Type`);
-    case Definition.Types.Struct.type:
-      return wrapStruct(`${((t as unknown) as Definition.Types.Struct).name}.Type`);
-    case Definition.Types.FixedCString.type:
+    case Types.Uint64.Definition.type:
+    case Types.Long.Definition.type:
+      return wrapStruct(`Types.${t.type}.Type`);
+    case Types.BitStruct.Definition.type:
+      return wrapStruct(`${((t as unknown) as Types.BitStruct.Definition).name}.Type`);
+    case Types.Struct.Definition.type:
+      return wrapStruct(`${((t as unknown) as Types.Struct.Definition).name}.Type`);
+    case Types.FixedCString.Definition.type:
       return `number[]`;
-    case Definition.Types.FixedArray.type:
+    case Types.FixedArray.Definition.type:
       return (
-        typeDefinition(((t as unknown) as Definition.Types.FixedArray<unknown>).element) + '[]'
+        typeDefinition(((t as unknown) as Types.FixedArray.Definition<unknown>).element) + '[]'
       );
     default:
       throw Error(`typeDefinition failed for: ${t.type}`);
   }
 }
 
-export function attributeDefinition(def: Definition.Types.StructBaseAttribute) {
+export function attributeDefinition(def: Types.Struct.BaseAttribute) {
   // return def.name + (def.notRequired ? '?' : '');
   return def.name;
 }
@@ -88,29 +178,29 @@ export function attributeDefinition(def: Definition.Types.StructBaseAttribute) {
 export function initialValue<T>(
   _wr: TSWriter,
   vname: string,
-  def: Definition.Types.Type<T>,
+  def: Types.Type.Definition<T>,
 ): string {
   switch (def.type) {
-    case Definition.Types.Uint64.type:
-    case Definition.Types.Long.type:
-    // const hl = (def as Definition.Types.ScalarType<Runtime.Types.HighLow.Type>).initial;
+    case Types.Uint64.Definition.type:
+    case Types.Long.Definition.type:
+    // const hl = (def as Types.ScalarType<Runtime.Types.HighLow.Type>).initial;
     // return `{ high: ${hl.high}, low: ${hl.low} }`;
-    case Definition.Types.FixedCString.type:
-    case Definition.Types.BitStruct.type:
+    case Types.FixedCString.Definition.type:
+    case Types.BitStruct.Definition.type:
       return `dkdkfk:${def.type}:${vname}`;
-    case Definition.Types.Boolean.type:
-    // return (def as Definition.Types.ScalarType<boolean>).initial.toString();
-    case Definition.Types.Char.type:
-    case Definition.Types.Uint8.type:
-    case Definition.Types.Uint16.type:
-    case Definition.Types.Short.type:
-    case Definition.Types.Uint32.type:
-    case Definition.Types.Int.type:
-    case Definition.Types.Float.type:
-    case Definition.Types.Double.type:
-    // return (def as Definition.Types.ScalarType<number>).initial.toString();
-    case Definition.Types.Struct.type:
-    case Definition.Types.FixedArray.type:
+    case Types.Boolean.Definition.type:
+    // return (def as Types.ScalarType<boolean>).initial.toString();
+    case Types.Char.Definition.type:
+    case Types.Uint8.Definition.type:
+    case Types.Uint16.Definition.type:
+    case Types.Short.Definition.type:
+    case Types.Uint32.Definition.type:
+    case Types.Int.Definition.type:
+    case Types.Float.Definition.type:
+    case Types.Double.Definition.type:
+    // return (def as Types.ScalarType<number>).initial.toString();
+    case Types.Struct.Definition.type:
+    case Types.FixedArray.Definition.type:
       // return `Reflection.attributes[${wr.quote(sdef.name)}].initial`;
       return `${vname}`;
     default:
@@ -160,9 +250,7 @@ export class TSWriter {
   }
 
   public indent(level: number) {
-    return Array(level)
-      .fill(this.args.indent)
-      .join('');
+    return Array(level).fill(this.args.indent).join('');
   }
 
   public quote(val: string): string {
@@ -172,7 +260,7 @@ export class TSWriter {
     )}${this.args.quote}`;
   }
 
-  public structClass(def: Definition.Types.Struct, level: number) {
+  public structClass(def: Types.Struct.Definition, level: number) {
     let tsw = this.structs.get(def.name);
     if (!tsw) {
       tsw = { writer: new TSStructWriter(def, level, this.args) };
@@ -181,7 +269,7 @@ export class TSWriter {
     return tsw;
   }
 
-  public bitStructClass(def: Definition.Types.BitStruct, level: number) {
+  public bitStructClass(def: Types.BitStruct.Definition, level: number) {
     let tsw = this.structs.get(def.name);
     if (!tsw) {
       tsw = { writer: new TSBitStructWriter(def, this.args) };
@@ -190,17 +278,17 @@ export class TSWriter {
     return tsw;
   }
 
-  public generator<T>(def: Definition.Types.Type<T>): TSWriter {
-    if (Definition.Types.isFixedArray(def)) {
+  public generator<T>(def: Types.Type.Definition<T>): TSWriter {
+    if (Types.Type.isFixedArray(def)) {
       throw Error(`Implement-Array:${def.type}`);
-    } else if (Definition.Types.isStruct(def)) {
-      if (def.type === Definition.Types.Struct.type) {
-        this.structClass((def as unknown) as Definition.Types.Struct, 0);
+    } else if (Types.Type.isStruct(def)) {
+      if (def.type === Types.Struct.Definition.type) {
+        this.structClass((def as unknown) as Types.Struct.Definition, 0);
         return this;
       }
-    } else if (Definition.Types.isScalar(def)) {
-      if (def.type === Definition.Types.BitStruct.type) {
-        this.bitStructClass((def as unknown) as Definition.Types.BitStruct, 0);
+    } else if (Types.Type.isScalar(def)) {
+      if (def.type === Types.BitStruct.Definition.type) {
+        this.bitStructClass((def as unknown) as Types.BitStruct.Definition, 0);
         return this;
       }
       throw Error(`Implement-Scalar:${def.type}`);
@@ -217,7 +305,7 @@ export class TSWriter {
       // first pass
       preSize = this.structs.size;
       // console.log('getStruct-1=', preSize);
-      ret = Array.from(this.structs.values()).map(i => {
+      ret = Array.from(this.structs.values()).map((i) => {
         if (!i.written) {
           i.written = i.writer.write(this);
         }
@@ -233,6 +321,6 @@ export class TSWriter {
   // }
 }
 
-export function TSGenerator<T>(def: Definition.Types.Type<T>, writer = new TSWriter()): TSWriter {
+export function TSGenerator<T>(def: Types.Type.Definition<T>, writer = new TSWriter()): TSWriter {
   return writer.generator(def);
 }
