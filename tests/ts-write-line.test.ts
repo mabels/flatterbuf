@@ -34,4 +34,4 @@ test('writeline doof', () => {
     const tsw = new TSWriteLine(new TSWriter());
     tsw.writeLine(1, 'doof');
     expect(tsw.toString()).toBe('  doof\n');
-})
+});

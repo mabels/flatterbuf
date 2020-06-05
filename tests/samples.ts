@@ -293,10 +293,10 @@ export namespace Samples {
           name: `NameArray${i.type}`,
           type: new Types.FixedArray.Definition({
             length: 4,
-            element: new i() as any
+            element: new i() as any,
           }),
         })),
-      ]
+      ],
     });
     export const Default = {
       Nested: Array(2).fill(Array(3).fill(Array(4).fill(0))),
@@ -304,64 +304,68 @@ export namespace Samples {
       ...Types.SimpleScalarTypesList.reduce((r, i) => {
         switch (i.type) {
           case Types.Boolean.Definition.type:
-              r[`NameArray${i.type}`] = Array(4).fill(false)
-              break;
+            r[`NameArray${i.type}`] = Array(4).fill(false);
+            break;
           case Types.Long.Definition.type:
           case Types.Uint64.Definition.type:
-              r[`NameArray${i.type}`] = Array(4).fill({high: 0, low: 0})
-              break;
+            r[`NameArray${i.type}`] = Array(4).fill({ high: 0, low: 0 });
+            break;
           default:
-            r[`NameArray${i.type}`] = Array(4).fill(0)
+            r[`NameArray${i.type}`] = Array(4).fill(0);
             break;
         }
         return r;
-      }, {} as Record<string, any>)
+      }, {} as Record<string, any>),
       // FlatChar: Array(10).fill(0),
       // FlatCstring: Array(10).fill(Array(10).fill(0)),
     };
-    const numberInit = [4,3,1,9];
+    const numberInit = [4, 3, 1, 9];
     export const Init = {
       Nested: Array(2).fill(Array(3).fill(numberInit)),
-      FlatCstring: Array(10).fill((Type.attributeByName.FlatCstring.type as any).element.create('Mutig')),
+      FlatCstring: Array(10).fill(
+        (Type.attributeByName.FlatCstring.type as any).element.create('Mutig'),
+      ),
       ...Types.SimpleScalarTypesList.reduce((r, i) => {
-
         switch (i.type) {
           case Types.Boolean.Definition.type:
-              r[`NameArray${i.type}`] = [true, false, false, true]
-              break;
+            r[`NameArray${i.type}`] = [true, false, false, true];
+            break;
           case Types.Long.Definition.type:
           case Types.Uint64.Definition.type:
-              r[`NameArray${i.type}`] = Array(4).fill(undefined).map((i, j) => ({high: 13 + (j * 3), low: 27 + (j *7 )}))
-              break;
+            r[`NameArray${i.type}`] = Array(4)
+              .fill(undefined)
+              .map((_, j) => ({ high: 13 + j * 3, low: 27 + j * 7 }));
+            break;
           default:
             r[`NameArray${i.type}`] = numberInit;
             break;
         }
         return r;
-      }, {} as Record<string, any>)
+      }, {} as Record<string, any>),
     };
   }
   export namespace InitStructOfNestedArrayOfScalar {
     export const Init = {
       Nested: Array(2).fill(Array(3).fill(Array(4).fill(117))),
-      FlatCstring: Array(10).fill((new Types.FixedCString.Definition({length: 10})).create('cstring')),
+      FlatCstring: Array(10).fill(
+        new Types.FixedCString.Definition({ length: 10 }).create('cstring'),
+      ),
       ...Types.SimpleScalarTypesList.reduce((r, i) => {
-
         switch (i.type) {
           case Types.Boolean.Definition.type:
-              r[`NameArray${i.type}`] = [true, true, true, true]
-              break;
+            r[`NameArray${i.type}`] = [true, true, true, true];
+            break;
           case Types.Long.Definition.type:
           case Types.Uint64.Definition.type:
-              r[`NameArray${i.type}`] = Array(4).fill(undefined).map((i, j) => ({high: 47, low: 11 }))
-              break;
+            r[`NameArray${i.type}`] = Array(4).fill({ high: 47, low: 11 });
+            break;
           default:
             r[`NameArray${i.type}`] = [147, 147, 147, 147];
             break;
         }
         return r;
-      }, {} as Record<string, any>)
-    }
+      }, {} as Record<string, any>),
+    };
     export const Default = InitStructOfNestedArrayOfScalar.Init;
     export const Type = new Types.Struct.Definition({
       name: 'InitStructOfNestedArrayOfScalar',
@@ -392,7 +396,7 @@ export namespace Samples {
             case Types.Boolean.Definition.type:
               defType = new Types.FixedArray.Definition({
                 length: 4,
-                element: new Types.Boolean.Definition({ initial: true })
+                element: new Types.Boolean.Definition({ initial: true }),
               });
               break;
             case Types.Long.Definition.type:
@@ -400,19 +404,19 @@ export namespace Samples {
               defType = new Types.FixedArray.Definition({
                 length: 4,
                 // uncool cast but
-                element: new i({ initial: { high: 47, low: 11 } as never })
+                element: new i({ initial: { high: 47, low: 11 } as never }),
               });
               break;
             default:
               defType = new Types.FixedArray.Definition({
                 length: 4,
                 // uncool cast but
-                element: new i({ initial: 147 } as { initial: never })
+                element: new i({ initial: 147 } as { initial: never }),
               });
               break;
           }
           return { name: `NameArray${i.type}`, type: defType };
-        })
+        }),
       ],
     });
   }

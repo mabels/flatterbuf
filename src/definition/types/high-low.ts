@@ -14,7 +14,7 @@ export abstract class HighLowType extends Base<HighLow> {
   public static readonly uint32: Uint32 = new Uint32();
   public static readonly bytes: number = 8;
   public readonly givenInitial: Option<Partial<HighLow>>;
-  public readonly bytes = HighLowType.bytes;
+  public readonly bytes: number = HighLowType.bytes;
 
   public coerce(hl?: Partial<HighLow>): Option<Partial<HighLow>> {
     if (typeof hl === 'object') {

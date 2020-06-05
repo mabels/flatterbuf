@@ -1,4 +1,4 @@
-import { Option, SomeOption, NoneOption, OrUndefined, isSome } from '../optional';
+import { Option, SomeOption, NoneOption, OrUndefined } from '../optional';
 
 import { Definition as Base, TypeName, ScalarTypeArg } from './base';
 import { ChunkBuffer } from '../stream-buffer';

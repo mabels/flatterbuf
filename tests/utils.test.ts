@@ -2,16 +2,13 @@ import { nestedAssign } from '../src/definition/utils';
 import { NoneOption, SomeOption } from '../src/definition/optional';
 
 test('scalar empty', () => {
-  const v = {};
   expect(nestedAssign('my', {})).toEqual(NoneOption);
 });
 test('scalar empty undefined', () => {
-  const v = {};
   expect(nestedAssign('my', {}, undefined)).toEqual(NoneOption);
   expect(nestedAssign('my', {}, undefined, undefined)).toEqual(NoneOption);
 });
 test('scalar empty uniform', () => {
-  const v = {};
   expect(() => nestedAssign('my', {}, 1, undefined, 'o' as any)).toThrow();
 });
 
@@ -141,4 +138,3 @@ test('empty {[]{[]}} nestedAssign', () => {
   ).toStrictEqual(result);
   expect(v).toStrictEqual(result.some);
 });
-

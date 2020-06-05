@@ -1,5 +1,5 @@
 import { Types } from '../src/definition';
-import { tsStringify, TSWriter, TSWriteLine } from '../src/generator/ts';
+import { tsStringify, TSWriter } from '../src/generator/ts';
 
 const wr = new TSWriter();
 
@@ -125,5 +125,15 @@ test('struct nested', () => {
       a,
       wr,
     ),
-  ).toBe(`{\n${wr.indent(1)}a: false,\n${wr.indent(1)}b: {\n${wr.indent(2)}c: { high: 4 },\n${wr.indent(2)}d: {\n${wr.indent(3)}e: 4711,\n${wr.indent(2)}},\n${wr.indent(1)}},\n}`);
+  ).toBe([
+    `{`,
+    `${wr.indent(1)}a: false,`,
+    `${wr.indent(1)}b: {`,
+    `${wr.indent(2)}c: { high: 4 },`,
+    `${wr.indent(2)}d: {`,
+    `${wr.indent(3)}e: 4711,`,
+    `${wr.indent(2)}},`,
+    `${wr.indent(1)}},`,
+    `}`
+  ].join('\n'));
 });

@@ -1,5 +1,5 @@
 import { Option, SomeOption, NoneOption, OrUndefined, isSome } from '../optional';
-import { Definition as Base, TypeName, ScalarTypeArg } from './base';
+import { Definition as Base, TypeName } from './base';
 import { CharInitType, Definition as Char } from './char';
 import { Funcs, funcsMapper } from '../align';
 import { ChunkBuffer } from '../stream-buffer';

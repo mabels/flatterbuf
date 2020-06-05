@@ -5,8 +5,8 @@ import { Funcs, funcsMapper } from '../align';
 import { ChunkBuffer } from '../stream-buffer';
 
 export abstract class ArrayTypeAttribute<B> extends Base<B[]> {
-  abstract readonly element: Base<B>;
-  abstract readonly length: number;
+  public abstract readonly element: Base<B>;
+  public abstract readonly length: number;
 }
 
 export type ElementType<B> = B | NestedPartial<B>;

@@ -187,7 +187,6 @@ export class TSStructWriter<T> implements TSRefWriter {
     });
     wl.writeLine(1, '}');
     wl.writeLine(1, `export interface Type {`);
-    const tdef = this.def as Types.Struct.Definition;
     sdef.attributes.forEach((i) => {
       this.addTypeReference(wl.wr, i.type);
       wl.writeLine(2, `readonly ${attributeDefinition(i)}: ${typeDefinition(i.type, 'Type')};`);
@@ -209,14 +208,10 @@ export class TSStructWriter<T> implements TSRefWriter {
   }
   private writeTSObject(wr: TSWriter, hl: { [id: string]: any }): string {
     const mid = Array.from(Object.entries(hl))
-      .filter(([_, v]) => v !== undefined)
-      .map(([_, v]) => {
-        return this.writeTSObjectItem(wr, v);
-      });
+      .filter((v) => v[1] !== undefined)
+      .map((v) => this.writeTSObjectItem(wr, v[1]));
     return [`{\n`, ...mid, `\n},`].join('');
   }
-
-
 
   private writeAttributes(wr: TSWriter) {
     const wl = new TSWriteLine(wr);
@@ -399,31 +394,6 @@ export class TSStructWriter<T> implements TSRefWriter {
     return wl.toString();
   }
 
-  private writeStreamArrayAction<B>(
-    wr: TSWriter,
-    attrName: string,
-    def: Types.Base.Definition<B>,
-    stype: string,
-    level: number,
-    itemName: string,
-  ) {
-    const wl = new TSWriteLine(wr);
-    const adef = (def as unknown) as Types.FixedArray.ArrayTypeAttribute<B>;
-    wl.writeLine(0, `Types.FixedArray.create(${adef.length}, (i${level}) => `);
-    wl.writeLine(
-      1,
-      `${this.fromStreamAction(
-        wr,
-        attrName,
-        adef.element,
-        stype,
-        level + 1,
-        `${itemName}.\${i${level}}`,
-      )}`,
-    );
-    wl.write(0, `)`);
-    return wl.toString();
-  }
   private fromStreamAction<B>(
     wr: TSWriter,
     attrName: string,
@@ -435,12 +405,12 @@ export class TSStructWriter<T> implements TSRefWriter {
     switch (Types.toAttributeType(def)) {
       case Types.AttributeType.Scalar:
         if (def.type === Types.FixedCString.Definition.type) {
-          const cdef = (def as unknown) as Types.FixedCString.Definition;
+          // const cdef = (def as unknown) as Types.FixedCString.Definition;
           return `Definition.AttributeByName.${attrName}.${stype}.fromStreamChunk(nrb, ${wr.backQuote(
             itemName || attrName,
           )}) as number[]`;
         } else if (def.type === Types.BitStruct.Definition.type) {
-          const bdef = (def as unknown) as Types.BitStruct.Definition;
+          // const bdef = (def as unknown) as Types.BitStruct.Definition;
           return `Definition.AttributeByName.${attrName}.${stype}.fromStreamChunk(nrb, ${wr.backQuote(
             itemName || attrName,
           )})`;
@@ -450,7 +420,7 @@ export class TSStructWriter<T> implements TSRefWriter {
         )})`;
       // return `nrb.read${def.type}()`;
       case Types.AttributeType.Struct:
-        const sdef = def as Types.Base.NamedType<B>;
+        // const sdef = def as Types.Base.NamedType<B>;
         return `Definition.AttributeByName.${attrName}.${stype}.fromStreamChunk(nrb, ${wr.backQuote(
           itemName || attrName,
         )})`;

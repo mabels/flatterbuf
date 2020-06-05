@@ -37,8 +37,6 @@ const ProjectRelativ = `./tests/${TempDirectoryName}`;
 // console.log(`WTF=>`, projectRelativ);
 fs.mkdirSync(ProjectRelativ);
 
-const Files: string[] = [];
-
 function transpile<T>(inTss: Struct[]) {
   return inTss
     .map(inTs => {
@@ -101,7 +99,7 @@ describe(`Generator:${TempDirectoryName}`, () => {
   Tests.forEach(tcase => {
     // console.log(Object.entries<any>(tcase.clazzes));
     Object.entries<any>(tcase.clazzes)
-      .filter(([key, _]) => key.match(/struct/i))
+      .filter(([key]) => key.match(/struct/i))
       .forEach(([key, clazz]) => {
         describe(key, () => {
           // console.log('XXXXXX=>', tcase, key);

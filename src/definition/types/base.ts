@@ -50,5 +50,5 @@ export interface ScalarTypeArg<T> {
 }
 
 export abstract class NamedType<T> extends Definition<T> {
-  abstract readonly name: string;
+  public abstract readonly name: string;
 }

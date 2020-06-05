@@ -168,7 +168,7 @@ test('struct of nested array scalar', () => {
   const my = Samples.StructOfNestedArrayOfScalar.Type;
   expect(my.name).toBe('StructOfNestedArrayOfScalar');
   expect(my.bytes).toBe((2 * 3 * 4) + (10 * 10) + Types.SimpleScalarTypesList.reduce((r, i) => {
-    return r + (i.bytes * 4)
+    return r + (i.bytes * 4);
   }, 0));
   expect(my.attributes.length).toBe(13);
   expect(my.attributes[0].name).toBe('Nested');

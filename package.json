@@ -1,14 +1,15 @@
 {
   "name": "flatterbuf",
   "version": "1.0.0",
-  "main": "dist/index.js",
+  "main": "dist/definition",
   "author": "Meno Abels",
   "license": "AFL-2.0",
   "scripts": {
     "clean": "rimraf dist",
     "build": "tsc",
     "test": "jest -c jest.unit.js",
-    "lint": "tslint --project ."
+    "lint": "tslint --project .",
+    "prepublishOnly": "npm run clean && npm run lint && npm run build && npm run test"
   },
   "devDependencies": {
     "@types/node": "^13.9.3",

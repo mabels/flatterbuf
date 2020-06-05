@@ -35,7 +35,7 @@ export abstract class AbstractDefinition extends NamedType<StructInitial> {
   public abstract readonly alignFuncs: Funcs<string>;
   public abstract readonly attributes: AttributeOfs<any>[];
   public abstract readonly attributeByName: StructByName;
-  public abstract readonly givenInitial: Option<Partial<StructInitial>>
+  public abstract readonly givenInitial: Option<Partial<StructInitial>>;
 }
 
 export class Definition extends AbstractDefinition {
@@ -121,6 +121,7 @@ export class Definition extends AbstractDefinition {
   }
 
   // we need this defined in the class not in the prototype
+  // tslint:disable-next-line: typedef
   public fromStreamChunk = function (
     chunk: ChunkBuffer,
     name: string = this.type,

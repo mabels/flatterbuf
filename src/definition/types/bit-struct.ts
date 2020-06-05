@@ -4,8 +4,7 @@ import { Option, OrUndefined, NoneOption, isNone, SomeOption } from '../optional
 import { Definition as _Boolean } from './boolean';
 import { Definition as Uint32 } from './uint32';
 import { Definition as Base, TypeName, NamedType } from './base';
-import { BitStruct } from '.';
-import { ChunkBuffer, StreamBuffer } from '../stream-buffer';
+import { ChunkBuffer } from '../stream-buffer';
 
 export interface BitItem {
   readonly name: string;
