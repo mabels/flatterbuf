@@ -1,17 +1,14 @@
 import { Option, SomeOption, NoneOption, OrUndefined, isSome, isNone } from '../optional';
-import { Definition as Type, TypeName, NamedType } from './type';
+import { Definition as Base, TypeName, NamedType } from './base';
 import { Funcs, funcsMapper } from '../align';
-import { StreamBuffer } from '../stream-buffer';
-// import { Runtime } from '../../runtime';
+import { ChunkBuffer } from '../stream-buffer';
 
 export interface BaseAttribute {
   readonly name: string;
-  // readonly notRequired?: boolean;
 }
 
 export interface Attribute<T> extends BaseAttribute {
-  // readonly initial?: T;
-  readonly type: Type<T>;
+  readonly type: Base<T>;
 }
 
 export interface AttributeOfs<T> extends Attribute<T> {
@@ -29,25 +26,37 @@ export interface StructArg {
   readonly initial?: StructInitial;
 }
 
-export class Definition implements NamedType<StructInitial> {
-  public static readonly type: TypeName = 'Struct';
-  public readonly type: TypeName = Definition.type;
+export const typeName: TypeName = 'Struct';
+
+export abstract class AbstractDefinition extends NamedType<StructInitial> {
+  public readonly type: TypeName = typeName;
+  public abstract readonly bytes: number;
+  public abstract readonly name: string;
+  public abstract readonly alignFuncs: Funcs<string>;
+  public abstract readonly attributes: AttributeOfs<any>[];
+  public abstract readonly attributeByName: StructByName;
+  public abstract readonly givenInitial: Option<Partial<StructInitial>>
+}
+
+export class Definition extends AbstractDefinition {
+  public static readonly type: TypeName = typeName;
   public readonly bytes: number;
   public readonly name: string;
   public readonly alignFuncs: Funcs<string>;
   public readonly attributes: AttributeOfs<any>[];
   public readonly attributeByName: StructByName;
+  public readonly givenInitial: Option<Partial<StructInitial>>;
 
-  // public initial: StructInitial;
-  public givenInitial: Option<Partial<StructInitial>>;
   // Type(typelevel)
   public constructor(st: StructArg) {
+    super();
     this.name = st.name;
     const al = funcsMapper(st.alignFuncs);
     this.alignFuncs = al.names;
 
     const tmp = st.attributes.reduce(
       (res, attr) => {
+        // Hack
         res.attributesInclOfs.push({
           ...attr,
           // notRequired: !!attr.notRequired,
@@ -67,23 +76,7 @@ export class Definition implements NamedType<StructInitial> {
       r[attr.name] = attr;
       return r;
     }, {} as StructByName);
-    // this.attributes.forEach((attr) => {
-    //   if (givenInitial.hasOwnProperty(attr.name)) {
-    //     this.initial[attr.name] = attr.type.create(
-    //       givenInitial[attr.name],
-    //       attr.initial,
-    //       attr.type.initial,
-    //     );
-    //     if (isNone(this.givenInitial)) {
-    //       this.givenInitial = SomeOption({});
-    //     }
-    //     if (isSome(this.givenInitial)) {
-    //       this.givenInitial.some[attr.name] = givenInitial[attr.name];
-    //     }
-    //   }
-    // });
     this.givenInitial = this.coerce(st.initial);
-    // this.initial = this.create(st.initial);
   }
 
   public coerce(vals: Record<string, any>): Option<Record<string, any>> {
@@ -121,52 +114,21 @@ export class Definition implements NamedType<StructInitial> {
           return r;
         }, {} as Record<string, any[]>),
       );
-    // console.log(`YYYYY`, data, this.bits);
     return this.attributes.reduce((r, attr) => {
       r[attr.name] = attr.type.create(...data[attr.name]);
-      // console.log(`XXXXXX`, bit.name, r[bit.name], data[bit.name]);
       return r;
     }, {} as StructInitial);
-    // const data: StructMerge = vals
-    //   .concat([this.initial])
-    //   .filter((i) => typeof i === 'object')
-    //   .reduce(
-    //     (ret, val) => {
-    //       this.attributes.forEach((attr) => {
-    //         const v = val[attr.name];
-    //         if (v !== undefined) {
-    //           ret[attr.name].push(v);
-    //         }
-    //       });
-    //       return ret;
-    //     },
-    //     this.attributes.reduce((r, attr) => {
-    //       r[attr.name] = [];
-    //       return r;
-    //     }, {} as StructMerge),
-    //   );
-
-    // // console.log(`XXXXXXX=>${JSON.stringify(initials)}, ${JSON.stringify(items)}`);
-    // return this.attributes.reduce((ret, attr) => {
-    //   const inits = data[attr.name];
-    //   if (Definition.Types.isFixedCString(attr.type)) {
-    //     const scdef = (attr.type as unknown) as Definition.Types.FixedCString;
-    //     ret[attr.name] = scdef.create(...(inits as FixedCStringInitType[]));
-    //   } else if (Definition.Types.isFixedArray(attr.type)) {
-    //     const adef = (attr.type as unknown) as Definition.Types.FixedArray<unknown>;
-    //     ret[attr.name] = adef.create(...(inits as unknown[][]));
-    //   } else if (Definition.Types.isScalar(attr.type) || Definition.Types.isStruct(attr.type)) {
-    //     const sdef = (attr.type as unknown) as Definition.Types.Type<unknown>;
-    //     ret[attr.name] = sdef.create(...inits);
-    //   } else {
-    //     throw Error(`Unknown attribute ${attr}`);
-    //   }
-    //   return ret;
-    // }, {} as StructInitial);
   }
 
-  public toStream(data: Partial<StructInitial>, wb: StreamBuffer): StreamBuffer {
-    throw Error('not implemented in base Class');
+  // we need this defined in the class not in the prototype
+  public fromStreamChunk = function (
+    chunk: ChunkBuffer,
+    name: string = this.type,
+  ): Record<string, any> {
+    throw new Error('Method not implemented.');
+  };
+  public toStreamChunk(val: Record<string, any>, chunk: ChunkBuffer): void {
+    throw new Error('Method not implemented.');
   }
 }
 

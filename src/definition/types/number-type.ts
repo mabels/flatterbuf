@@ -1,10 +1,12 @@
 import { Option, SomeOption, NoneOption, OrUndefined, isSome } from '../optional';
-import { Definition, TypeName, ScalarTypeArg, FilterFunc } from './type';
+import { TypeName, ScalarTypeArg, FilterFunc, Definition } from './base';
 
-export class NumberType {
+export abstract class NumberType extends Definition<number> {
   // public readonly initial: number;
   public readonly givenInitial: Option<number>;
 
+  public abstract bytes: number;
+  public abstract type: TypeName;
   public coerce: FilterFunc<number>;
 
   public create(...vals: number[]): number {
@@ -12,10 +14,10 @@ export class NumberType {
   }
 
   constructor(ival: ScalarTypeArg<number> | undefined, fn: (filter: number) => number) {
+    super();
     const oval = (ival || {}).initial;
     this.coerce = (val: number | undefined) =>
       typeof val === 'number' ? SomeOption(fn(val)) : NoneOption;
     this.givenInitial = this.coerce(oval);
-    // this.initial = this.create(ival);
   }
 }

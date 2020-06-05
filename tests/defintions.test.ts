@@ -6,16 +6,10 @@ import {
   NestedArrayOfStruct,
 } from './samples';
 import { Types, Optional } from '../src/definition';
-import { HighLowType } from '../src/definition/types/high-low';
+// import { HighLowType } from '../src/definition/types/high-low';
+// import { Uint64, Base } from '../src/definition/types';
 
-// test('empty type', () => {
-//   const fb = Generator.fromString('');
-//   expect(fb.js.diagnostics).toEqual([]);
-//   expect(fb.js.outputText).toEqual('');
-//   expect(() => eval(fb.js.outputText)).not.toThrow();
-// });
-
-Types.Type.SimpleScalarTypesList.forEach((scalar, len) => {
+Types.SimpleScalarTypesList.forEach((scalar, len) => {
   test(`simple scalar ${scalar.type}`, () => {
     const my = new scalar();
     expect(my.bytes).toBe(scalar.bytes);
@@ -86,39 +80,39 @@ test(`Char scalard def initial number`, () => {
 });
 
 test(`HighLow empty`, () => {
-  const my = new HighLowType();
+  const my = new Types.Uint64.Definition();
   expect(my.create()).toEqual({ high: 0, low: 0 });
 });
 
 test(`HighLow scalar initial number high`, () => {
-  const my = new HighLowType({ initial: { high: 65 } });
+  const my = new Types.Uint64.Definition({ initial: { high: 65 } });
   expect(my.create()).toEqual({ high: 65, low: 0 });
 });
 test(`HighLow scalar initial number low`, () => {
-  const my = new HighLowType({ initial: { low: 65 } });
+  const my = new Types.Uint64.Definition({ initial: { low: 65 } });
   expect(my.create()).toEqual({ high: 0, low: 65 });
 });
 
 test(`HighLow scalar initial number low:high`, () => {
-  const my = new HighLowType({ initial: { high: 66, low: 65 } });
+  const my = new Types.Uint64.Definition({ initial: { high: 66, low: 65 } });
   expect(my.create()).toEqual({ high: 66, low: 65 });
 });
 
 test(`HighLow create initial number high`, () => {
-  const my = new HighLowType({ initial: { high: 65 } });
+  const my = new Types.Uint64.Definition({ initial: { high: 65 } });
   expect(my.create({}, { low: 67 })).toEqual({ high: 65, low: 67 });
 });
 test(`HighLow create initial number low`, () => {
-  const my = new HighLowType({ initial: { low: 65 } });
+  const my = new Types.Uint64.Definition({ initial: { low: 65 } });
   expect(my.create({}, { high: 67 })).toEqual({ high: 67, low: 65 });
 });
 
 test(`HighLow create initial number low:high`, () => {
-  const my = new HighLowType({ initial: { high: 66, low: 65 } });
+  const my = new Types.Uint64.Definition({ initial: { high: 66, low: 65 } });
   expect(my.create({}, { high: 68 }, { low: 69 })).toEqual({ high: 68, low: 69 });
 });
 test(`HighLow create initial number low:high`, () => {
-  const my = new HighLowType({ initial: { high: 66, low: 65 } });
+  const my = new Types.Uint64.Definition({ initial: { high: 66, low: 65 } });
   expect(my.create({ high: 68, low: 69 })).toEqual({ high: 68, low: 69 });
 });
 
@@ -137,10 +131,10 @@ test('structed of scalar types', () => {
   // console.log(my);
   expect(my.type).toBe(Types.Struct.Definition.type);
   expect(my.name).toBe('StructOfScalar');
-  expect(my.bytes).toBe(Types.Type.SimpleScalarTypesList.reduce((p, r) => p + r.bytes, 10 + 2));
-  expect(my.attributes.length).toBe(Types.Type.ScalarTypesList.length);
+  expect(my.bytes).toBe(Types.SimpleScalarTypesList.reduce((p, r) => p + r.bytes, 10 + 2));
+  expect(my.attributes.length).toBe(Types.ScalarTypesList.length);
   expect(my.attributes.map((i) => i.name)).toEqual([
-    ...Types.Type.SimpleScalarTypesList.map((i) => `Name${i.type}`),
+    ...Types.SimpleScalarTypesList.map((i) => `Name${i.type}`),
     'NameString',
     'NameBitStruct',
   ]);
@@ -173,8 +167,10 @@ test('struct of nested struct', () => {
 test('struct of nested array scalar', () => {
   const my = Samples.StructOfNestedArrayOfScalar.Type;
   expect(my.name).toBe('StructOfNestedArrayOfScalar');
-  expect(my.bytes).toBe(2 * 3 * 4 + 10);
-  expect(my.attributes.length).toBe(2);
+  expect(my.bytes).toBe((2 * 3 * 4) + (10 * 10) + Types.SimpleScalarTypesList.reduce((r, i) => {
+    return r + (i.bytes * 4)
+  }, 0));
+  expect(my.attributes.length).toBe(13);
   expect(my.attributes[0].name).toBe('Nested');
   expect(my.attributes[0].type.type).toBe('FixedArray');
   const arrayType = my.attributes[0].type as Types.FixedArray.Definition<unknown>;
@@ -182,10 +178,10 @@ test('struct of nested array scalar', () => {
   expect(arrayType.element.type).toBe('FixedArray');
   const arrayType1 = arrayType.element as Types.FixedArray.Definition<unknown>;
   expect(arrayType1.length).toBe(3);
-  expect(my.attributes[1].name).toBe('Flat');
-  const arrayType2 = my.attributes[1].type as Types.FixedArray.Definition<unknown>;
-  expect(arrayType2.length).toBe(10);
-  expect(arrayType2.element.type).toBe('Char');
+  expect(my.attributes[1].name).toBe('FlatCstring');
+  const arrayType3 = my.attributes[1].type as Types.FixedArray.Definition<unknown>;
+  expect(arrayType3.length).toBe(10);
+  expect(arrayType3.element.type).toBe('FixedCString');
 });
 
 test('struct of nested array struct', () => {
@@ -201,7 +197,7 @@ test('struct of nested array struct', () => {
   expect(arrayType.length).toBe(4);
   const structType = arrayType.element as Types.Struct.Definition;
   expect(structType.name).toBe('sonasNested');
-  expect(structType.attributes.length).toBe(Types.Type.ScalarTypesList.length);
+  expect(structType.attributes.length).toBe(Types.ScalarTypesList.length);
   expect(structType.attributes[0].type.bytes).toBe(1);
   expect(structType.attributes[0].type.type).toBe('Boolean');
   expect(my.attributes[1].name).toBe('Flat');
@@ -251,8 +247,8 @@ test('initial to fixed array struct complete', () => {
   expect(m.create()).toEqual(Array(10).fill({ test: 0 }));
 });
 test('initial to fixed array struct partial', () => {
-  // debugger;
-  const m = new Types.FixedArray.Definition({
+  // The Partial test? is not right
+  const m = new Types.FixedArray.Definition<{ test?: number}>({
     length: 10,
     element: new Types.Struct.Definition({
       name: 'Bla',
@@ -315,6 +311,7 @@ test('initial passed by create struct', () => {
   });
   expect(m.create()).toEqual({ test: 0 });
   expect(m.create({})).toEqual({ test: 0 });
+  expect(m.attributeByName['test'].name).toBe('test');
   // debugger;
   expect(m.create({ test: 1 })).toEqual({ test: 1 });
   expect(m.create({}, { test: 3 }, { test: 2 })).toEqual({ test: 3 });
@@ -377,7 +374,7 @@ describe('initial array merge', () => {
 test('initial nested array merge', () => {
   const x = new Types.FixedArray.Definition({
     length: 4,
-    element: new Types.FixedArray.Definition({
+    element: new Types.FixedArray.Definition<number>({
       length: 2,
       element: new Types.Uint8.Definition({ initial: 6 }),
     }),

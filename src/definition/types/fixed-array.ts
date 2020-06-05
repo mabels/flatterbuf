@@ -1,123 +1,114 @@
-import { Option, SomeOption, NoneOption, isSome, OrUndefined, isNone } from '../optional';
-import { funcsMapper, Funcs } from '../align';
+import { Option, SomeOption, NoneOption, OrUndefined, isSome, isNone } from '../optional';
+import { Definition as Base, TypeName } from './base';
+import { NestedPartial } from '../nested';
+import { Funcs, funcsMapper } from '../align';
+import { ChunkBuffer } from '../stream-buffer';
 
-import { Type, TypeName } from './type';
-
-export interface ArrayTypeAttribute<B> extends Type<B[]> {
-  readonly element: Type<B>;
-  readonly length: number;
+export abstract class ArrayTypeAttribute<B> extends Base<B[]> {
+  abstract readonly element: Base<B>;
+  abstract readonly length: number;
 }
 
-export interface FixedArrayArg<B> {
-  readonly element: Type<B>;
+export type ElementType<B> = B | NestedPartial<B>;
+
+export interface FixedArrayArg<B, T extends Base<B> = Base<B>> {
+  readonly element: T;
   readonly length: number;
-  readonly initial?: B[];
+  readonly initial?: ElementType<B>[];
   readonly alignFuncs?: Partial<Funcs<string>>;
 }
 
-export class Definition<B> implements ArrayTypeAttribute<B> {
+export function create<B>(len: number, cb: (idx: number) => B) {
+  const my = Array<B>(len);
+  for (let i = 0; i < len; ++i) {
+    my[i] = cb(i);
+  }
+  return my;
+}
+
+// type fromStreamFN<B> = (rb: StreamBuffer, name: string) => B[];
+// type toStreamFN<B> = (_val: B[], wb: StreamBuffer, name: string) => void;
+
+export class Definition<B, T extends Base<B> = Base<B>> extends ArrayTypeAttribute<B> {
   public static readonly type: TypeName = 'FixedArray';
 
   public readonly type: TypeName = Definition.type;
   public readonly bytes: number;
   public readonly length: number;
-  public readonly element: Type<B>;
+  public readonly element: T;
   public readonly alignFuncs: Funcs<string>;
   // public readonly initial: B[];
-  public readonly givenInitial: Option<Partial<B>[]>;
-  public readonly initialDefault: B[];
+  public readonly givenInitial: Option<ElementType<B>[]>;
 
-  public constructor(el: FixedArrayArg<B>) {
+  public constructor(el: FixedArrayArg<B, T>) {
+    super();
     this.length = el.length;
     const al = funcsMapper(el.alignFuncs);
     this.alignFuncs = al.names;
     this.bytes = al.funcs.overall(el.length * al.funcs.element(el.element.bytes));
     this.element = el.element;
-    // this.initialDefault = Array(this.length).fill(this.element.create(this.element.initial));
     if (el.initial) {
       this.givenInitial = SomeOption(el.initial);
     } else {
       this.givenInitial = NoneOption;
     }
-    // this.initial = this.create(el.initial);
   }
 
-  public create(...initials: Partial<B>[][]): B[] {
+  public create(...initials: ElementType<B>[][]): B[] {
     const datas = initials
-      .concat([OrUndefined(this.givenInitial)])
-      .filter((i) => Array.isArray(i))
-      .concat([new Array(this.length).fill(this.element.create())]);
-    const items = datas.reduce(
-      (r, bArray) => {
+      .concat([
+        OrUndefined(this.givenInitial),
+        new Array(this.length).fill(this.element.create()),
+      ] as unknown[][])
+      .filter((i) => Array.isArray(i));
+    const items: ElementType<B>[][] = datas.reduce(
+      (r: ElementType<B>[][], bArray) => {
         bArray.slice(0, this.length).forEach((item, idx) => {
           const v = this.element.coerce(item);
           if (isSome(v)) {
-            r[idx].push(v.some);
+            r[idx].push(v.some as ElementType<B>);
           }
         });
         return r;
       },
       new Array(this.length).fill(undefined).map((i) => []),
-    );
-    return items.reduce((r, item, idx) => {
+    ) as ElementType<B>[][];
+    return items.reduce((r: B[], item, idx) => {
       r[idx] = this.element.create(...item);
       return r;
-    }, new Array(this.length));
-    // const items: unknown[][] = initials
-    //   .concat([this.initial, this.initialDefault])
-    //   .filter((i) => Array.isArray(i))
-    //   .reduce(
-    //     (ret, initial) => {
-    //       // console.log(`YYYYYYYYY=>${initial}`);
-    //       for (let i = 0; i < this.length; ++i) {
-    //         if (initial[i] !== undefined) {
-    //           ret[i].push(initial[i]);
-    //         }
-    //       }
-    //       return ret;
-    //     },
-    //     Array(this.length)
-    //       .fill(undefined)
-    //       .map((_) => []),
-    //   );
-    // // console.log(`XXXXXXX=>${JSON.stringify(initials)}, ${JSON.stringify(items)}`);
-    // return items.map((item) => {
-    //   //  console.log(`OOOOOOO=>${JSON.stringify(item)}`);
-    //   if (Definition.Types.isFixedCString(this.element)) {
-    //     const scdef = (this.element as unknown) as Definition.Types.FixedCString;
-    //     return scdef.create(...(item as FixedCStringInitType[]));
-    //   } else if (Definition.Types.isFixedArray(this.element)) {
-    //     const adef = (this.element as unknown) as Definition.Types.FixedArray<unknown>;
-    //     return adef.create(...(item as unknown[][]));
-    //   } else if (
-    //     Definition.Types.isScalar(this.element) ||
-    //     Definition.Types.isStruct(this.element)
-    //   ) {
-    //     const sdef = (this.element as unknown) as Definition.Types.Type<unknown>;
-    //     return sdef.create(...item);
-    //   }
-    //   throw 'unknown type';
-    // }) as B[];
+    }, new Array<B>(this.length)) as B[];
   }
 
-  public coerce(val: (Partial<B> | undefined)[] | undefined): Option<Partial<B>[]> {
-    if (!Array.isArray(val)) {
+  public coerce(vals: unknown[]): Option<ElementType<B>[]> {
+    if (!Array.isArray(vals)) {
       return NoneOption;
     }
     let found = false;
-    const ret: Partial<B>[] = val.map((i) => {
+    const ret: ElementType<B>[] = vals.map((i: unknown) => {
       const e = this.element.coerce(i);
       if (isNone(e)) {
         return undefined;
       }
       found = true;
-      return e.some as any;
+      return e.some as ElementType<B>;
     });
     if (!found) {
       return NoneOption;
     }
     return SomeOption(ret);
   }
-}
 
-export type FixedArray<A> = Definition<A>;
+  public fromStreamChunk(nrb: ChunkBuffer, name: string = this.type): B[] {
+    const ret = Array<B>(this.length);
+    for (let i = 0; i < this.length; ++i) {
+      ret[i] = this.element.fromStreamChunk(nrb, `${name}.${i}`);
+    }
+    return ret;
+  }
+
+  public toStreamChunk(val: B[], nwb: ChunkBuffer, name: string = this.type): void {
+    for (let i = 0; i < this.length; ++i) {
+      this.element.toStreamChunk(val[i], nwb, `${name}.${i}`);
+    }
+  }
+}

@@ -2,8 +2,6 @@
 import { TSStructWriter } from './ts-struct-writer';
 import { TSBitStructWriter } from './ts-bit-struct-writer';
 import { Types, Optional } from '../definition';
-import { func } from '../definition/align';
-import { Type } from '../definition/types';
 import { isNone } from '../definition/optional';
 import { HighLow } from '../definition/types/high-low';
 
@@ -56,7 +54,7 @@ export function writeCloneFunction(wl: TSWriteLine) {
 
 export function tsStringify<B>(
   iobj: unknown,
-  typ: Types.Type.Definition<B>,
+  typ: Types.Base.Definition<B>,
   wr: TSWriter,
 ): string {
   const wl = new TSWriteLine(wr);
@@ -137,7 +135,8 @@ export function tsStringify<B>(
 }
 
 export function typeDefinition<T>(
-  t: Types.Type.Definition<T>,
+  t: Types.Base.Definition<T>,
+  typeName: string,
   wrapStruct: (s: string) => string = (s) => s,
 ): string {
   switch (t.type) {
@@ -154,16 +153,16 @@ export function typeDefinition<T>(
       return 'number';
     case Types.Uint64.Definition.type:
     case Types.Long.Definition.type:
-      return wrapStruct(`Types.${t.type}.Type`);
+      return wrapStruct(`Types.${t.type}.${typeName}`);
     case Types.BitStruct.Definition.type:
-      return wrapStruct(`${((t as unknown) as Types.BitStruct.Definition).name}.Type`);
+      return wrapStruct(`${((t as unknown) as Types.BitStruct.Definition).name}.${typeName}`);
     case Types.Struct.Definition.type:
-      return wrapStruct(`${((t as unknown) as Types.Struct.Definition).name}.Type`);
+      return wrapStruct(`${((t as unknown) as Types.Struct.Definition).name}.${typeName}`);
     case Types.FixedCString.Definition.type:
       return `number[]`;
     case Types.FixedArray.Definition.type:
       return (
-        typeDefinition(((t as unknown) as Types.FixedArray.Definition<unknown>).element) + '[]'
+        typeDefinition(((t as unknown) as Types.FixedArray.Definition<unknown>).element, typeName, wrapStruct) + '[]'
       );
     default:
       throw Error(`typeDefinition failed for: ${t.type}`);
@@ -178,7 +177,7 @@ export function attributeDefinition(def: Types.Struct.BaseAttribute) {
 export function initialValue<T>(
   _wr: TSWriter,
   vname: string,
-  def: Types.Type.Definition<T>,
+  def: Types.Base.Definition<T>,
 ): string {
   switch (def.type) {
     case Types.Uint64.Definition.type:
@@ -234,9 +233,14 @@ export interface Struct {
   readonly writer: TSRefWriter;
   written?: TSWriteLine;
 }
+export interface FixedArray {
+  readonly writer: TSRefWriter;
+  written?: TSWriteLine;
+}
 
 export class TSWriter {
   public readonly structs: Map<string, Struct> = new Map();
+  public readonly fixedArrays: Map<string, FixedArray> = new Map();
   public args: TSWriterArgs;
   constructor(args: Partial<TSWriterArgs> = {}) {
     this.args = {
@@ -260,6 +264,13 @@ export class TSWriter {
     )}${this.args.quote}`;
   }
 
+  public backQuote(val: string): string {
+    return `\`${val.replace(
+      new RegExp('`', 'g'),
+      `\\\``,
+    )}\``;
+  }
+
   public structClass(def: Types.Struct.Definition, level: number) {
     let tsw = this.structs.get(def.name);
     if (!tsw) {
@@ -278,15 +289,24 @@ export class TSWriter {
     return tsw;
   }
 
-  public generator<T>(def: Types.Type.Definition<T>): TSWriter {
-    if (Types.Type.isFixedArray(def)) {
+  // public fixedArrayClass<B>(def: Types.FixedArray.Definition<B>, name: string) {
+  //   let tsw = this.fixedArrays.get(def.name);
+  //   if (!tsw) {
+  //     tsw = { writer: new TSBitStructWriter(def, this.args) };
+  //     this.structs.set(tsw.writer.def.name, tsw);
+  //   }
+  //   return tsw;
+  // }
+
+  public generator<T>(def: Types.Base.Definition<T>): TSWriter {
+    if (Types.isFixedArray(def)) {
       throw Error(`Implement-Array:${def.type}`);
-    } else if (Types.Type.isStruct(def)) {
+    } else if (Types.isStruct(def)) {
       if (def.type === Types.Struct.Definition.type) {
         this.structClass((def as unknown) as Types.Struct.Definition, 0);
         return this;
       }
-    } else if (Types.Type.isScalar(def)) {
+    } else if (Types.isScalar(def)) {
       if (def.type === Types.BitStruct.Definition.type) {
         this.bitStructClass((def as unknown) as Types.BitStruct.Definition, 0);
         return this;
@@ -321,6 +341,6 @@ export class TSWriter {
   // }
 }
 
-export function TSGenerator<T>(def: Types.Type.Definition<T>, writer = new TSWriter()): TSWriter {
+export function TSGenerator<T>(def: Types.Base.Definition<T>, writer = new TSWriter()): TSWriter {
   return writer.generator(def);
 }

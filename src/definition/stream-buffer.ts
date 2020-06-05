@@ -1,19 +1,3 @@
-import { HighLow, HighLowType } from './types/high-low';
-
-function HighLowToStream(data: Partial<HighLow>, wb: StreamBuffer) {
-  const hl = new HighLowType().create(data);
-  const c = wb.currentWriteChunk('HighLow', 8);
-  c.writeUint32(hl.low);
-  c.writeUint32(hl.high);
-}
-function HighLowFromStream(wb: StreamBuffer) {
-  const c = wb.currentReadChunk('HighLow', 8);
-  return {
-    low: c.readUint32(),
-    high: c.readUint32(),
-  };
-}
-
 export class ChunkBuffer {
   constructor(
     public readonly name: string,
@@ -56,13 +40,13 @@ export class ChunkBuffer {
     this.buffer.writeFloatLE(val, this.ofs);
     this.ofs += 4;
   }
-  public writeUint64(val: HighLow) {
-    HighLowToStream(val, this.sbuf);
-  }
+  // public writeUint64(val: HighLow) {
+  //   HighLow(val, this.sbuf);
+  // }
 
-  public writeLong(val: HighLow) {
-    HighLowToStream(val, this.sbuf);
-  }
+  // public writeLong(val: HighLow) {
+  //   HighLowToStream(val, this.sbuf);
+  // }
 
   public writeDouble(val: number) {
     this.buffer.writeDoubleLE(val, this.ofs);
@@ -107,12 +91,6 @@ export class ChunkBuffer {
     const ret = this.buffer.readFloatLE(this.ofs);
     this.ofs += 4;
     return ret;
-  }
-  public readUint64() {
-    return HighLowFromStream(this.sbuf);
-  }
-  public readLong() {
-    return HighLowFromStream(this.sbuf);
   }
   public readDouble() {
     const ret = this.buffer.readDoubleLE(this.ofs);

@@ -1,7 +1,10 @@
 import { NumberType } from './number-type';
-import { Definition as Type, TypeName, ScalarTypeArg } from './type';
+import { TypeName, ScalarTypeArg } from './base';
+import { ChunkBuffer } from '../stream-buffer';
 
-export class Definition extends NumberType implements Type<number> {
+export type ValueType = number;
+
+export class Definition extends NumberType {
   public static readonly type: TypeName = 'Float';
   public static readonly bytes: number = 4;
   // public static readonly create: typeof numberCreate = numberCreate;
@@ -9,6 +12,12 @@ export class Definition extends NumberType implements Type<number> {
   public readonly bytes: number = Definition.bytes;
   public constructor(arg: ScalarTypeArg<number> = {}) {
     super(arg, (v) => v);
+  }
+  fromStreamChunk(chunk: ChunkBuffer, name: string = this.type): number {
+    return chunk.readFloat();
+  }
+  toStreamChunk(val: number, chunk: ChunkBuffer, name: string = this.type): void {
+    chunk.writeFloat(val);
   }
 }
 

@@ -1,20 +1,19 @@
 import { Option, SomeOption, NoneOption, OrUndefined, isSome } from '../optional';
 
-import { Type, TypeName, ScalarTypeArg } from './type';
-// import { Definition  } from './boolean';
+import { Definition as Base, TypeName, ScalarTypeArg } from './base';
+import { ChunkBuffer } from '../stream-buffer';
+
+export type ValueType = number;
 
 export type CharInitType = string | number;
 export type CharScalarTypeArg = ScalarTypeArg<CharInitType>;
 
-export class Definition implements Type<number> {
+export class Definition extends Base<number> {
   public static readonly type: TypeName = 'Char';
-  // public static readonly initial: 0;
   public static readonly bytes: number = 1;
 
   public readonly type: TypeName = Definition.type;
   public readonly bytes: number = Definition.bytes;
-  // public readonly notRequire: boolean;
-  // public readonly initial: number;
   public readonly givenInitial: Option<number>;
 
   public create(...vals: CharInitType[]): number {
@@ -41,12 +40,19 @@ export class Definition implements Type<number> {
     return NoneOption;
   }
 
+  public fromStreamChunk(chunk: ChunkBuffer, name: string = this.type): number {
+    return chunk.readUint8();
+  }
+  public toStreamChunk(val: number, chunk: ChunkBuffer, name: string = this.type): void {
+    chunk.writeUint8(val);
+  }
+
   public constructor(arg?: CharScalarTypeArg) {
+    super();
     const val = (arg || {}).initial;
     this.givenInitial = this.coerce(val);
-    // this.initial = this.create(val);
-    // console.log('Char=', arg, this.initial);
   }
+
 }
 
 export type Char = Definition;

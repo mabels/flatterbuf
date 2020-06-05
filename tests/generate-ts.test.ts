@@ -108,8 +108,8 @@ describe(`Generator:${TempDirectoryName}`, () => {
           test(`reflection`, () => {
             // console.log('prop=>', clazz.Reflection.prop.attributes[1].type.initial);
             // console.log('type=>', tcase.sample.Type.attributes[1].type.initial);
-            debugger;
             const def: Types.Struct.Definition = new clazz.Definition();
+            debugger;
             expect(filterFunc(def)).toEqual(filterFunc(tcase.sample.Type));
             // expect(clazz.Reflection.attributes).toEqual(clazz.Reflection.attributes.reduce((r: any, attr: any) => {
             //   r[attr.name] = attr;
@@ -134,7 +134,6 @@ describe(`Generator:${TempDirectoryName}`, () => {
 
           test(`init create`, () => {
             const def: Types.Struct.Definition = new clazz.Definition();
-            debugger;
             const data = def.create(tcase.sample.Init);
             expect(tcase.sample.Init).toEqual(data);
             const buf = def.toStream(data, new StreamBuffer());
@@ -144,8 +143,10 @@ describe(`Generator:${TempDirectoryName}`, () => {
           });
 
           test(`def init create`, () => {
+            debugger;
             const def: Types.Struct.Definition = new clazz.Definition({initial: tcase.sample.Init});
             const data = def.create();
+            expect(data).toEqual(tcase.sample.Init);
             const buf = def.toStream(data, new StreamBuffer());
             const type = clazz.Definition.fromStream(new StreamBuffer([buf.asUint8Array()]));
             // console.log(data, buf.asUint8Array());

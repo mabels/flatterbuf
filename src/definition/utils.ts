@@ -1,10 +1,74 @@
-import { Option, NoneOption, SomeOption  } from './optional';
+import { Option, NoneOption, SomeOption, isSome } from './optional';
+
+function nestedAssignObject(field: string | undefined, target: unknown, without: unknown[]) {
+  let found = false;
+  const out = without
+    .map((i) => Object.entries(i))
+    .reduce((r, entries) => {
+      entries.forEach((entry) => {
+        const key = entry[0];
+        const ival = entry[1];
+        let val: unknown[] = r[key];
+        if (val === undefined) {
+          val = [];
+          r[key] = val;
+        }
+        if (eval !== undefined) {
+          found = true;
+          val.push(ival);
+        }
+      });
+      return r;
+    }, {} as Record<string, unknown[]>);
+  if (!found) {
+    return NoneOption;
+  }
+  let theTarget = target;
+  if (field !== undefined) {
+    const my: Record<string, any> = target;
+    theTarget = my[field] = my[field] || ({} as any);
+  }
+  // console.log(out);
+  Object.entries(out).reduce((r, [key, args]) => {
+    nestedAssign(key, r, ...args);
+    return r;
+  }, theTarget);
+  return SomeOption(target);
+}
+
+function nestedAssignArray(field: string | undefined, target: unknown, without: unknown[]) {
+  if (!without.length) {
+    return NoneOption;
+  }
+  let found = false;
+  let theTarget: unknown[] = [];
+  if (field !== undefined && typeof target === 'object') {
+    const my: Record<string, any> = target;
+    theTarget = my[field] = my[field] || theTarget;
+  } else if (Array.isArray(target)) {
+    theTarget = target;
+  }
+  const tmp = (without as unknown[][]).reverse().reduce((ret, arr) => {
+    arr.forEach((item, idx) => {
+      if (item === undefined) {
+        return;
+      }
+      const o = nestedAssign(undefined, ret[idx] || {}, item);
+      if (isSome(o)) {
+        ret[idx] = o.some;
+        found = true;
+      }
+    });
+    return ret;
+  }, theTarget);
+  return found ? SomeOption(tmp) : NoneOption;
+}
 
 export function nestedAssign<T>(
   field: string | undefined,
-  target: Record<string, T>,
-  ...os: (T | Partial<T>)[]
-): Option<Record<string, T>> {
+  target: unknown,
+  ...os: unknown[]
+): Option<unknown> {
   if (!os.length) {
     return NoneOption;
   }
@@ -19,95 +83,22 @@ export function nestedAssign<T>(
     throw Error('assignable Type has to be unified');
   }
   if (type === 'object') {
-    let found = false;
-    // console.log(`without: ${JSON.stringify(without)}`);
-    const out = without
-      .map((i) => Object.entries(i))
-      .reduce((r, entries) => {
-        entries.forEach((entry) => {
-          const key = entry[0];
-          const ival = entry[1];
-          // console.log(`key: ${entry}, ${key}, ${ival}`);
-          let val: unknown[] = r[key];
-          if (val === undefined) {
-            val = [];
-            r[key] = val;
-          }
-          if (eval !== undefined) {
-            found = true;
-            val.push(ival);
-          }
-        });
-        return r;
-      }, {} as Record<string, unknown[]>);
-    if (!found) {
-      return NoneOption;
-    }
-    let theTarget = target;
-    if (field !== undefined) {
-      theTarget = target[field] = target[field] || {} as any;
-    }
-    // console.log(out);
-    Object.entries(out).reduce((r, [key, args]) => {
-        nestedAssign(key, r, ...args);
-        // console.log(`key:${key}, args:${args}:field:${field}:theTarget:${JSON.stringify(theTarget)}:target:${JSON.stringify(target)}`);
-        return r;
-    }, theTarget);
-    return SomeOption(target);
-
-    // nestedAssign(entry[0], r[entry[0]] || {}, entry[1]);
-    //             const mval = r[entry[0]]; // test if need merge
-    //             const valType = typeof mval;
-    //             if (Array.isArray(valType)) {
-    //                 return;
-    //             }
-    //             if (valType === 'object') {
-    //                 return;
-    //             }
-    // return NoneOption;
+    return nestedAssignObject(field, target, without);
   }
   if (type === 'array') {
-    return NoneOption;
+    return nestedAssignArray(field, target, without);
   }
   if (type === 'undefined') {
     return NoneOption;
   }
-  target[field] = without[0] as T;
-  return SomeOption(target);
+  if (field !== undefined && typeof target === 'object') {
+    const my: Record<string, any> = target;
+    my[field] = without[0] as T;
+    return SomeOption(target);
+  } else {
+    if (without[0] != undefined) {
+      return SomeOption(without[0]);
+    }
+    return NoneOption;
+  }
 }
-
-// export function nestedAssign(...os: Option<Record<string, unknown>>[]): Option<Record<string, unknown>> {
-//     const somes = os.filter(i => isSome(i)).map(i  => (i as SomeType<unknown>).some).reverse();
-//     let found = false;
-//     const ret: Record<string, unknown> = somes.reduce((r: Record<string, unknown>, val) => {
-//         Object.entries(val).forEach(entry => {
-//             const mval = r[entry[0]]; // test if need merge
-//             const valType = typeof mval;
-//             if (Array.isArray(valType)) {
-//                 return;
-//             }
-//             if (valType === 'object') {
-//                 return;
-//             }
-//             found = true;
-//             if (Array.isArray(entry[1])) {
-//                 r[entry[0]] = entry[1].map(i => OrUndefined(
-//                 ));
-//                 return;
-//             } else if (typeof entry[1] === 'object') {
-//                 const a = nestedAssign(SomeOption(entry[1]));
-//                 if (isSome(a)) {
-//                     r[entry[0]] = a.some;
-//                 }
-//             } else {
-//                 r[entry[0]] = entry[1];
-//             }
-//         });
-//         return r;
-//     }, {} as Record<string, unknown>) as Record<string, unknown>;
-//     if (found) {
-//         return SomeOption(ret);
-//     } else {
-//         return NoneOption;
-//     }
-// }

@@ -35,12 +35,11 @@ export function NestedArrayOfStruct() {
 export namespace Samples {
   export namespace StructOfScalar {
     export function Builder(name: string) {
-      const m: Types.Struct.Attribute<unknown>[] = Types.Type.SimpleScalarTypesList.map(
-        i => ({
-          name: `Name${i.type}`,
-          type: new i(),
-        }),
-      );
+      const m: Types.Struct.Attribute<unknown>[] = Types.SimpleScalarTypesList.map((i) => ({
+        name: `Name${i.type}`,
+        type: new i(),
+      }));
+
       m.push({
         name: `NameString`,
         type: new Types.FixedCString.Definition({ length: 10 }),
@@ -111,12 +110,10 @@ export namespace Samples {
     export const Default = StructOfScalar.Init;
     export const Init = StructOfScalar.Default;
     export function Builder(name: string) {
-      const m: Types.Struct.Attribute<unknown>[] = Types.Type.SimpleScalarTypesList.map(
-        i => ({
-          name: `Name${i.type}`,
-          type: new i({ initial: (StructOfScalar.Init as any)[`Name${i.type}`] as any }),
-        }),
-      );
+      const m: Types.Struct.Attribute<unknown>[] = Types.SimpleScalarTypesList.map((i) => ({
+        name: `Name${i.type}`,
+        type: new i({ initial: (StructOfScalar.Init as any)[`Name${i.type}`] as any }),
+      }));
       m.push({
         name: `NameString`,
         type: new Types.FixedCString.Definition({ length: 10, initial: 'abcdefghijk' }),
@@ -142,16 +139,14 @@ export namespace Samples {
     export const Type = Builder('InitStructOfScalar');
   }
 
-export namespace ExternInitStructofScalar {
+  export namespace ExternInitStructofScalar {
     export const Default = StructOfScalar.Init;
     export const Init = StructOfScalar.Default;
     export function Builder(name: string) {
-      const m: Types.Struct.Attribute<unknown>[] = Types.Type.SimpleScalarTypesList.map(
-        i => ({
-          name: `Name${i.type}`,
-          type: new i(),
-        }),
-      );
+      const m: Types.Struct.Attribute<unknown>[] = Types.SimpleScalarTypesList.map((i) => ({
+        name: `Name${i.type}`,
+        type: new i(),
+      }));
       m.push({
         name: `NameString`,
         type: new Types.FixedCString.Definition({ length: 10 }),
@@ -164,15 +159,15 @@ export namespace ExternInitStructofScalar {
           length: 2,
           bits: [
             { name: '_1bit', start: 1 },
-            { name: '_3bit', start: 2, length: 3},
-            { name: '_8bit', start: 4, length: 8},
+            { name: '_3bit', start: 2, length: 3 },
+            { name: '_8bit', start: 4, length: 8 },
           ],
         }),
       });
       return new Types.Struct.Definition({
         name,
         attributes: m,
-        initial: Default
+        initial: Default,
       });
     }
     export const Type = Builder('ExternalStructOfScalar');
@@ -288,26 +283,86 @@ export namespace ExternInitStructofScalar {
           }),
         },
         {
-          name: `Flat`,
+          name: `FlatCstring`,
           type: new Types.FixedArray.Definition({
             length: 10,
-            element: new Types.Char.Definition(),
+            element: new Types.FixedCString.Definition({ length: 10 }),
           }),
         },
-      ],
+        ...Types.SimpleScalarTypesList.map((i) => ({
+          name: `NameArray${i.type}`,
+          type: new Types.FixedArray.Definition({
+            length: 4,
+            element: new i() as any
+          }),
+        })),
+      ]
     });
     export const Default = {
       Nested: Array(2).fill(Array(3).fill(Array(4).fill(0))),
-      Flat: Array(10).fill(0),
+      FlatCstring: Array(10).fill((Type.attributeByName.FlatCstring.type as any).element.create()),
+      ...Types.SimpleScalarTypesList.reduce((r, i) => {
+        switch (i.type) {
+          case Types.Boolean.Definition.type:
+              r[`NameArray${i.type}`] = Array(4).fill(false)
+              break;
+          case Types.Long.Definition.type:
+          case Types.Uint64.Definition.type:
+              r[`NameArray${i.type}`] = Array(4).fill({high: 0, low: 0})
+              break;
+          default:
+            r[`NameArray${i.type}`] = Array(4).fill(0)
+            break;
+        }
+        return r;
+      }, {} as Record<string, any>)
+      // FlatChar: Array(10).fill(0),
+      // FlatCstring: Array(10).fill(Array(10).fill(0)),
     };
+    const numberInit = [4,3,1,9];
     export const Init = {
-      Nested: Array(2).fill(Array(3).fill(Array(4).fill(117))),
-      Flat: Array(10).fill(115),
+      Nested: Array(2).fill(Array(3).fill(numberInit)),
+      FlatCstring: Array(10).fill((Type.attributeByName.FlatCstring.type as any).element.create('Mutig')),
+      ...Types.SimpleScalarTypesList.reduce((r, i) => {
+
+        switch (i.type) {
+          case Types.Boolean.Definition.type:
+              r[`NameArray${i.type}`] = [true, false, false, true]
+              break;
+          case Types.Long.Definition.type:
+          case Types.Uint64.Definition.type:
+              r[`NameArray${i.type}`] = Array(4).fill(undefined).map((i, j) => ({high: 13 + (j * 3), low: 27 + (j *7 )}))
+              break;
+          default:
+            r[`NameArray${i.type}`] = numberInit;
+            break;
+        }
+        return r;
+      }, {} as Record<string, any>)
     };
   }
   export namespace InitStructOfNestedArrayOfScalar {
-    export const Default = StructOfNestedArrayOfScalar.Init;
-    export const Init = StructOfNestedArrayOfScalar.Default;
+    export const Init = {
+      Nested: Array(2).fill(Array(3).fill(Array(4).fill(117))),
+      FlatCstring: Array(10).fill((new Types.FixedCString.Definition({length: 10})).create('cstring')),
+      ...Types.SimpleScalarTypesList.reduce((r, i) => {
+
+        switch (i.type) {
+          case Types.Boolean.Definition.type:
+              r[`NameArray${i.type}`] = [true, true, true, true]
+              break;
+          case Types.Long.Definition.type:
+          case Types.Uint64.Definition.type:
+              r[`NameArray${i.type}`] = Array(4).fill(undefined).map((i, j) => ({high: 47, low: 11 }))
+              break;
+          default:
+            r[`NameArray${i.type}`] = [147, 147, 147, 147];
+            break;
+        }
+        return r;
+      }, {} as Record<string, any>)
+    }
+    export const Default = InitStructOfNestedArrayOfScalar.Init;
     export const Type = new Types.Struct.Definition({
       name: 'InitStructOfNestedArrayOfScalar',
       attributes: [
@@ -325,12 +380,39 @@ export namespace ExternInitStructofScalar {
           }),
         },
         {
-          name: `Flat`,
+          name: `FlatCstring`,
           type: new Types.FixedArray.Definition({
             length: 10,
-            element: new Types.Char.Definition({ initial: 's' }),
+            element: new Types.FixedCString.Definition({ length: 10, initial: 'cstring' }),
           }),
         },
+        ...Types.SimpleScalarTypesList.map((i) => {
+          let defType: Types.Base.Definition<unknown>;
+          switch (i.type) {
+            case Types.Boolean.Definition.type:
+              defType = new Types.FixedArray.Definition({
+                length: 4,
+                element: new Types.Boolean.Definition({ initial: true })
+              });
+              break;
+            case Types.Long.Definition.type:
+            case Types.Uint64.Definition.type:
+              defType = new Types.FixedArray.Definition({
+                length: 4,
+                // uncool cast but
+                element: new i({ initial: { high: 47, low: 11 } as never })
+              });
+              break;
+            default:
+              defType = new Types.FixedArray.Definition({
+                length: 4,
+                // uncool cast but
+                element: new i({ initial: 147 } as { initial: never })
+              });
+              break;
+          }
+          return { name: `NameArray${i.type}`, type: defType };
+        })
       ],
     });
   }
@@ -408,11 +490,11 @@ export namespace ExternInitStructofScalar {
     StructOfScalar,
     InitStructOfScalar,
     ExternInitStructofScalar,
-    // StructOfNestedStruct,
-    // InitStructOfNestedStruct,
-    // StructOfNestedArrayOfScalar,
-    // InitStructOfNestedArrayOfScalar,
-    // StructOfNestedArrayOfStruct,
-    // InitStructOfNestedArrayOfStruct,
+    StructOfNestedStruct,
+    InitStructOfNestedStruct,
+    StructOfNestedArrayOfScalar,
+    InitStructOfNestedArrayOfScalar,
+    StructOfNestedArrayOfStruct,
+    InitStructOfNestedArrayOfStruct,
   ];
 }

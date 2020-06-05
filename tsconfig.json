@@ -11,14 +11,16 @@
     "stripInternal": true,
     "plugins": [{ "name": "typescript-tslint-plugin" }]
   },
-  "include": [
-    "./src/**/*"
-  ],
+
   "exclude": [
+    "**/*.off/**",
     "**/*.test-helper.ts",
     "**/*.test-helper.tsx",
     "**/*.test.ts",
     "**/*.test.tsx",
     "./node_modules"
-  ]
+  ],
+  "include": [
+    "./src/**/*"
+  ],
 }

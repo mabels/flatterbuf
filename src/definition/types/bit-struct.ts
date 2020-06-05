@@ -3,8 +3,9 @@ import { Option, OrUndefined, NoneOption, isNone, SomeOption } from '../optional
 
 import { Definition as _Boolean } from './boolean';
 import { Definition as Uint32 } from './uint32';
-import { Definition as Type, TypeName, NamedType } from './type';
+import { Definition as Base, TypeName, NamedType } from './base';
 import { BitStruct } from '.';
+import { ChunkBuffer, StreamBuffer } from '../stream-buffer';
 
 export interface BitItem {
   readonly name: string;
@@ -23,7 +24,7 @@ export interface UInt32BitItemWithLength extends BitItem {
 
 export interface BitItemWithLength extends BitItem {
   readonly length: number;
-  readonly type: Type<boolean | number>;
+  readonly type: Base<boolean | number>;
 }
 
 export type BitStructInitial = Record<string, boolean | number>;
@@ -42,21 +43,32 @@ export function BitStructValue(val: number | boolean, bits: number): number | bo
   }
   return ~~val & (2 ** bits - 1);
 }
-// export type BitStructInitial = { [key: string]: BitItemWithLength };
-export class Definition implements NamedType<BitStructInitial> {
-  public static readonly type: TypeName = 'BitStruct';
-  // private readonly data: FixedArray<number>;
-  public readonly type: TypeName = Definition.type;
+
+export const typeName: TypeName = 'BitStruct';
+
+export abstract class AbstractDefinition extends NamedType<BitStructInitial> {
+  public readonly type: TypeName = typeName;
+  public abstract readonly bytes: number;
+  public abstract readonly length: number;
+  public abstract readonly alignFuncs: Funcs<string>;
+  public abstract readonly bits: BitItemWithLength[];
+  public abstract readonly bitsByName: BitsByName;
+  public abstract readonly givenInitial: Option<Partial<BitStructInitial>>;
+}
+
+export class Definition extends AbstractDefinition {
+  public static readonly type: TypeName = typeName;
+
   public readonly name: string;
   public readonly bytes: number;
   public readonly length: number;
   public readonly alignFuncs: Funcs<string>;
   public readonly bits: BitItemWithLength[];
   public readonly bitsByName: BitsByName;
-  // public readonly initial: BitStructInitial = {};
   public readonly givenInitial: Option<Partial<BitStructInitial>>;
 
   public constructor(arg: Partial<BitStructArg>) {
+    super();
     const al = funcsMapper({ ...arg.alignFuncs, element: 'byte' });
     this.alignFuncs = al.names;
     this.length = typeof arg.length === 'number' ? arg.length : 1;
@@ -108,17 +120,18 @@ export class Definition implements NamedType<BitStructInitial> {
             .join('_');
 
     this.givenInitial = this.coerce(arg.initial);
-    // this.initial = this.create(arg.initial);
-    //   this.bits.reduce((r, b) => {
-    //     if (
-    //       isSome(this.givenInitial) &&
-    //       ['boolean', 'number'].includes(typeof this.givenInitial.some[b.name])
-    //     ) {
-    //       r[b.name] = this.bitsByName[b.name].type.create(b.initial);
-    //     }
-    //     return r;
-    //   }, {} as BitStructInitial),
-    // );
+  }
+
+  public fromStreamChunk(chunk: ChunkBuffer, name = this.type): Record<string, number | boolean> {
+    throw new Error('Method not implemented.');
+  }
+
+  public toStreamChunk(
+    val: Record<string, number | boolean>,
+    chunk: ChunkBuffer,
+    name = this.type,
+  ): void {
+    throw new Error('Method not implemented.');
   }
 
   public create(...rargs: Partial<BitStructInitial>[]): BitStructInitial {
@@ -143,10 +156,8 @@ export class Definition implements NamedType<BitStructInitial> {
           return r;
         }, {} as Record<string, (boolean | number)[]>),
       );
-    // console.log(`YYYYY`, data, this.bits);
     return this.bits.reduce((r, bit) => {
       r[bit.name] = bit.type.create(...data[bit.name]);
-      // console.log(`XXXXXX`, bit.name, r[bit.name], data[bit.name]);
       return r;
     }, {} as BitStructInitial);
   }

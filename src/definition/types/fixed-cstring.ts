@@ -1,5 +1,5 @@
 import { Option, SomeOption, NoneOption, OrUndefined, isSome } from '../optional';
-import { Type, TypeName, ScalarTypeArg } from './type';
+import { Definition as Base, TypeName, ScalarTypeArg } from './base';
 import { CharInitType, Definition as Char } from './char';
 import { Funcs, funcsMapper } from '../align';
 import { ChunkBuffer } from '../stream-buffer';
@@ -11,7 +11,9 @@ export interface FixedCStringArg {
   readonly alignFuncs?: Funcs<string>;
 }
 
-export class Definition implements Type<number[]> {
+export type ValueType = number[];
+
+export class Definition extends Base<number[]> {
   public static readonly type: TypeName = 'FixedCString';
   public static readonly element: Char = new Char();
 
@@ -60,38 +62,31 @@ export class Definition implements Type<number[]> {
     return NoneOption;
   }
 
-  constructor(iel?: FixedCStringArg) {
-    const el: Partial<FixedCStringArg> = iel || {};
+  constructor(iel: FixedCStringArg) {
+    super();
+    const el: FixedCStringArg = iel; // artefact
     const al = funcsMapper({ ...el.alignFuncs, element: 'byte' });
     this.alignFuncs = al.names;
     this.length = el.length;
     this.bytes = al.funcs.overall(el.length);
     this.givenInitial = this.coerce(el.initial);
-    // this.initial = this.create(el.initial);
   }
+
+  public fromStreamChunk(chunk: ChunkBuffer, name: string = this.type): number[] {
+    const ret = Array<number>(this.length);
+    for (let i = 0; i < this.length; ++i) {
+      const val = chunk.readUint8();
+      ret[i] = val;
+    }
+    return ret;
+  }
+
+  public toStreamChunk(val: number[], chunk: ChunkBuffer, name: string = this.type): void {
+    for (let i = 0; i < this.length; ++i) {
+      chunk.writeUint8(val[i] || 0);
+    }
+  }
+
 }
 
 export type FixedCString = Definition;
-
-export function fromStream(
-  { length, bytes }: { length: number; bytes: number },
-  rb: ChunkBuffer,
-): number[] {
-  const ret = Array<number>(length).fill(0);
-  for (let i = 0; i < bytes; ++i) {
-    const val = rb.readUint8();
-    if (i < length) {
-      ret[i] = val;
-    }
-  }
-  return ret;
-}
-export function toStream(
-  { bytes }: { length: number; bytes: number },
-  val: number[],
-  wb: ChunkBuffer,
-) {
-  for (let i = 0; i < bytes; ++i) {
-    wb.writeUint8(val[i] || 0);
-  }
-}

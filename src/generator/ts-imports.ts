@@ -35,7 +35,7 @@ export class TSImport<T> {
           }
           return 0;
         })
-        .map(def => `${def.name}${def.as ? ` as ${def.as}` : ''}`)
+        .map((def) => `${def.name}${def.as ? ` as ${def.as}` : ''}`)
         .join(', ');
       return `import { ${imports} } from ${wr.quote(this.imp.external.fname)};`;
     } else {
@@ -48,29 +48,39 @@ export class TSImports<T> {
   private readonly imports: Map<string, TSImport<T>> = new Map();
 
   constructor(public readonly args: TSWriterArgs) {
-    this.add(new TSImport({
-      external: {
-        defs: [{
-          name: 'Types'
-        }, {
-          name: 'Align',
-        }, {
-          name: 'Optional'
-        }, {
-          name: 'Utils'
-        }, {
-          name: 'StreamBuffer'
-        }],
-        fname: args.definitionPath || 'flatterbuf/definition',
-      },
-    }));
-    // this.add(new TSImport({
-    //   external: {
-    //     def: 'Runtime',
-    //     as: '__Runtime',
-    //     fname: args.runtimePath || 'flatterbuf/runtime',
-    //   },
-    // }));
+    this.add(
+      new TSImport({
+        external: {
+          defs: [
+            {
+              name: 'Types',
+            },
+            {
+              name: 'Align',
+            },
+            {
+              name: 'Optional',
+            },
+            {
+              name: 'Utils',
+            },
+            {
+              name: 'ChunkBuffer',
+            },
+            {
+              name: 'StreamBuffer',
+            },
+            {
+              name: 'NestedReadonly',
+            },
+            {
+              name: 'NestedPartial',
+            },
+          ],
+          fname: args.definitionPath || 'flatterbuf/definition',
+        },
+      }),
+    );
   }
 
   public add(ts: TSImport<T>): TSImport<T> {
@@ -86,12 +96,12 @@ export class TSImports<T> {
   public values(): TSImport<T>[] {
     return Array.from(this.imports.values());
   }
-  public prepend<T>(wl: TSWriteLine, def: Types.Type.NamedType<T>) {
+  public prepend<T>(wl: TSWriteLine, def: Types.Base.NamedType<T>) {
     wl.prependLine(0, ``);
     this.values()
-      .filter(i => !(i.imp.sWriter && i.imp.sWriter.def == def))
+      .filter((i) => !(i.imp.sWriter && i.imp.sWriter.def == def))
       .reverse()
-      .forEach(i => wl.prependLine(0, i.toString(wl.wr)));
+      .forEach((i) => wl.prependLine(0, i.toString(wl.wr)));
     wl.prependLine(0, `// generated ${def.name}`);
   }
 }
