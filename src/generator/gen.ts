@@ -1,5 +1,4 @@
 import * as yargs from 'yargs';
-import { func } from '../definition/align';
 import { Arguments } from 'yargs';
 import { promisify } from 'util';
 import * as fs from 'fs';
@@ -57,7 +56,6 @@ async function tscompile(config: Config, tsconfig: any): Promise<TSCompiled[]> {
       let jsfile: ts.TranspileOutput = undefined;
       let jsfileName: string = undefined;
       let error: Error = undefined;
-      let evalModule: any = undefined;
       try {
         exists = await existsAsync(fname);
         tsfile = (await readFileAsync(fname)).toLocaleString();
@@ -95,8 +93,8 @@ function searchDefinition(set: Set<Types.Base.Definition<unknown>>, item: any) {
   if (item instanceof Types.Base.Definition) {
     set.add(item);
   } else if (typeof item === 'object') {
-    Object.entries(item).forEach(([key, val]) => {
-      searchDefinition(set, val);
+    Object.entries(item).forEach((val) => {
+      searchDefinition(set, val[1]);
     });
   }
 }
@@ -200,5 +198,5 @@ async function cmd(...args: string[]) {
 
 // cmd(...process.execArgv);
 cmd(...process.argv)
-  .then(() => {})
+  .then(_ => console.log(`Done`))
   .catch(console.error);
