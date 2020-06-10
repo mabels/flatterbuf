@@ -68,7 +68,7 @@ export function nestedAssign<T>(
   field: string | undefined,
   target: unknown,
   ...os: unknown[]
-): Option<T> {
+) {
   if (!os.length) {
     return NoneOption;
   }
