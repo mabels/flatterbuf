@@ -4,16 +4,16 @@ export interface Funcs<A> {
 }
 export type Func = (a: number) => number;
 
-export function Byte(a: number) {
+export function Byte(a: number): number {
   return a;
 }
-export function TwoByte(a: number) {
+export function TwoByte(a: number): number {
   return a + (a % 2);
 }
-export function FourByte(a: number) {
+export function FourByte(a: number): number {
   return a + (a % 4);
 }
-export function EightByte(a: number) {
+export function EightByte(a: number): number {
   return a + (a % 8);
 }
 export const Functions: { [id: string]: Func } = {

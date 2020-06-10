@@ -1,6 +1,6 @@
 import { Option, NoneOption, SomeOption, isSome } from './optional';
 
-function nestedAssignObject(field: string | undefined, target: unknown, without: unknown[]) {
+function nestedAssignObject(field: string | undefined, target: unknown, without: unknown[]): Option<unknown> {
   let found = false;
   const out = without
     .map((i) => Object.entries(i))
@@ -36,7 +36,7 @@ function nestedAssignObject(field: string | undefined, target: unknown, without:
   return SomeOption(target);
 }
 
-function nestedAssignArray(field: string | undefined, target: unknown, without: unknown[]) {
+function nestedAssignArray(field: string | undefined, target: unknown, without: unknown[]): Option<unknown> {
   if (!without.length) {
     return NoneOption;
   }
@@ -68,7 +68,7 @@ export function nestedAssign<T>(
   field: string | undefined,
   target: unknown,
   ...os: unknown[]
-): Option<unknown> {
+): Option<T> {
   if (!os.length) {
     return NoneOption;
   }

@@ -71,7 +71,7 @@ export class Definition<B, T extends Base<B> = Base<B>> extends ArrayTypeAttribu
         });
         return r;
       },
-      new Array(this.length).fill(undefined).map((i) => []),
+      new Array(this.length).fill(undefined).map(() => []),
     ) as ElementType<B>[][];
     return items.reduce((r: B[], item, idx) => {
       r[idx] = this.element.create(...item);

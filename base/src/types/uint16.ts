@@ -14,10 +14,10 @@ export class Definition extends NumberType {
   public constructor(arg: ScalarTypeArg<number> = {}) {
     super(arg, (v) => ~~v & 0xffff);
   }
-  public fromStreamChunk(chunk: ChunkBuffer, name: string = this.type): number {
+  public fromStreamChunk(chunk: ChunkBuffer, _name: string = this.type): number {
     return chunk.readUint16();
   }
-  public toStreamChunk(val: number, chunk: ChunkBuffer, name: string = this.type): void {
+  public toStreamChunk(val: number, chunk: ChunkBuffer, _name: string = this.type): void {
     chunk.writeUint16(val);
   }
 }

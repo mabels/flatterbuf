@@ -7,36 +7,36 @@ export class ChunkBuffer {
     public ofs = 0,
   ) {}
 
-  public writeBoolean(val: Boolean) {
+  public writeBoolean(val: boolean): void {
     // console.log('writeBoolean:', val);
     this.buffer.writeUInt8(~~val, this.ofs);
     this.ofs += 1;
   }
-  public writeUint8(val: number) {
+  public writeUint8(val: number): void {
     this.buffer.writeUInt8(~~val, this.ofs);
     this.ofs += 1;
   }
-  public writeChar(val: number) {
+  public writeChar(val: number): void {
     this.writeUint8(val);
   }
-  public writeUint16(val: number) {
+  public writeUint16(val: number): void {
     this.buffer.writeUInt16LE(val, this.ofs);
     this.ofs += 2;
   }
-  public writeShort(val: number) {
+  public writeShort(val: number): void {
     this.buffer.writeInt16LE(val, this.ofs);
     this.ofs += 2;
   }
-  public writeUint32(val: number) {
+  public writeUint32(val: number): void {
     this.buffer.writeUInt32LE(val, this.ofs);
     this.ofs += 4;
   }
-  public writeInt(val: number) {
+  public writeInt(val: number): void {
     // console.log('writeInt', val, ~~val, this.ofs);
     this.buffer.writeInt32LE(~~val, this.ofs);
     this.ofs += 4;
   }
-  public writeFloat(val: number) {
+  public writeFloat(val: number): void {
     this.buffer.writeFloatLE(val, this.ofs);
     this.ofs += 4;
   }
@@ -48,51 +48,51 @@ export class ChunkBuffer {
   //   HighLowToStream(val, this.sbuf);
   // }
 
-  public writeDouble(val: number) {
+  public writeDouble(val: number): void {
     this.buffer.writeDoubleLE(val, this.ofs);
     this.ofs += 8;
   }
 
-  public readBoolean() {
+  public readBoolean(): boolean {
     const ret = this.buffer.readUInt8(this.ofs);
     this.ofs += 1;
     return !!ret;
   }
-  public readUint8() {
+  public readUint8(): number {
     const ret = this.buffer.readUInt8(this.ofs);
     this.ofs += 1;
     return ret;
   }
-  public readChar() {
+  public readChar(): number {
     return this.readUint8();
   }
-  public readUint16() {
+  public readUint16(): number {
     const ret = this.buffer.readUInt16LE(this.ofs);
     this.ofs += 2;
     return ret;
   }
-  public readShort() {
+  public readShort(): number {
     const ret = this.buffer.readInt16LE(this.ofs);
     this.ofs += 2;
     return ret;
   }
-  public readUint32() {
+  public readUint32(): number {
     const ret = this.buffer.readUInt32LE(this.ofs);
     this.ofs += 4;
     return ret;
   }
-  public readInt() {
+  public readInt(): number {
     const ret = this.buffer.readUInt32LE(this.ofs);
     // console.log('readInt', ret, this.ofs);
     this.ofs += 4;
     return ret;
   }
-  public readFloat() {
+  public readFloat(): number {
     const ret = this.buffer.readFloatLE(this.ofs);
     this.ofs += 4;
     return ret;
   }
-  public readDouble() {
+  public readDouble(): number {
     const ret = this.buffer.readDoubleLE(this.ofs);
     this.ofs += 8;
     return ret;
@@ -153,7 +153,7 @@ export class StreamBuffer {
     return this;
   }
 
-  public asUint8Array() {
+  public asUint8Array(): Uint8Array {
     const totalLen = this.buffers.reduce((r, i) => r + i.buffer.length, 0);
     const out = new Uint8Array(totalLen);
     this.buffers.reduce((r, b) => {

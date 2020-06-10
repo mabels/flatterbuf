@@ -14,7 +14,7 @@ export interface BitItem {
 }
 export interface BooleanBitItemWithLength extends BitItem {
   readonly length: 1;
-  readonly type: Boolean;
+  readonly type: _Boolean;
 }
 export interface UInt32BitItemWithLength extends BitItem {
   readonly length: number;

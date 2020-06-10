@@ -40,7 +40,7 @@ export class Definition extends Base<number[]> {
         });
         return r;
       },
-      new Array(this.length).fill(undefined).map((i) => []),
+      new Array(this.length).fill(undefined).map(() => []),
     );
     return items.reduce((r, item, idx) => {
       r[idx] = Definition.element.create(...item);

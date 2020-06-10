@@ -1,13 +1,14 @@
 import { Types } from '../src';
 
-export function FixArrayOfScalarType<T>(len: number, element: any) {
+export function FixArrayOfScalarType<T>(len: number, element: any): Types.FixedArray.Definition<T> {
   return new Types.FixedArray.Definition({
     element: new element(),
     length: len,
   });
 }
 
-export function FixArrayOfFixArrayScalarType(l1: number, l2: number) {
+export function FixArrayOfFixArrayScalarType(l1: number, l2: number):
+  Types.FixedArray.Definition<unknown> {
   return new Types.FixedArray.Definition({
     element: new Types.FixedArray.Definition({
       element: new Types.Boolean.Definition(),
