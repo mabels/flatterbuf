@@ -1,4 +1,15 @@
-import { Types } from '../dist/definition';
+# flatterbuf
+
+I was inspired from https://google.github.io/flatbuffers/. But i wanted compiler
+independ serialization. So I choosed typescript as Definition language und and build
+the first generator to typescript. But I will need to build a c++ generator next.
+
+This is only the defintion and runtime for the flatterbuf.
+```
+
+An sample type definition looks like:
+
+import { Types } from 'flatterbuf';
 
 const m: Types.Struct.Attribute<unknown>[] = Types.SimpleScalarTypesList.map((i) => ({
   name: `Name${i.type}`,
@@ -38,3 +49,6 @@ export const SearchMe = {
 };
 
 export default Bla;
+```
+
+

@@ -1,5 +1,5 @@
-import { Types } from '../src/definition';
-import { tsStringify, TSWriter } from '../src/generator/ts';
+import { Types } from 'flatterbuf';
+import { tsStringify, TSWriter } from '../src/ts';
 
 const wr = new TSWriter();
 

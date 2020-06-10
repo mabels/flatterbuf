@@ -1,9 +1,9 @@
 // import { Definition } from '../definition';
 import { TSStructWriter } from './ts-struct-writer';
 import { TSBitStructWriter } from './ts-bit-struct-writer';
-import { Types, Optional } from '../definition';
-import { isNone } from '../definition/optional';
-import { HighLow } from '../definition/types/high-low';
+import { Types, Optional } from 'flatterbuf';
+// import { isNone } from '../definition/optional';
+// import { HighLow } from '../definition/types/high-low';
 
 export class TSWriteLine {
   private readonly lines: string[] = [];
@@ -59,7 +59,7 @@ export function tsStringify<B>(
 ): string {
   const wl = new TSWriteLine(wr);
   const oval = typ.coerce(iobj);
-  if (isNone(oval)) {
+  if (Optional.isNone(oval)) {
     return wl.toString();
   }
   const val = oval.some;
@@ -79,7 +79,7 @@ export function tsStringify<B>(
       break;
     case Types.Uint64.Definition.type:
     case Types.Long.Definition.type:
-      const hl = val as HighLow;
+      const hl = val as Types.HighLow.Type;
       const out = [];
       if (typeof hl.low === 'number') {
         out.push(`low: ${hl.low}`);
@@ -222,7 +222,7 @@ export interface TSImportArgs<T> {
 }
 
 export interface TSWriterArgs {
-  readonly runtimePath: string;
+  // readonly runtimePath: string;
   readonly definitionPath: string;
   readonly generationPath: string;
   readonly quote: string;
@@ -248,8 +248,8 @@ export class TSWriter {
       ...args,
       quote: args!.quote || "'",
       generationPath: args!.generationPath || './',
-      runtimePath: args!.runtimePath || 'flatterbuf/runtime',
-      definitionPath: args!.definitionPath || 'flatterbuf/definition',
+      // runtimePath: args!.runtimePath || 'flatterbuf/runtime',
+      definitionPath: args!.definitionPath || 'flatterbuf',
     };
   }
 

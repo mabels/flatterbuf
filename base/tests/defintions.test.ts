@@ -4,8 +4,8 @@ import {
   FixArrayOfFixArrayScalarType,
   Samples,
   NestedArrayOfStruct,
-} from './samples';
-import { Types, Optional } from '../src/definition';
+} from '../src/samples';
+import { Types, Optional } from '../src';
 // import { HighLowType } from '../src/definition/types/high-low';
 // import { Uint64, Base } from '../src/definition/types';
 

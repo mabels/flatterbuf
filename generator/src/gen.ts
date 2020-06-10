@@ -5,7 +5,7 @@ import * as fs from 'fs';
 import ts = require('typescript');
 import path = require('path');
 import mkdirp = require('mkdirp');
-import { Types } from '../definition';
+import { Types } from 'flatterbuf';
 import { TSGenerator, TSWriter, TSWriterArgs } from './ts';
 
 const existsAsync = promisify(fs.exists);

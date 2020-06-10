@@ -1,4 +1,4 @@
-import { HighLowType, HighLow, MutableHighLow } from './high-low';
+import { Definition as HighLowType, Type as HighLow, MutableType as MutableHighLow } from './high-low';
 import { TypeName, ScalarTypeArg } from './base';
 
 export type Type = HighLow;

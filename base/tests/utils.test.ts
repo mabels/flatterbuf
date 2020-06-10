@@ -1,5 +1,5 @@
-import { nestedAssign } from '../src/definition/utils';
-import { NoneOption, SomeOption } from '../src/definition/optional';
+import { nestedAssign } from '../src/utils';
+import { NoneOption, SomeOption } from '../src/optional';
 
 test('scalar empty', () => {
   expect(nestedAssign('my', {})).toEqual(NoneOption);

@@ -1,5 +1,6 @@
+import { Types } from 'flatterbuf';
+
 import { TSWriter, TSRefWriter, TSWriterArgs, TSWriteLine } from './ts';
-import { Types } from '../definition';
 
 export interface Import {
   readonly name: string;

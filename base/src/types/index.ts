@@ -12,6 +12,7 @@ export * as Float from './float';
 export * as Double from './double';
 export * as Long from './long';
 export * as Uint64 from './uint64';
+export * as HighLow from './high-low';
 
 export * as FixedCString from './fixed-cstring';
 export * as FixedArray from './fixed-array';

@@ -1,7 +1,6 @@
-import { Types } from '../definition';
+import { Types, Optional } from 'flatterbuf';
 import { TSWriteLine, TSWriterArgs, TSWriter, TSRefWriter, tsStringify } from './ts';
 import { TSImports } from './ts-imports';
-import { isSome } from '../definition/optional';
 
 export class TSBitStructWriter<T> implements TSRefWriter {
   public readonly fname: string;
@@ -32,7 +31,7 @@ export class TSBitStructWriter<T> implements TSRefWriter {
       wl.writeLine(2, `type: ${typName};`);
     } else {
       let initVal = '';
-      if (isSome(bit.type.givenInitial)) {
+      if (Optional.isSome(bit.type.givenInitial)) {
         initVal = `{ initial: ${bit.type.givenInitial.some} }`;
       }
       wl.writeLine(2, `type: new ${typName}(${initVal})`);
@@ -44,7 +43,7 @@ export class TSBitStructWriter<T> implements TSRefWriter {
   private writeStaticGivenInitial(wr: TSWriter) {
     const wl = new TSWriteLine(wr);
     wl.write(0, `public static readonly givenInitial: Optional.Option<NestedPartial<Type>>`);
-    if (isSome(this.def.givenInitial)) {
+    if (Optional.isSome(this.def.givenInitial)) {
       wl.writeLine(
         0,
         ` = Optional.SomeOption(${tsStringify(this.def.givenInitial.some, this.def, wr)});`,

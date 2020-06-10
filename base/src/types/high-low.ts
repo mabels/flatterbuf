@@ -3,23 +3,25 @@ import { Definition as Base, ScalarTypeArg } from './base';
 import { Definition as Uint32 } from './uint32';
 import { ChunkBuffer } from '../stream-buffer';
 
-export interface MutableHighLow {
+export interface MutableType {
   high: number;
   low: number;
 }
 
-export type HighLow = Readonly<MutableHighLow>;
+export type Type = Readonly<MutableType>;
 
-export abstract class HighLowType extends Base<HighLow> {
+export type ValueType = Type;
+
+export abstract class Definition extends Base<Type> {
   public static readonly uint32: Uint32 = new Uint32();
   public static readonly bytes: number = 8;
-  public readonly givenInitial: Option<Partial<HighLow>>;
-  public readonly bytes: number = HighLowType.bytes;
+  public readonly givenInitial: Option<Partial<Type>>;
+  public readonly bytes: number = Definition.bytes;
 
-  public coerce(hl?: Partial<HighLow>): Option<Partial<HighLow>> {
+  public coerce(hl?: Partial<Type>): Option<Partial<Type>> {
     if (typeof hl === 'object') {
-      const high = HighLowType.uint32.coerce(hl.high);
-      const low = HighLowType.uint32.coerce(hl.low);
+      const high = Definition.uint32.coerce(hl.high);
+      const low = Definition.uint32.coerce(hl.low);
       if (isSome(high) && isSome(low)) {
         return SomeOption({ low: low.some, high: high.some });
       }
@@ -33,7 +35,7 @@ export abstract class HighLowType extends Base<HighLow> {
     return NoneOption;
   }
 
-  public create(...args: Partial<HighLow>[]): HighLow {
+  public create(...args: Partial<Type>[]): Type {
     const data = args
       .concat(OrUndefined(this.givenInitial))
       .concat({ high: 0, low: 0 })
@@ -48,19 +50,19 @@ export abstract class HighLowType extends Base<HighLow> {
     return Object.assign({}, ...data.reverse());
   }
 
-  public fromStreamChunk(chunk: ChunkBuffer, name: string = 'HighLow'): HighLow {
+  public fromStreamChunk(chunk: ChunkBuffer, name: string = 'HighLow'): Type {
     return {
       low: chunk.readUint32(),
       high: chunk.readUint32(),
     };
   }
 
-  public toStreamChunk(val: HighLow, chunk: ChunkBuffer, name: string = 'HighLow'): void {
+  public toStreamChunk(val: Type, chunk: ChunkBuffer, name: string = 'HighLow'): void {
     chunk.writeUint32(val.low);
     chunk.writeUint32(val.high);
   }
 
-  public constructor(ival?: ScalarTypeArg<Partial<HighLow>>) {
+  public constructor(ival?: ScalarTypeArg<Partial<Type>>) {
     super();
     const val = (ival || {}).initial;
     this.givenInitial = this.coerce(val);

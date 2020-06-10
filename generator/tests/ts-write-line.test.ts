@@ -1,4 +1,4 @@
-import { TSWriteLine, TSWriter } from '../src/generator/ts';
+import { TSWriteLine, TSWriter } from '../src/ts';
 
 test('write \\n\\n\\n', () => {
     const tsw = new TSWriteLine(new TSWriter());

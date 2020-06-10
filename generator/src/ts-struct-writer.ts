@@ -1,4 +1,4 @@
-import { Types, Align, Optional } from '../definition';
+import { Types, Align, Optional } from 'flatterbuf';
 // import { Runtime } from '../runtime';
 import {
   TSWriteLine,
@@ -10,8 +10,6 @@ import {
   tsStringify,
 } from './ts';
 import { TSImports, TSImport } from './ts-imports';
-import { isSome, NoneOption, SomeOption } from '../definition/optional';
-import { isFixedArray } from '../definition/types';
 
 export class TSStructWriter<T> implements TSRefWriter {
   public readonly fname: string;
@@ -29,9 +27,9 @@ export class TSStructWriter<T> implements TSRefWriter {
     wl.writeLine(0, `{`);
     wl.writeLine(1, `name: ${wl.wr.quote(attr.name)},`);
     wl.writeLine(1, `ofs: ${attr.ofs},`);
-    let initial: Optional.Option<unknown> = NoneOption;
-    if (isSome(this.def.givenInitial)) {
-      initial = SomeOption(this.def.givenInitial.some[attr.name]);
+    let initial: Optional.Option<unknown> = Optional.NoneOption;
+    if (Optional.isSome(this.def.givenInitial)) {
+      initial = Optional.SomeOption(this.def.givenInitial.some[attr.name]);
     }
     wl.writeLine(1, `type: ${this.getTypeDefinition(wl.wr, attr.name, attr.type, initial)}`);
     wl.write(0, `}`);
@@ -75,8 +73,8 @@ export class TSStructWriter<T> implements TSRefWriter {
   private writeArrayDefinition<B>(wr: TSWriter, tdef: Types.Base.Definition<B>): string {
     const adef = (tdef as unknown) as Types.FixedArray.Definition<B>;
     let valueType = '';
-    if (isFixedArray(tdef)) {
-      if (isFixedArray(adef.element)) {
+    if (Types.isFixedArray(tdef)) {
+      if (Types.isFixedArray(adef.element)) {
         valueType = adef.element.type;
       } else {
         valueType = adef.element.type;
@@ -138,7 +136,7 @@ export class TSStructWriter<T> implements TSRefWriter {
               wr,
               `Item.${attrName || tdef.type}`,
               adef.element,
-              NoneOption,
+              Optional.NoneOption,
             )},`,
           );
         }
@@ -261,7 +259,7 @@ export class TSStructWriter<T> implements TSRefWriter {
   private writeStaticGivenInitial(wr: TSWriter) {
     const wl = new TSWriteLine(wr);
     wl.write(0, `public static readonly givenInitial: Optional.Option<NestedPartial<Type>>`);
-    if (isSome(this.def.givenInitial)) {
+    if (Optional.isSome(this.def.givenInitial)) {
       wl.writeLine(
         0,
         ` = Optional.SomeOption(${tsStringify(this.def.givenInitial.some, this.def, wr)});`,

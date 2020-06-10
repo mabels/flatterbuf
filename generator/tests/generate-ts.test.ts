@@ -1,11 +1,9 @@
-import { TSGenerator, TSWriter, Struct } from '../src/generator/ts';
-// import { Definition } from '../src/definition';
-// import { Runtime } from '../src/runtime';
-import { Samples } from './samples';
+import { TSGenerator, TSWriter, Struct } from '../src/ts';
+import { Samples } from 'flatterbuf/dist/samples';
+import { Types, StreamBuffer } from 'flatterbuf';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as ts from 'typescript';
-import { Types, StreamBuffer } from '../src/definition';
 
 function filterFunc(obj: any): any {
   if (Array.isArray(obj)) {
@@ -81,8 +79,8 @@ describe(`Generator:${TempDirectoryName}`, () => {
     const my = TSGenerator(
       i.Type,
       new TSWriter({
-        runtimePath: '../../src/runtime',
-        definitionPath: '../../src/definition',
+        // runtimePath: '../../src/runtime',
+        // definitionPath: '../../src/definition',
       }),
     );
     const transpiled = transpile(my.getStructs());

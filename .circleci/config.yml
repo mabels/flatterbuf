@@ -7,11 +7,18 @@ jobs:
       name: node/default
     steps:
       - checkout
-      - run: npm install
-      - run: npm run lint
-      - run: npm run build
-      - run: npm pack
-      - run: npm test
+      - run: cd base && npm install
+      - run: cd base && npm run lint
+      - run: cd base && npm run build
+      - run: cd base && npm pack
+      - run: cd base && npm test
+      - run: cd base && npm link
+      - run: cd generator && npm link flatterbuf
+      - run: cd generator && npm install
+      - run: cd generator && npm run lint
+      - run: cd generator && npm run build
+      - run: cd generator && npm pack
+      - run: cd generator && npm test
 workflows:
     build-and-test:
       jobs:

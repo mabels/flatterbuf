@@ -1,4 +1,4 @@
-import { Types } from '../src/definition';
+import { Types } from '../src';
 
 export function FixArrayOfScalarType<T>(len: number, element: any) {
   return new Types.FixedArray.Definition({
