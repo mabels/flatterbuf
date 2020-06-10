@@ -15,9 +15,9 @@ jobs:
       - run: cd base && npm test
       - run: cd base && sudo npm link
       - run: cd generator && npm link flatterbuf
-      - run: cd generator && npm install
-      # - run: cd generator && npm audit
-      - run: cd generator && npm run lint
+      - run: cd generator && sudo npm install
+      - run: cd generator && npm audit
+      #- run: cd generator && npm run lint
       - run: cd generator && npm run build
       - run: cd generator && npm pack
       - run: cd generator && npm test
