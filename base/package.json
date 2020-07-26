@@ -1,7 +1,7 @@
 {
   "name": "flatterbuf",
   "version": "1.1.0",
-  "main": "dist/index",
+  "main": "dist/definition",
   "author": "Meno Abels",
   "license": "AFL-2.0",
   "scripts": {
