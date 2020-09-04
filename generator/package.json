@@ -18,7 +18,7 @@
     "@types/jest": "^26.0.0",
     "jest": "^26.0.0",
     "jest-cli": "^26.0.0",
-    "prettier": "2.0.5",
+    "prettier": "2.1.1",
     "eslint": "^7.2.0",
     "rimraf": "*",
     "ts-jest": "^26.0.0",
