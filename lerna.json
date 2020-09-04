@@ -1,0 +1,7 @@
+{
+  "packages": [
+    "base",
+    "generator"
+  ],
+  "version": "0.0.0"
+}
