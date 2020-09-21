@@ -11,9 +11,9 @@ import {
 } from './ts';
 import {TSImports, TSImport} from './ts-imports';
 
-export class TSStructWriter<T> implements TSRefWriter {
+export class TSStructWriter implements TSRefWriter {
   public readonly fname: string;
-  private readonly imports: TSImports<T>;
+  private readonly imports: TSImports;
   constructor(
     public readonly def: Types.Struct.Definition,
     public readonly level: number,

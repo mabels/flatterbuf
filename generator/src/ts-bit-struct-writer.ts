@@ -2,9 +2,9 @@ import {Types, Optional} from 'flatterbuf';
 import {TSWriteLine, TSWriterArgs, TSWriter, TSRefWriter, tsStringify} from './ts';
 import {TSImports} from './ts-imports';
 
-export class TSBitStructWriter<T> implements TSRefWriter {
+export class TSBitStructWriter implements TSRefWriter {
   public readonly fname: string;
-  private readonly imports: TSImports<T>;
+  private readonly imports: TSImports;
   constructor(public readonly def: Types.BitStruct.Definition, public readonly args: TSWriterArgs) {
     this.imports = new TSImports(args);
     this.fname = `${args.generationPath}${this.def.name.toLowerCase()}`;
