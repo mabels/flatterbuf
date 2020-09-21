@@ -8,7 +8,7 @@
     "clean": "rimraf dist",
     "build": "tsc",
     "test": "jest -c jest.unit.js",
-    "lint": "tslint --project .",
+    "lint": "eslint 'src/**'",
     "prepublishOnly": "npm run clean && npm run lint && npm run build && npm run test"
   },
   "devDependencies": {
