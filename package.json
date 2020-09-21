@@ -10,6 +10,7 @@
     "test": "lerna run test",
     "update": "lerna run update",
     "publish": "lerna run publish",
+    "pack": "lerna run pack",
     "auditfix": "lerna run 'audit --fix'"
   },
   "devDependencies": {

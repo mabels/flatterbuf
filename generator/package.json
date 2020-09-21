@@ -11,7 +11,8 @@
     "lint": "eslint 'src/**'",
     "gts": "gts check 'src/**'",
     "compile": "tsc",
-    "publish": "npm publish"
+    "publish": "npm publish",
+    "pack": "npm pack"
   },
   "devDependencies": {
     "@types/jest": "^26.0.14",
