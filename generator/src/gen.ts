@@ -116,7 +116,7 @@ async function readTsConfig(config: Config) {
   return tsconfig;
 }
 
-async function cmd(...args: string[]) {
+export async function cmd(...args: string[]) {
   const pargs = yargs
     .option('tsconfig', {
       alias: 'c',
@@ -197,6 +197,4 @@ async function cmd(...args: string[]) {
 }
 
 // cmd(...process.execArgv);
-cmd(...process.argv)
-  .then(_ => console.log(`Done`))
-  .catch(console.error);
+

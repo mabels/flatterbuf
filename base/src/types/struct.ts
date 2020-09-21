@@ -15,8 +15,8 @@ export interface AttributeOfs<T> extends Attribute<T> {
   readonly ofs: number;
 }
 
-export type StructInitial = Record<string, any>;
-export type StructByName = Record<string, AttributeOfs<any>>;
+export type StructInitial = Record<string, unknown>;
+export type StructByName = Record<string, AttributeOfs<unknown>>;
 export type StructMerge = Record<string, unknown[]>;
 
 export interface StructArg {
@@ -33,7 +33,7 @@ export abstract class AbstractDefinition extends NamedType<StructInitial> {
   public abstract readonly bytes: number;
   public abstract readonly name: string;
   public abstract readonly alignFuncs: Funcs<string>;
-  public abstract readonly attributes: AttributeOfs<any>[];
+  public abstract readonly attributes: AttributeOfs<unknown>[];
   public abstract readonly attributeByName: StructByName;
   public abstract readonly givenInitial: Option<Partial<StructInitial>>;
 }
@@ -43,7 +43,7 @@ export class Definition extends AbstractDefinition {
   public readonly bytes: number;
   public readonly name: string;
   public readonly alignFuncs: Funcs<string>;
-  public readonly attributes: AttributeOfs<any>[];
+  public readonly attributes: AttributeOfs<unknown>[];
   public readonly attributeByName: StructByName;
   public readonly givenInitial: Option<Partial<StructInitial>>;
 
@@ -67,7 +67,7 @@ export class Definition extends AbstractDefinition {
       },
       {
         bytes: 0,
-        attributesInclOfs: [] as AttributeOfs<any>[],
+        attributesInclOfs: [] as AttributeOfs<unknown>[],
       },
     );
     this.bytes = al.funcs.overall(tmp.bytes);
@@ -79,7 +79,7 @@ export class Definition extends AbstractDefinition {
     this.givenInitial = this.coerce(st.initial);
   }
 
-  public coerce(vals: Record<string, any>): Option<Record<string, any>> {
+  public coerce(vals: Record<string, unknown>): Option<Record<string, unknown>> {
     let ret: Option<StructInitial> = NoneOption;
     if (typeof vals === 'object') {
       this.attributes.forEach((attr) => {
@@ -100,11 +100,11 @@ export class Definition extends AbstractDefinition {
       .concat(OrUndefined(this.givenInitial))
       .filter((i) => isSome(this.coerce(i)))
       .reduce(
-        (r, val) => {
+        (r: Record<string, unknown[]>, val) => {
           this.attributes.forEach((attr) => {
             const m = attr.type.coerce(val[attr.name]);
             if (isSome(m)) {
-              r[attr.name].push(m.some);
+              r[attr.name].push(m.some as unknown);
             }
           });
           return r;
@@ -112,10 +112,10 @@ export class Definition extends AbstractDefinition {
         this.attributes.reduce((r, attr) => {
           r[attr.name] = [];
           return r;
-        }, {} as Record<string, any[]>),
+        }, {} as Record<string, unknown[]>),
       );
     return this.attributes.reduce((r, attr) => {
-      r[attr.name] = attr.type.create(...data[attr.name]);
+      r[attr.name] = attr.type.create(...(data[attr.name] as unknown[]));
       return r;
     }, {} as StructInitial);
   }
@@ -123,12 +123,14 @@ export class Definition extends AbstractDefinition {
   // we need this defined in the class not in the prototype
   // tslint:disable-next-line: typedef
   public fromStreamChunk = function (
-    chunk: ChunkBuffer,
-    name: string = this.type,
-  ): Record<string, any> {
+    _chunk: ChunkBuffer,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _name: string = this.type,
+  ): Record<string, unknown> {
     throw new Error('Method not implemented.');
   };
-  public toStreamChunk(val: Record<string, any>, chunk: ChunkBuffer): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public toStreamChunk(_val: Record<string, unknown>, _chunk: ChunkBuffer): void {
     throw new Error('Method not implemented.');
   }
 }

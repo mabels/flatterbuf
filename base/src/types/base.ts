@@ -32,7 +32,7 @@ export abstract class Definition<T> {
   public abstract fromStreamChunk(chunk: ChunkBuffer, name: string): T;
   public abstract toStreamChunk(val: T, chunk: ChunkBuffer, name: string): void;
 
-  // public constructor() {}
+  // public abstract new(): Definition<T>;
 
   public fromStream(rb: StreamBuffer, name: string): T {
     return rb.prepareRead(name, this.bytes, (nrb) => this.fromStreamChunk(nrb, name));

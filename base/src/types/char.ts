@@ -40,10 +40,12 @@ export class Definition extends Base<number> {
     return NoneOption;
   }
 
-  public fromStreamChunk(chunk: ChunkBuffer, name: string = this.type): number {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public fromStreamChunk(chunk: ChunkBuffer, _name: string = this.type): number {
     return chunk.readUint8();
   }
-  public toStreamChunk(val: number, chunk: ChunkBuffer, name: string = this.type): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public toStreamChunk(val: number, chunk: ChunkBuffer, _name: string = this.type): void {
     chunk.writeUint8(val);
   }
 

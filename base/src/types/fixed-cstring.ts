@@ -72,7 +72,8 @@ export class Definition extends Base<number[]> {
     this.givenInitial = this.coerce(el.initial);
   }
 
-  public fromStreamChunk(chunk: ChunkBuffer, name: string = this.type): number[] {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public fromStreamChunk(chunk: ChunkBuffer, _name: string = this.type): number[] {
     const ret = Array<number>(this.length);
     for (let i = 0; i < this.length; ++i) {
       const val = chunk.readUint8();
@@ -81,7 +82,8 @@ export class Definition extends Base<number[]> {
     return ret;
   }
 
-  public toStreamChunk(val: number[], chunk: ChunkBuffer, name: string = this.type): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public toStreamChunk(val: number[], chunk: ChunkBuffer, _name: string = this.type): void {
     for (let i = 0; i < this.length; ++i) {
       chunk.writeUint8(val[i] || 0);
     }

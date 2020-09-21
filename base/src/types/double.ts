@@ -11,10 +11,12 @@ export class Definition extends NumberType {
   public readonly type: TypeName = Definition.type;
   public readonly bytes: number = Definition.bytes;
 
-  public fromStreamChunk(chunk: ChunkBuffer, name: string = this.type): number {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public fromStreamChunk(chunk: ChunkBuffer, _name: string = this.type): number {
     return chunk.readDouble();
   }
-  public toStreamChunk(val: number, chunk: ChunkBuffer, name: string = this.type): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public toStreamChunk(val: number, chunk: ChunkBuffer, _name: string = this.type): void {
     chunk.writeDouble(val);
   }
   public constructor(arg: ScalarTypeArg<number> = {}) {

@@ -90,7 +90,7 @@ export class Definition extends AbstractDefinition {
         return {
           ...my,
           length: 1,
-          type: new _Boolean(!!bit.initial ? { initial: !!bit.initial } : undefined),
+          type: new _Boolean(bit.initial ? { initial: !!bit.initial } : undefined),
         };
       } else {
         return {
@@ -121,14 +121,16 @@ export class Definition extends AbstractDefinition {
     this.givenInitial = this.coerce(arg.initial);
   }
 
-  public fromStreamChunk(chunk: ChunkBuffer, name = this.type): Record<string, number | boolean> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public fromStreamChunk(chunk: ChunkBuffer, _name = this.type): Record<string, number | boolean> {
     throw new Error('Method not implemented.');
   }
 
   public toStreamChunk(
     val: Record<string, number | boolean>,
     chunk: ChunkBuffer,
-    name = this.type,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _name = this.type,
   ): void {
     throw new Error('Method not implemented.');
   }

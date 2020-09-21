@@ -23,11 +23,13 @@ export class Definition extends Base<boolean> {
     );
   }
 
-  public fromStreamChunk(chunk: ChunkBuffer, name: string = this.type): boolean {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public fromStreamChunk(chunk: ChunkBuffer, _name: string = this.type): boolean {
     return chunk.readBoolean();
   }
 
-  public toStreamChunk(val: boolean, chunk: ChunkBuffer, name: string = this.type): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public toStreamChunk(val: boolean, chunk: ChunkBuffer, _name: string = this.type): void {
     chunk.writeBoolean(val);
   }
 

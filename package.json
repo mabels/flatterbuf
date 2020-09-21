@@ -4,8 +4,11 @@
   "scripts": {
     "bootstrap": "lerna bootstrap --hoist",
     "clean": "lerna clean --yes",
+    "lint": "lerna run lint",
     "build": "lerna run build",
-    "test": "lerna run test"
+    "test": "lerna run test",
+    "update": "lerna run update",
+    "auditfix": "lerna run 'audit --fix'"
   },
   "devDependencies": {
     "lerna": "^3.22.1"

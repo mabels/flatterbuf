@@ -12,10 +12,12 @@ export class Definition extends NumberType {
   public constructor(arg: ScalarTypeArg<number> = {}) {
     super(arg, (v) => (~~v & 0x7fff) | ((v >= 0 ? 0 : 1) << 15));
   }
-  public fromStreamChunk(chunk: ChunkBuffer, name: string = this.type): number {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public fromStreamChunk(chunk: ChunkBuffer, _name: string = this.type): number {
     return chunk.readUint16();
   }
-  public toStreamChunk(val: number, chunk: ChunkBuffer, name: string = this.type): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public toStreamChunk(val: number, chunk: ChunkBuffer, _name: string = this.type): void {
     chunk.writeUint16(val);
   }
 }

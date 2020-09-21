@@ -1,4 +1,4 @@
-import { Option, NoneOption, SomeOption, isSome } from './optional';
+import { Option, NoneOption, SomeOption, isSome, NoneType } from './optional';
 
 function nestedAssignObject(field: string | undefined, target: unknown, without: unknown[]): Option<unknown> {
   let found = false;
@@ -25,8 +25,8 @@ function nestedAssignObject(field: string | undefined, target: unknown, without:
   }
   let theTarget = target;
   if (field !== undefined) {
-    const my: Record<string, any> = target;
-    theTarget = my[field] = my[field] || ({} as any);
+    const my: Record<string, unknown> = target as Record<string, unknown>;
+    theTarget = my[field] = my[field] || {};
   }
   // console.log(out);
   Object.entries(out).reduce((r, [key, args]) => {
@@ -43,7 +43,7 @@ function nestedAssignArray(field: string | undefined, target: unknown, without: 
   let found = false;
   let theTarget: unknown[] = [];
   if (field !== undefined && typeof target === 'object') {
-    const my: Record<string, any> = target;
+    const my: Record<string, unknown[]> = target as Record<string, unknown[]>;
     theTarget = my[field] = my[field] || theTarget;
   } else if (Array.isArray(target)) {
     theTarget = target;
@@ -68,7 +68,7 @@ export function nestedAssign<T>(
   field: string | undefined,
   target: unknown,
   ...os: unknown[]
-) {
+): NoneType | Option<unknown> {
   if (!os.length) {
     return NoneOption;
   }
@@ -92,7 +92,7 @@ export function nestedAssign<T>(
     return NoneOption;
   }
   if (field !== undefined && typeof target === 'object') {
-    const my: Record<string, any> = target;
+    const my: Record<string, unknown> = target as Record<string, unknown>;
     my[field] = without[0] as T;
     return SomeOption(target);
   } else {

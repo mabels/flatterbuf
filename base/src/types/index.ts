@@ -40,7 +40,7 @@ import { Definition as Struct } from './struct';
 // import { Definition as Boolean } from './boolean';
 // import { Definition as Boolean } from './boolean';
 export type JSScalarTypes =
-    Boolean |
+    boolean |
     Uint8 |
     Char |
     Uint16 |
@@ -95,7 +95,7 @@ export enum AttributeType {
   FixedArray,
   Struct,
 }
-export function toAttributeType<T>(def: Base<T>) {
+export function toAttributeType<T>(def: Base<T>): AttributeType {
   if (isScalar(def)) {
     return AttributeType.Scalar;
   }

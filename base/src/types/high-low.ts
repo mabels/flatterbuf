@@ -50,14 +50,16 @@ export abstract class Definition extends Base<Type> {
     return Object.assign({}, ...data.reverse());
   }
 
-  public fromStreamChunk(chunk: ChunkBuffer, name: string = 'HighLow'): Type {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public fromStreamChunk(chunk: ChunkBuffer, _name = 'HighLow'): Type {
     return {
       low: chunk.readUint32(),
       high: chunk.readUint32(),
     };
   }
 
-  public toStreamChunk(val: Type, chunk: ChunkBuffer, name: string = 'HighLow'): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public toStreamChunk(val: Type, chunk: ChunkBuffer, _name = 'HighLow'): void {
     chunk.writeUint32(val.low);
     chunk.writeUint32(val.high);
   }

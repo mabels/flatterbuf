@@ -18,7 +18,7 @@ export interface FixedArrayArg<B, T extends Base<B> = Base<B>> {
   readonly alignFuncs?: Partial<Funcs<string>>;
 }
 
-export function create<B>(len: number, cb: (idx: number) => B) {
+export function create<B>(len: number, cb: (idx: number) => B): Array<B> {
   const my = Array<B>(len);
   for (let i = 0; i < len; ++i) {
     my[i] = cb(i);

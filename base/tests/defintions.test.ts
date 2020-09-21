@@ -17,7 +17,7 @@ Types.SimpleScalarTypesList.forEach((scalar, len) => {
   });
 
   test(`array of scalar ${scalar.type}`, () => {
-    const my = FixArrayOfScalarType(len, scalar);
+    const my = FixArrayOfScalarType(len, () => new scalar());
     expect(my.bytes).toBe(len * scalar.bytes);
     expect(my.type).toBe(Types.FixedArray.Definition.type);
     expect(my.element.type).toBe(scalar.type);
@@ -551,7 +551,7 @@ test('double defined in bits', () => {
 
 test('simple bit fields', () => {
   // console.log(`Hello World`);
-  debugger;
+  // debugger;
   const m = new Types.BitStruct.Definition({
     bits: [
       {
