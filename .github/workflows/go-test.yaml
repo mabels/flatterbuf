@@ -1,0 +1,25 @@
+name: build-and-test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ '**' ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    name: Build and Test
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: npm install
+        run: |
+          npm ci
+          npm run bootstrap
+          npm run lint
+          npm run build
+          npm run test
+          npm run pack
+
