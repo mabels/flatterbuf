@@ -1,5 +1,5 @@
-import { Option, SomeOption, NoneOption, OrUndefined, isSome } from '../optional';
-import { TypeName, ScalarTypeArg, FilterFunc, Definition } from './base';
+import {Option, SomeOption, NoneOption, OrUndefined, isSome} from '../optional';
+import {TypeName, ScalarTypeArg, FilterFunc, Definition} from './base';
 
 export abstract class NumberType extends Definition<number> {
   // public readonly initial: number;

@@ -19,23 +19,23 @@ export * as FixedArray from './fixed-array';
 export * as BitStruct from './bit-struct';
 export * as Struct from './struct';
 
-import { Definition as Base } from './base';
-import { Definition as Boolean } from './boolean';
-import { Definition as Uint8 } from './uint8';
-import { Definition as Uint16 } from './uint16';
-import { Definition as Uint32 } from './uint32';
-import { Definition as Char } from './char';
-import { Definition as Short } from './short';
-import { Definition as Int } from './int';
-import { Definition as Double } from './double';
-import { Definition as Float } from './float';
-import { Definition as Uint64 } from './uint64';
-import { Definition as Long } from './long';
+import {Definition as Base} from './base';
+import {Definition as Boolean} from './boolean';
+import {Definition as Uint8} from './uint8';
+import {Definition as Uint16} from './uint16';
+import {Definition as Uint32} from './uint32';
+import {Definition as Char} from './char';
+import {Definition as Short} from './short';
+import {Definition as Int} from './int';
+import {Definition as Double} from './double';
+import {Definition as Float} from './float';
+import {Definition as Uint64} from './uint64';
+import {Definition as Long} from './long';
 
-import { Definition as FixedArray } from './fixed-array';
-import { Definition as FixedCString } from './fixed-cstring';
-import { Definition as BitStruct } from './bit-struct';
-import { Definition as Struct } from './struct';
+import {Definition as FixedArray} from './fixed-array';
+import {Definition as FixedCString} from './fixed-cstring';
+import {Definition as BitStruct} from './bit-struct';
+import {Definition as Struct} from './struct';
 // import { Definition as Boolean } from './boolean';
 // import { Definition as Boolean } from './boolean';
 // import { Definition as Boolean } from './boolean';
@@ -90,11 +90,16 @@ export function isFixedArray<T>(def: Base<T>): boolean {
 export function isStruct<T>(def: Base<T>): boolean {
   return def.type === Struct.type;
 }
+
 export enum AttributeType {
-  Scalar,
-  FixedArray,
-  Struct,
+  // eslint-disable-next-line no-unused-vars
+  Scalar = 'Scalar',
+  // eslint-disable-next-line no-unused-vars
+  FixedArray = 'FixedArray',
+  // eslint-disable-next-line no-unused-vars
+  Struct = 'Struct',
 }
+
 export function toAttributeType<T>(def: Base<T>): AttributeType {
   if (isScalar(def)) {
     return AttributeType.Scalar;

@@ -1,7 +1,7 @@
-import { Option, SomeOption, NoneOption, OrUndefined, isSome, isNone } from '../optional';
-import { Definition as Base, TypeName, NamedType } from './base';
-import { Funcs, funcsMapper } from '../align';
-import { ChunkBuffer } from '../stream-buffer';
+import {Option, SomeOption, NoneOption, OrUndefined, isSome, isNone} from '../optional';
+import {Definition as Base, TypeName, NamedType} from './base';
+import {Funcs, funcsMapper} from '../align';
+import {ChunkBuffer} from '../stream-buffer';
 
 export interface BaseAttribute {
   readonly name: string;
@@ -55,20 +55,20 @@ export class Definition extends AbstractDefinition {
     this.alignFuncs = al.names;
 
     const tmp = st.attributes.reduce(
-      (res, attr) => {
+        (res, attr) => {
         // Hack
-        res.attributesInclOfs.push({
-          ...attr,
-          // notRequired: !!attr.notRequired,
-          ofs: res.bytes,
-        });
-        res.bytes = res.bytes + al.funcs.element(attr.type.bytes);
-        return res;
-      },
-      {
-        bytes: 0,
-        attributesInclOfs: [] as AttributeOfs<unknown>[],
-      },
+          res.attributesInclOfs.push({
+            ...attr,
+            // notRequired: !!attr.notRequired,
+            ofs: res.bytes,
+          });
+          res.bytes = res.bytes + al.funcs.element(attr.type.bytes);
+          return res;
+        },
+        {
+          bytes: 0,
+          attributesInclOfs: [] as AttributeOfs<unknown>[],
+        },
     );
     this.bytes = al.funcs.overall(tmp.bytes);
     this.attributes = tmp.attributesInclOfs;
@@ -97,23 +97,23 @@ export class Definition extends AbstractDefinition {
 
   public create(...rargs: StructInitial[]): StructInitial {
     const data = rargs
-      .concat(OrUndefined(this.givenInitial))
-      .filter((i) => isSome(this.coerce(i)))
-      .reduce(
-        (r: Record<string, unknown[]>, val) => {
-          this.attributes.forEach((attr) => {
-            const m = attr.type.coerce(val[attr.name]);
-            if (isSome(m)) {
-              r[attr.name].push(m.some as unknown);
-            }
-          });
-          return r;
-        },
-        this.attributes.reduce((r, attr) => {
-          r[attr.name] = [];
-          return r;
-        }, {} as Record<string, unknown[]>),
-      );
+        .concat(OrUndefined(this.givenInitial))
+        .filter((i) => isSome(this.coerce(i)))
+        .reduce(
+            (r: Record<string, unknown[]>, val) => {
+              this.attributes.forEach((attr) => {
+                const m = attr.type.coerce(val[attr.name]);
+                if (isSome(m)) {
+                  r[attr.name].push(m.some as unknown);
+                }
+              });
+              return r;
+            },
+            this.attributes.reduce((r, attr) => {
+              r[attr.name] = [];
+              return r;
+            }, {} as Record<string, unknown[]>),
+        );
     return this.attributes.reduce((r, attr) => {
       r[attr.name] = attr.type.create(...(data[attr.name] as unknown[]));
       return r;
@@ -122,10 +122,10 @@ export class Definition extends AbstractDefinition {
 
   // we need this defined in the class not in the prototype
   // tslint:disable-next-line: typedef
-  public fromStreamChunk = function (
-    _chunk: ChunkBuffer,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _name: string = this.type,
+  public fromStreamChunk(
+      _chunk: ChunkBuffer,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      _name: string = this.type,
   ): Record<string, unknown> {
     throw new Error('Method not implemented.');
   };

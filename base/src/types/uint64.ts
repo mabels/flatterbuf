@@ -1,5 +1,5 @@
-import { Definition as HighLowType, Type as HighLow, MutableType as MutableHighLow } from './high-low';
-import { TypeName, ScalarTypeArg } from './base';
+import {Definition as HighLowType, Type as HighLow, MutableType as MutableHighLow} from './high-low';
+import {TypeName, ScalarTypeArg} from './base';
 
 export type Type = HighLow;
 export type MutableType = MutableHighLow;
@@ -14,7 +14,6 @@ export class Definition extends HighLowType {
   public constructor(arg?: ScalarTypeArg<Partial<HighLow>>) {
     super(arg);
   }
-
 }
 
 export type Uint64 = Definition;

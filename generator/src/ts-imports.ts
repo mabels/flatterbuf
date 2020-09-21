@@ -1,6 +1,6 @@
-import { Types } from 'flatterbuf';
+import {Types} from 'flatterbuf';
 
-import { TSWriter, TSRefWriter, TSWriterArgs, TSWriteLine } from './ts';
+import {TSWriter, TSRefWriter, TSWriterArgs, TSWriteLine} from './ts';
 
 export interface Import {
   readonly name: string;
@@ -14,7 +14,7 @@ export interface TSImportArgs {
   readonly sWriter?: TSRefWriter;
 }
 
-export class TSImport<T> {
+export class TSImport {
   constructor(public readonly imp: TSImportArgs) {}
 
   public get key() {
@@ -28,16 +28,16 @@ export class TSImport<T> {
   public toString(wr: TSWriter) {
     if (this.imp.external) {
       const imports = this.imp.external.defs
-        .sort((a, b) => {
-          if (a.name < b.name) {
-            return 1;
-          } else if (a.name > b.name) {
-            return -1;
-          }
-          return 0;
-        })
-        .map((def) => `${def.name}${def.as ? ` as ${def.as}` : ''}`)
-        .join(', ');
+          .sort((a, b) => {
+            if (a.name < b.name) {
+              return 1;
+            } else if (a.name > b.name) {
+              return -1;
+            }
+            return 0;
+          })
+          .map((def) => `${def.name}${def.as ? ` as ${def.as}` : ''}`)
+          .join(', ');
       return `import { ${imports} } from ${wr.quote(this.imp.external.fname)};`;
     } else {
       return `import { ${this.imp.sWriter!.def.name} } from ${wr.quote(this.imp.sWriter!.fname)};`;
@@ -45,47 +45,47 @@ export class TSImport<T> {
   }
 }
 
-export class TSImports<T> {
-  private readonly imports: Map<string, TSImport<T>> = new Map();
+export class TSImports {
+  private readonly imports: Map<string, TSImport> = new Map();
 
   constructor(public readonly args: TSWriterArgs) {
     this.add(
-      new TSImport({
-        external: {
-          defs: [
-            {
-              name: 'Types',
-            },
-            {
-              name: 'Align',
-            },
-            {
-              name: 'Optional',
-            },
-            {
-              name: 'Utils',
-            },
-            {
-              name: 'ChunkBuffer',
-            },
-            {
-              name: 'StreamBuffer',
-            },
-            {
-              name: 'NestedReadonly',
-            },
-            {
-              name: 'NestedPartial',
-            },
-          ],
-          fname: args.definitionPath || 'flatterbuf/definition',
-        },
-      }),
+        new TSImport({
+          external: {
+            defs: [
+              {
+                name: 'Types',
+              },
+              {
+                name: 'Align',
+              },
+              {
+                name: 'Optional',
+              },
+              {
+                name: 'Utils',
+              },
+              {
+                name: 'ChunkBuffer',
+              },
+              {
+                name: 'StreamBuffer',
+              },
+              {
+                name: 'NestedReadonly',
+              },
+              {
+                name: 'NestedPartial',
+              },
+            ],
+            fname: args.definitionPath || 'flatterbuf/definition',
+          },
+        }),
     );
   }
 
-  public add(ts: TSImport<T>): TSImport<T> {
-    let f = this.imports.get(ts.key);
+  public add(ts: TSImport): TSImport {
+    const f = this.imports.get(ts.key);
     if (!f) {
       this.imports.set(ts.key, ts);
     } else if (ts.imp.external) {
@@ -94,15 +94,15 @@ export class TSImports<T> {
     return ts;
   }
 
-  public values(): TSImport<T>[] {
+  public values(): TSImport[] {
     return Array.from(this.imports.values());
   }
   public prepend<T>(wl: TSWriteLine, def: Types.Base.NamedType<T>) {
     wl.prependLine(0, ``);
     this.values()
-      .filter((i) => !(i.imp.sWriter && i.imp.sWriter.def == def))
-      .reverse()
-      .forEach((i) => wl.prependLine(0, i.toString(wl.wr)));
+        .filter((i) => !(i.imp.sWriter && i.imp.sWriter.def == def))
+        .reverse()
+        .forEach((i) => wl.prependLine(0, i.toString(wl.wr)));
     wl.prependLine(0, `// generated ${def.name}`);
   }
 }

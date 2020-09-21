@@ -1,6 +1,6 @@
-import { Option } from '../optional';
-import { NestedPartial } from '../nested';
-import { ChunkBuffer, StreamBuffer } from '../stream-buffer';
+import {Option} from '../optional';
+import {NestedPartial} from '../nested';
+import {ChunkBuffer, StreamBuffer} from '../stream-buffer';
 
 export type TypeName =
   | 'Boolean'

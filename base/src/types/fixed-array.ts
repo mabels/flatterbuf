@@ -1,8 +1,8 @@
-import { Option, SomeOption, NoneOption, OrUndefined, isSome, isNone } from '../optional';
-import { Definition as Base, TypeName } from './base';
-import { NestedPartial } from '../nested';
-import { Funcs, funcsMapper } from '../align';
-import { ChunkBuffer } from '../stream-buffer';
+import {Option, SomeOption, NoneOption, OrUndefined, isSome, isNone} from '../optional';
+import {Definition as Base, TypeName} from './base';
+import {NestedPartial} from '../nested';
+import {Funcs, funcsMapper} from '../align';
+import {ChunkBuffer} from '../stream-buffer';
 
 export abstract class ArrayTypeAttribute<B> extends Base<B[]> {
   public abstract readonly element: Base<B>;
@@ -56,22 +56,22 @@ export class Definition<B, T extends Base<B> = Base<B>> extends ArrayTypeAttribu
 
   public create(...initials: ElementType<B>[][]): B[] {
     const datas = initials
-      .concat([
-        OrUndefined(this.givenInitial),
-        new Array(this.length).fill(this.element.create()),
-      ] as unknown[][])
-      .filter((i) => Array.isArray(i));
+        .concat([
+          OrUndefined(this.givenInitial),
+          new Array(this.length).fill(this.element.create()),
+        ] as unknown[][])
+        .filter((i) => Array.isArray(i));
     const items: ElementType<B>[][] = datas.reduce(
-      (r: ElementType<B>[][], bArray) => {
-        bArray.slice(0, this.length).forEach((item, idx) => {
-          const v = this.element.coerce(item);
-          if (isSome(v)) {
-            r[idx].push(v.some as ElementType<B>);
-          }
-        });
-        return r;
-      },
-      new Array(this.length).fill(undefined).map(() => []),
+        (r: ElementType<B>[][], bArray) => {
+          bArray.slice(0, this.length).forEach((item, idx) => {
+            const v = this.element.coerce(item);
+            if (isSome(v)) {
+              r[idx].push(v.some as ElementType<B>);
+            }
+          });
+          return r;
+        },
+        new Array(this.length).fill(undefined).map(() => []),
     ) as ElementType<B>[][];
     return items.reduce((r: B[], item, idx) => {
       r[idx] = this.element.create(...item);

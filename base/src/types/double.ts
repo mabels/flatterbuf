@@ -1,6 +1,6 @@
-import { NumberType } from './number-type';
-import { TypeName, ScalarTypeArg } from './base';
-import { ChunkBuffer } from '../stream-buffer';
+import {NumberType} from './number-type';
+import {TypeName, ScalarTypeArg} from './base';
+import {ChunkBuffer} from '../stream-buffer';
 
 export type ValueType = number;
 
@@ -22,7 +22,6 @@ export class Definition extends NumberType {
   public constructor(arg: ScalarTypeArg<number> = {}) {
     super(arg, (v) => v);
   }
-
 }
 
 export type Double = Definition;

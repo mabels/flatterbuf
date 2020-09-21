@@ -1,7 +1,7 @@
-import { Option, SomeOption, NoneOption, OrUndefined } from '../optional';
+import {Option, SomeOption, NoneOption, OrUndefined} from '../optional';
 
-import { Definition as Base, TypeName, ScalarTypeArg } from './base';
-import { ChunkBuffer } from '../stream-buffer';
+import {Definition as Base, TypeName, ScalarTypeArg} from './base';
+import {ChunkBuffer} from '../stream-buffer';
 
 export type ValueType = number;
 
@@ -54,7 +54,6 @@ export class Definition extends Base<number> {
     const val = (arg || {}).initial;
     this.givenInitial = this.coerce(val);
   }
-
 }
 
 export type Char = Definition;

@@ -2,9 +2,10 @@
   "name": "root",
   "private": true,
   "scripts": {
-    "bootstrap": "lerna bootstrap --hoist",
+    "bootstrap": "lerna bootstrap",
     "clean": "lerna clean --yes",
     "lint": "lerna run lint",
+    "gts": "lerna run gts",
     "build": "lerna run build",
     "test": "lerna run test",
     "update": "lerna run update",

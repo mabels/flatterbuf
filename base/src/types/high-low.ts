@@ -1,7 +1,7 @@
-import { Option, SomeOption, NoneOption, OrUndefined, isSome } from '../optional';
-import { Definition as Base, ScalarTypeArg } from './base';
-import { Definition as Uint32 } from './uint32';
-import { ChunkBuffer } from '../stream-buffer';
+import {Option, SomeOption, NoneOption, OrUndefined, isSome} from '../optional';
+import {Definition as Base, ScalarTypeArg} from './base';
+import {Definition as Uint32} from './uint32';
+import {ChunkBuffer} from '../stream-buffer';
 
 export interface MutableType {
   high: number;
@@ -23,13 +23,13 @@ export abstract class Definition extends Base<Type> {
       const high = Definition.uint32.coerce(hl.high);
       const low = Definition.uint32.coerce(hl.low);
       if (isSome(high) && isSome(low)) {
-        return SomeOption({ low: low.some, high: high.some });
+        return SomeOption({low: low.some, high: high.some});
       }
       if (isSome(high)) {
-        return SomeOption({ high: high.some });
+        return SomeOption({high: high.some});
       }
       if (isSome(low)) {
-        return SomeOption({ low: low.some });
+        return SomeOption({low: low.some});
       }
     }
     return NoneOption;
@@ -37,16 +37,16 @@ export abstract class Definition extends Base<Type> {
 
   public create(...args: Partial<Type>[]): Type {
     const data = args
-      .concat(OrUndefined(this.givenInitial))
-      .concat({ high: 0, low: 0 })
-      .filter((i) => typeof i === 'object')
-      .reduce((r, i) => {
-        const v = this.coerce(i);
-        if (isSome(v)) {
-          r.push(v.some);
-        }
-        return r;
-      }, []);
+        .concat(OrUndefined(this.givenInitial))
+        .concat({high: 0, low: 0})
+        .filter((i) => typeof i === 'object')
+        .reduce((r, i) => {
+          const v = this.coerce(i);
+          if (isSome(v)) {
+            r.push(v.some);
+          }
+          return r;
+        }, []);
     return Object.assign({}, ...data.reverse());
   }
 

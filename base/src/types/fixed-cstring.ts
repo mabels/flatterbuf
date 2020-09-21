@@ -1,8 +1,8 @@
-import { Option, SomeOption, NoneOption, OrUndefined, isSome } from '../optional';
-import { Definition as Base, TypeName } from './base';
-import { CharInitType, Definition as Char } from './char';
-import { Funcs, funcsMapper } from '../align';
-import { ChunkBuffer } from '../stream-buffer';
+import {Option, SomeOption, NoneOption, OrUndefined, isSome} from '../optional';
+import {Definition as Base, TypeName} from './base';
+import {CharInitType, Definition as Char} from './char';
+import {Funcs, funcsMapper} from '../align';
+import {ChunkBuffer} from '../stream-buffer';
 
 export type FixedCStringInitType = string | CharInitType[];
 export interface FixedCStringArg {
@@ -28,19 +28,19 @@ export class Definition extends Base<number[]> {
   public create(...initials: FixedCStringInitType[]): number[] {
     const gi = OrUndefined(this.givenInitial);
     const datas = initials
-      .concat(gi ? [gi] : undefined)
-      .map((i) => this.coerce(i))
-      .filter((i) => isSome(i))
-      .map((i) => isSome(i) && i.some)
-      .concat([new Array(this.length).fill(Definition.element.create())]);
+        .concat(gi ? [gi] : undefined)
+        .map((i) => this.coerce(i))
+        .filter((i) => isSome(i))
+        .map((i) => isSome(i) && i.some)
+        .concat([new Array(this.length).fill(Definition.element.create())]);
     const items = datas.reduce(
-      (r, bArray) => {
-        bArray.forEach((item, idx) => {
-          r[idx].push(item);
-        });
-        return r;
-      },
-      new Array(this.length).fill(undefined).map(() => []),
+        (r, bArray) => {
+          bArray.forEach((item, idx) => {
+            r[idx].push(item);
+          });
+          return r;
+        },
+        new Array(this.length).fill(undefined).map(() => []),
     );
     return items.reduce((r, item, idx) => {
       r[idx] = Definition.element.create(...item);
@@ -65,7 +65,7 @@ export class Definition extends Base<number[]> {
   constructor(iel: FixedCStringArg) {
     super();
     const el: FixedCStringArg = iel; // artefact
-    const al = funcsMapper({ ...el.alignFuncs, element: 'byte' });
+    const al = funcsMapper({...el.alignFuncs, element: 'byte'});
     this.alignFuncs = al.names;
     this.length = el.length;
     this.bytes = al.funcs.overall(el.length);
@@ -88,7 +88,6 @@ export class Definition extends Base<number[]> {
       chunk.writeUint8(val[i] || 0);
     }
   }
-
 }
 
 export type FixedCString = Definition;

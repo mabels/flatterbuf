@@ -1,7 +1,7 @@
 // import { Definition } from '../definition';
-import { TSStructWriter } from './ts-struct-writer';
-import { TSBitStructWriter } from './ts-bit-struct-writer';
-import { Types, Optional } from 'flatterbuf';
+import {TSStructWriter} from './ts-struct-writer';
+import {TSBitStructWriter} from './ts-bit-struct-writer';
+import {Types, Optional} from 'flatterbuf';
 // import { isNone } from '../definition/optional';
 // import { HighLow } from '../definition/types/high-low';
 
@@ -53,9 +53,9 @@ export function writeCloneFunction(wl: TSWriteLine) {
 }
 
 export function tsStringify<B>(
-  iobj: unknown,
-  typ: Types.Base.Definition<B>,
-  wr: TSWriter,
+    iobj: unknown,
+    typ: Types.Base.Definition<B>,
+    wr: TSWriter,
 ): string {
   const wl = new TSWriteLine(wr);
   const oval = typ.coerce(iobj);
@@ -125,7 +125,7 @@ export function tsStringify<B>(
       // break;
     case Types.FixedArray.Definition.type:
       const atype = typ as unknown as Types.FixedArray.Definition<unknown>;
-      const o = (val as unknown[]).map(i => tsStringify(i, atype.element, wr));
+      const o = (val as unknown[]).map((i) => tsStringify(i, atype.element, wr));
       wl.write(0, `[${o.join(', ')}]`);
       break;
     default:
@@ -135,9 +135,9 @@ export function tsStringify<B>(
 }
 
 export function typeDefinition<T>(
-  t: Types.Base.Definition<T>,
-  typeName: string,
-  wrapStruct: (s: string) => string = (s) => s,
+    t: Types.Base.Definition<T>,
+    typeName: string,
+    wrapStruct: (s: string) => string = (s) => s,
 ): string {
   switch (t.type) {
     case Types.Boolean.Definition.type:
@@ -175,9 +175,9 @@ export function attributeDefinition(def: Types.Struct.BaseAttribute) {
 }
 
 export function initialValue<T>(
-  _wr: TSWriter,
-  vname: string,
-  def: Types.Base.Definition<T>,
+    _wr: TSWriter,
+    vname: string,
+    def: Types.Base.Definition<T>,
 ): string {
   switch (def.type) {
     case Types.Uint64.Definition.type:
@@ -213,7 +213,7 @@ export interface TSRefWriter {
   write(wr: TSWriter): TSWriteLine;
 }
 
-export interface TSImportArgs<T> {
+export interface TSImportArgs {
   readonly external?: {
     readonly fname: string;
     readonly def: string;
@@ -246,7 +246,7 @@ export class TSWriter {
     this.args = {
       indent: args.indent || '  ',
       ...args,
-      quote: args!.quote || "'",
+      quote: args!.quote || '\'',
       generationPath: args!.generationPath || './',
       // runtimePath: args!.runtimePath || 'flatterbuf/runtime',
       definitionPath: args!.definitionPath || 'flatterbuf',
@@ -259,22 +259,22 @@ export class TSWriter {
 
   public quote(val: string): string {
     return `${this.args.quote}${val.replace(
-      new RegExp(this.args.quote, 'g'),
-      `\\${this.args.quote}`,
+        new RegExp(this.args.quote, 'g'),
+        `\\${this.args.quote}`,
     )}${this.args.quote}`;
   }
 
   public backQuote(val: string): string {
     return `\`${val.replace(
-      new RegExp('`', 'g'),
-      `\\\``,
+        new RegExp('`', 'g'),
+        `\\\``,
     )}\``;
   }
 
   public structClass(def: Types.Struct.Definition, level: number) {
     let tsw = this.structs.get(def.name);
     if (!tsw) {
-      tsw = { writer: new TSStructWriter(def, level, this.args) };
+      tsw = {writer: new TSStructWriter(def, level, this.args)};
       this.structs.set(tsw.writer.def.name, tsw);
     }
     return tsw;
@@ -283,7 +283,7 @@ export class TSWriter {
   public bitStructClass(def: Types.BitStruct.Definition, level: number) {
     let tsw = this.structs.get(def.name);
     if (!tsw) {
-      tsw = { writer: new TSBitStructWriter(def, this.args) };
+      tsw = {writer: new TSBitStructWriter(def, this.args)};
       this.structs.set(tsw.writer.def.name, tsw);
     }
     return tsw;

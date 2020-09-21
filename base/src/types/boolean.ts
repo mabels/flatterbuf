@@ -1,7 +1,7 @@
-import { Option, SomeOption, NoneOption, OrUndefined, isSome } from '../optional';
+import {Option, SomeOption, NoneOption, OrUndefined, isSome} from '../optional';
 
-import { Definition as Base, TypeName, ScalarTypeArg } from './base';
-import { ChunkBuffer } from '../stream-buffer';
+import {Definition as Base, TypeName, ScalarTypeArg} from './base';
+import {ChunkBuffer} from '../stream-buffer';
 
 export type ValueType = boolean;
 

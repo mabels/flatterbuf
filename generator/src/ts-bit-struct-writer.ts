@@ -1,6 +1,6 @@
-import { Types, Optional } from 'flatterbuf';
-import { TSWriteLine, TSWriterArgs, TSWriter, TSRefWriter, tsStringify } from './ts';
-import { TSImports } from './ts-imports';
+import {Types, Optional} from 'flatterbuf';
+import {TSWriteLine, TSWriterArgs, TSWriter, TSRefWriter, tsStringify} from './ts';
+import {TSImports} from './ts-imports';
 
 export class TSBitStructWriter<T> implements TSRefWriter {
   public readonly fname: string;
@@ -45,8 +45,8 @@ export class TSBitStructWriter<T> implements TSRefWriter {
     wl.write(0, `public static readonly givenInitial: Optional.Option<NestedPartial<Type>>`);
     if (Optional.isSome(this.def.givenInitial)) {
       wl.writeLine(
-        0,
-        ` = Optional.SomeOption(${tsStringify(this.def.givenInitial.some, this.def, wr)});`,
+          0,
+          ` = Optional.SomeOption(${tsStringify(this.def.givenInitial.some, this.def, wr)});`,
       );
     } else {
       wl.writeLine(0, ' = Optional.NoneOption;');
@@ -86,15 +86,15 @@ export class TSBitStructWriter<T> implements TSRefWriter {
     wl.writeLine(2, `public readonly length: number = ${this.def.length};`);
     wl.writeLine(2, `public readonly bytes: number = ${this.def.bytes};`);
     wl.writeLine(
-      2,
-      `public readonly alignFuncs: Align.Funcs<string> = { element: ${wl.wr.quote(
-        this.def.alignFuncs.element,
-      )}, overall: ${wl.wr.quote(this.def.alignFuncs.overall)} };`,
+        2,
+        `public readonly alignFuncs: Align.Funcs<string> = { element: ${wl.wr.quote(
+            this.def.alignFuncs.element,
+        )}, overall: ${wl.wr.quote(this.def.alignFuncs.overall)} };`,
     );
     wl.writeLine(2, `public readonly bits: typeof Definition.Bits = Definition.Bits;`);
     wl.writeLine(
-      2,
-      `public readonly bitsByName: typeof Definition.BitsByName = Definition.BitsByName;`,
+        2,
+        `public readonly bitsByName: typeof Definition.BitsByName = Definition.BitsByName;`,
     );
     wl.writeLine(2, `public readonly givenInitial: Optional.Option<Partial<Type>>;\n`);
     wl.writeLine(2, this.writeCreateFunction(wl.wr));
@@ -121,9 +121,9 @@ export class TSBitStructWriter<T> implements TSRefWriter {
           return '[]';
         }
         return `[ ${Array(adef.length)
-          .fill(0)
-          .map((_, i) => this.emptyNestedArray(adef.element))
-          .join(', ')} ]`;
+            .fill(0)
+            .map((_, i) => this.emptyNestedArray(adef.element))
+            .join(', ')} ]`;
       case Types.AttributeType.Scalar:
       case Types.AttributeType.Struct:
         return '[]';
@@ -137,8 +137,8 @@ export class TSBitStructWriter<T> implements TSRefWriter {
     this.def.bits.forEach((i) => {
       wl.writeLine(2, `if (['boolean', 'number'].includes(typeof val.${i.name})) {`);
       wl.writeLine(
-        3,
-        `ret = Optional.isNone(ret) ? Optional.SomeOption<Partial<MutableType>>({}) : ret;`,
+          3,
+          `ret = Optional.isNone(ret) ? Optional.SomeOption<Partial<MutableType>>({}) : ret;`,
       );
       wl.writeLine(3, `ret.some.${i.name} = ${i.length === 1 ? '!!' : ''}val.${i.name};`);
       wl.writeLine(2, `}`);
@@ -151,7 +151,7 @@ export class TSBitStructWriter<T> implements TSRefWriter {
 
   private writeCreateFunction(wr: TSWriter) {
     const wl = new TSWriteLine(wr);
-    /// wl.writeLine(0, 'export function create(...rargs: Partial<Type>[]): Type {');
+    // / wl.writeLine(0, 'export function create(...rargs: Partial<Type>[]): Type {');
     wl.writeLine(0, 'public create(...rargs: Partial<Type>[]): Type {');
     wl.writeLine(1, `const data = rargs`);
     wl.writeLine(2, `.concat([Optional.OrUndefined(this.givenInitial)])`);
@@ -170,8 +170,8 @@ export class TSBitStructWriter<T> implements TSRefWriter {
     wl.writeLine(1, `return {`);
     this.def.bits.forEach((attr) => {
       wl.writeLine(
-        2,
-        `${attr.name}: Definition.BitsByName.${attr.name}.type.create(...data.${attr.name}),`,
+          2,
+          `${attr.name}: Definition.BitsByName.${attr.name}.type.create(...data.${attr.name}),`,
       );
     });
     wl.writeLine(1, `};`);
@@ -183,19 +183,19 @@ export class TSBitStructWriter<T> implements TSRefWriter {
     const wl = new TSWriteLine(wr);
     wl.writeLine(0, 'public fromStreamChunk(nrb: ChunkBuffer, name: string = this.name): Type {');
     wl.writeLine(
-      1,
-      Array(this.def.bytes)
-        .fill(undefined)
-        .reduce((r, _, i, a) => {
-          return `${r} (nrb.readUint8() << ${i * 8})${i + 1 == a.length ? ';' : ' |\n'}`;
-        }, 'let _32bit = '),
+        1,
+        Array(this.def.bytes)
+            .fill(undefined)
+            .reduce((r, _, i, a) => {
+              return `${r} (nrb.readUint8() << ${i * 8})${i + 1 == a.length ? ';' : ' |\n'}`;
+            }, 'let _32bit = '),
     );
     wl.writeLine(1, 'return {');
     this.def.bits.forEach((i) => {
       // tslint:disable-next-line: max-line-length
       wl.writeLine(
-        2,
-        `${i.name}: ${i.length == 1 ? '!!' : ''}((_32bit >> ${i.start}) & ${2 ** i.length - 1}),`,
+          2,
+          `${i.name}: ${i.length == 1 ? '!!' : ''}((_32bit >> ${i.start}) & ${2 ** i.length - 1}),`,
       );
     });
     wl.writeLine(1, '};');
@@ -209,18 +209,18 @@ export class TSBitStructWriter<T> implements TSRefWriter {
     wl.writeLine(0, 'public value32bit(data: Type): number {');
     this.def.bits.reduce((pipe, i, idx, bits) => {
       wl.writeLine(
-        1,
-        `${pipe}((~~(data.${i.name}) & ${2 ** i.length - 1}) << ${i.start})${
+          1,
+          `${pipe}((~~(data.${i.name}) & ${2 ** i.length - 1}) << ${i.start})${
           idx === bits.length - 1 ? ';' : ''
-        }`,
+          }`,
       );
       return '| ';
     }, 'return ');
     wl.writeLine(0, '}');
     wl.writeLine(0, '');
     wl.writeLine(
-      0,
-      'public toStreamChunk(data: Partial<Type>, nwb: ChunkBuffer, name: string = this.name): void {',
+        0,
+        'public toStreamChunk(data: Partial<Type>, nwb: ChunkBuffer, name: string = this.name): void {',
     );
     wl.writeLine(1, 'const _32bit = this.value32bit(this.create(data));');
     for (let i = 0; i < this.def.bytes; ++i) {

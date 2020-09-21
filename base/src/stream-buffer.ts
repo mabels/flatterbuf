@@ -104,13 +104,13 @@ export class StreamBuffer {
   public constructor(u8s: Uint8Array[] = []) {
     const totalLen = u8s.reduce((r, u8) => r + u8.length, 0);
     const buf = u8s.reduce(
-      (b, u8) => {
+        (b, u8) => {
         // console.log(b.ofs, u8);
-        b.buf.set(u8, b.ofs);
-        b.ofs += u8.length;
-        return b;
-      },
-      { buf: Buffer.alloc(totalLen), ofs: 0 },
+          b.buf.set(u8, b.ofs);
+          b.ofs += u8.length;
+          return b;
+        },
+        {buf: Buffer.alloc(totalLen), ofs: 0},
     );
     if (totalLen > 0) {
       // console.log('Read:', totalLen, buf.buf);
@@ -147,7 +147,7 @@ export class StreamBuffer {
     return cb(this.currentReadChunk(name, bytes));
   }
 
-  public prepareWrite<T>(name: string, bytes: number, cb: (wb: ChunkBuffer) => void): StreamBuffer {
+  public prepareWrite(name: string, bytes: number, cb: (wb: ChunkBuffer) => void): StreamBuffer {
     const buffer = this.currentWriteChunk(name, bytes);
     cb(buffer);
     return this;

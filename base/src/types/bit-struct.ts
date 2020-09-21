@@ -1,10 +1,10 @@
-import { Funcs, funcsMapper } from '../align';
-import { Option, OrUndefined, NoneOption, isNone, SomeOption } from '../optional';
+import {Funcs, funcsMapper} from '../align';
+import {Option, OrUndefined, NoneOption, isNone, SomeOption} from '../optional';
 
-import { Definition as _Boolean } from './boolean';
-import { Definition as Uint32 } from './uint32';
-import { Definition as Base, TypeName, NamedType } from './base';
-import { ChunkBuffer } from '../stream-buffer';
+import {Definition as _Boolean} from './boolean';
+import {Definition as Uint32} from './uint32';
+import {Definition as Base, TypeName, NamedType} from './base';
+import {ChunkBuffer} from '../stream-buffer';
 
 export interface BitItem {
   readonly name: string;
@@ -68,7 +68,7 @@ export class Definition extends AbstractDefinition {
 
   public constructor(arg: Partial<BitStructArg>) {
     super();
-    const al = funcsMapper({ ...arg.alignFuncs, element: 'byte' });
+    const al = funcsMapper({...arg.alignFuncs, element: 'byte'});
     this.alignFuncs = al.names;
     this.length = typeof arg.length === 'number' ? arg.length : 1;
     this.bytes = al.funcs.overall(this.length);
@@ -81,22 +81,22 @@ export class Definition extends AbstractDefinition {
       const length = typeof bit.length === 'number' ? bit.length : 1;
       if (bit.start + length > this.bytes * 8) {
         throw RangeError(
-          `BitStruct:${bit.name} requesting more bits than length:${this.bytes}:${bit.start}:${length}`,
+            `BitStruct:${bit.name} requesting more bits than length:${this.bytes}:${bit.start}:${length}`,
         );
       }
-      const my = { ...bit };
+      const my = {...bit};
       delete my.initial;
       if (length === 1) {
         return {
           ...my,
           length: 1,
-          type: new _Boolean(bit.initial ? { initial: !!bit.initial } : undefined),
+          type: new _Boolean(bit.initial ? {initial: !!bit.initial} : undefined),
         };
       } else {
         return {
           ...my,
           length,
-          type: new Uint32(~~bit.initial ? { initial: ~~bit.initial } : undefined),
+          type: new Uint32(~~bit.initial ? {initial: ~~bit.initial} : undefined),
           // initial: BitStructValue(bit.initial, length),
         };
       }
@@ -107,12 +107,12 @@ export class Definition extends AbstractDefinition {
     }, {} as BitsByName);
 
     this.name =
-      typeof arg.name === 'string'
-        ? arg.name
-        : (this.bits || [])
+      typeof arg.name === 'string' ?
+        arg.name :
+        (this.bits || [])
             .map(
-              (i) =>
-                `${i.name}S${i.start}L${i.length}` +
+                (i) =>
+                  `${i.name}S${i.start}L${i.length}` +
                 `${['boolean', 'number'].includes(typeof i.initial) ? `I${~~i.initial}` : ''}`,
             )
             .sort((a, b) => a.localeCompare(b))
@@ -127,36 +127,36 @@ export class Definition extends AbstractDefinition {
   }
 
   public toStreamChunk(
-    val: Record<string, number | boolean>,
-    chunk: ChunkBuffer,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _name = this.type,
+      val: Record<string, number | boolean>,
+      chunk: ChunkBuffer,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      _name = this.type,
   ): void {
     throw new Error('Method not implemented.');
   }
 
   public create(...rargs: Partial<BitStructInitial>[]): BitStructInitial {
     const data = rargs
-      .concat(OrUndefined(this.givenInitial))
-      .filter((i) => typeof i === 'object')
-      .reduce(
-        (r, val) => {
-          this.bits.forEach((bit) => {
-            if (['boolean', 'number'].includes(typeof val[bit.name])) {
-              if (bit.length === 1) {
-                r[bit.name].push(!!val[bit.name]);
-              } else {
-                r[bit.name].push(~~val[bit.name]);
-              }
-            }
-          });
-          return r;
-        },
-        this.bits.reduce((r, bit) => {
-          r[bit.name] = [];
-          return r;
-        }, {} as Record<string, (boolean | number)[]>),
-      );
+        .concat(OrUndefined(this.givenInitial))
+        .filter((i) => typeof i === 'object')
+        .reduce(
+            (r, val) => {
+              this.bits.forEach((bit) => {
+                if (['boolean', 'number'].includes(typeof val[bit.name])) {
+                  if (bit.length === 1) {
+                    r[bit.name].push(!!val[bit.name]);
+                  } else {
+                    r[bit.name].push(~~val[bit.name]);
+                  }
+                }
+              });
+              return r;
+            },
+            this.bits.reduce((r, bit) => {
+              r[bit.name] = [];
+              return r;
+            }, {} as Record<string, (boolean | number)[]>),
+        );
     return this.bits.reduce((r, bit) => {
       r[bit.name] = bit.type.create(...data[bit.name]);
       return r;

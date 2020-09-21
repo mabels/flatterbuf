@@ -5,7 +5,7 @@ import {
   Samples,
   NestedArrayOfStruct,
 } from '../src/samples';
-import { Types, Optional } from '../src';
+import {Types, Optional} from '../src';
 // import { HighLowType } from '../src/definition/types/high-low';
 // import { Uint64, Base } from '../src/definition/types';
 
@@ -30,12 +30,12 @@ test(`Boolean scalar no initial`, () => {
 });
 
 test(`Boolean scalar initial`, () => {
-  const my = new Types.Boolean.Definition({ initial: true });
+  const my = new Types.Boolean.Definition({initial: true});
   expect(my.create()).toBe(true);
 });
 
 test(`Boolean scalar def initial`, () => {
-  const my = new Types.Boolean.Definition({ initial: true });
+  const my = new Types.Boolean.Definition({initial: true});
   expect(my.create(false)).toBe(false);
 });
 
@@ -45,12 +45,12 @@ test(`UInt32 scalar no initial`, () => {
 });
 
 test(`UInt32 scalar initial`, () => {
-  const my = new Types.Uint32.Definition({ initial: 4711 });
+  const my = new Types.Uint32.Definition({initial: 4711});
   expect(my.create()).toBe(4711);
 });
 
 test(`UInt32 scalard def initial`, () => {
-  const my = new Types.Uint32.Definition({ initial: 4711 });
+  const my = new Types.Uint32.Definition({initial: 4711});
   expect(my.create(4712)).toBe(4712);
 });
 
@@ -60,60 +60,60 @@ test(`Char scalar no initial`, () => {
 });
 
 test(`Char scalar initial string`, () => {
-  const my = new Types.Char.Definition({ initial: 'A' });
+  const my = new Types.Char.Definition({initial: 'A'});
   expect(my.create()).toBe(65);
 });
 
 test(`Char scalard def initial string`, () => {
-  const my = new Types.Char.Definition({ initial: 'B' });
+  const my = new Types.Char.Definition({initial: 'B'});
   expect(my.create('A')).toBe(65);
 });
 
 test(`Char scalar initial number`, () => {
-  const my = new Types.Char.Definition({ initial: 65 });
+  const my = new Types.Char.Definition({initial: 65});
   expect(my.create()).toBe(65);
 });
 
 test(`Char scalard def initial number`, () => {
-  const my = new Types.Char.Definition({ initial: 65 });
+  const my = new Types.Char.Definition({initial: 65});
   expect(my.create('B')).toBe(66);
 });
 
 test(`HighLow empty`, () => {
   const my = new Types.Uint64.Definition();
-  expect(my.create()).toEqual({ high: 0, low: 0 });
+  expect(my.create()).toEqual({high: 0, low: 0});
 });
 
 test(`HighLow scalar initial number high`, () => {
-  const my = new Types.Uint64.Definition({ initial: { high: 65 } });
-  expect(my.create()).toEqual({ high: 65, low: 0 });
+  const my = new Types.Uint64.Definition({initial: {high: 65}});
+  expect(my.create()).toEqual({high: 65, low: 0});
 });
 test(`HighLow scalar initial number low`, () => {
-  const my = new Types.Uint64.Definition({ initial: { low: 65 } });
-  expect(my.create()).toEqual({ high: 0, low: 65 });
+  const my = new Types.Uint64.Definition({initial: {low: 65}});
+  expect(my.create()).toEqual({high: 0, low: 65});
 });
 
 test(`HighLow scalar initial number low:high`, () => {
-  const my = new Types.Uint64.Definition({ initial: { high: 66, low: 65 } });
-  expect(my.create()).toEqual({ high: 66, low: 65 });
+  const my = new Types.Uint64.Definition({initial: {high: 66, low: 65}});
+  expect(my.create()).toEqual({high: 66, low: 65});
 });
 
 test(`HighLow create initial number high`, () => {
-  const my = new Types.Uint64.Definition({ initial: { high: 65 } });
-  expect(my.create({}, { low: 67 })).toEqual({ high: 65, low: 67 });
+  const my = new Types.Uint64.Definition({initial: {high: 65}});
+  expect(my.create({}, {low: 67})).toEqual({high: 65, low: 67});
 });
 test(`HighLow create initial number low`, () => {
-  const my = new Types.Uint64.Definition({ initial: { low: 65 } });
-  expect(my.create({}, { high: 67 })).toEqual({ high: 67, low: 65 });
+  const my = new Types.Uint64.Definition({initial: {low: 65}});
+  expect(my.create({}, {high: 67})).toEqual({high: 67, low: 65});
 });
 
 test(`HighLow create initial number low:high`, () => {
-  const my = new Types.Uint64.Definition({ initial: { high: 66, low: 65 } });
-  expect(my.create({}, { high: 68 }, { low: 69 })).toEqual({ high: 68, low: 69 });
+  const my = new Types.Uint64.Definition({initial: {high: 66, low: 65}});
+  expect(my.create({}, {high: 68}, {low: 69})).toEqual({high: 68, low: 69});
 });
 test(`HighLow create initial number low:high`, () => {
-  const my = new Types.Uint64.Definition({ initial: { high: 66, low: 65 } });
-  expect(my.create({ high: 68, low: 69 })).toEqual({ high: 68, low: 69 });
+  const my = new Types.Uint64.Definition({initial: {high: 66, low: 65}});
+  expect(my.create({high: 68, low: 69})).toEqual({high: 68, low: 69});
 });
 
 test(`nested arrays of scalar`, () => {
@@ -157,7 +157,7 @@ test('struct of nested struct', () => {
   const wurzStruct = buxStruct.attributes[1].type as Types.Struct.Definition;
   expect(wurzStruct.type).toBe('Struct');
   expect(wurzStruct.name).toBe('Wurx');
-  expect(wurzStruct.alignFuncs).toEqual({ element: 'byte', overall: 'byte' });
+  expect(wurzStruct.alignFuncs).toEqual({element: 'byte', overall: 'byte'});
   expect(wurzStruct.attributes.length).toBe(1);
   expect(wurzStruct.attributes[0].name).toBe('Uhu');
   expect(wurzStruct.attributes[0].ofs).toBe(0);
@@ -244,7 +244,7 @@ test('initial to fixed array struct complete', () => {
     }),
   });
   // expect(m.initial.length).toBe(10);
-  expect(m.create()).toEqual(Array(10).fill({ test: 0 }));
+  expect(m.create()).toEqual(Array(10).fill({test: 0}));
 });
 test('initial to fixed array struct partial', () => {
   // The Partial test? is not right
@@ -259,10 +259,10 @@ test('initial to fixed array struct partial', () => {
         },
       ],
     }),
-    initial: [{ test: 1 }, { test: 2 }],
+    initial: [{test: 1}, {test: 2}],
   });
   // expect(m.initial.length).toBe(10);
-  expect(m.create()).toEqual([{ test: 1 }, { test: 2 }, ...Array(8).fill({ test: 0 })]);
+  expect(m.create()).toEqual([{test: 1}, {test: 2}, ...Array(8).fill({test: 0})]);
 });
 
 test('initial from attribute type', () => {
@@ -271,14 +271,14 @@ test('initial from attribute type', () => {
     attributes: [
       {
         name: 'test',
-        type: new Types.Int.Definition({ initial: 44 }),
+        type: new Types.Int.Definition({initial: 44}),
       },
     ],
   });
   expect(m.attributes[0].type.create()).toEqual(44);
   // expect(m.attributes[0].initial).toEqual(undefined);
   expect(m.givenInitial).toEqual(Optional.NoneOption);
-  expect(m.create()).toEqual({ test: 44 });
+  expect(m.create()).toEqual({test: 44});
 });
 
 test('initial passed by def struct', () => {
@@ -290,13 +290,13 @@ test('initial passed by def struct', () => {
         type: new Types.Int.Definition(),
       },
     ],
-    initial: { bla: 1, test: 7 },
+    initial: {bla: 1, test: 7},
   });
-  expect(m.create()).toEqual({ test: 7 });
-  expect(m.create({})).toEqual({ test: 7 });
+  expect(m.create()).toEqual({test: 7});
+  expect(m.create({})).toEqual({test: 7});
   // debugger;
-  expect(m.create({ test: 1 })).toEqual({ test: 1 });
-  expect(m.create({}, { test: 3 }, { test: 2 })).toEqual({ test: 3 });
+  expect(m.create({test: 1})).toEqual({test: 1});
+  expect(m.create({}, {test: 3}, {test: 2})).toEqual({test: 3});
 });
 
 test('initial passed by create struct', () => {
@@ -309,12 +309,12 @@ test('initial passed by create struct', () => {
       },
     ],
   });
-  expect(m.create()).toEqual({ test: 0 });
-  expect(m.create({})).toEqual({ test: 0 });
+  expect(m.create()).toEqual({test: 0});
+  expect(m.create({})).toEqual({test: 0});
   expect(m.attributeByName['test'].name).toBe('test');
   // debugger;
-  expect(m.create({ test: 1 })).toEqual({ test: 1 });
-  expect(m.create({}, { test: 3 }, { test: 2 })).toEqual({ test: 3 });
+  expect(m.create({test: 1})).toEqual({test: 1});
+  expect(m.create({}, {test: 3}, {test: 2})).toEqual({test: 3});
 });
 
 test('initial attribute struct merged', () => {
@@ -331,14 +331,14 @@ test('initial attribute struct merged', () => {
       },
     ],
   });
-  expect(m.create()).toEqual({ test0: 0, test1: 0 });
-  expect(m.create({})).toEqual({ test0: 0, test1: 0 });
-  expect(m.create({ bla: 1 })).toEqual({ test0: 0, test1: 0 });
-  expect(m.create({ test0: 1, test1: 2 })).toEqual({ test0: 1, test1: 2 });
+  expect(m.create()).toEqual({test0: 0, test1: 0});
+  expect(m.create({})).toEqual({test0: 0, test1: 0});
+  expect(m.create({bla: 1})).toEqual({test0: 0, test1: 0});
+  expect(m.create({test0: 1, test1: 2})).toEqual({test0: 1, test1: 2});
   // debugger;
-  expect(m.create({ test1: 1 }, { test0: 2 })).toEqual({ test0: 2, test1: 1 });
-  expect(m.create({ test0: 1 }, { test1: 2 })).toEqual({ test0: 1, test1: 2 });
-  expect(m.create({}, { test1: 3 }, { test0: 2 }, { test0: 4, test1: 5 })).toEqual({
+  expect(m.create({test1: 1}, {test0: 2})).toEqual({test0: 2, test1: 1});
+  expect(m.create({test0: 1}, {test1: 2})).toEqual({test0: 1, test1: 2});
+  expect(m.create({}, {test1: 3}, {test0: 2}, {test0: 4, test1: 5})).toEqual({
     test0: 2,
     test1: 3,
   });
@@ -347,14 +347,14 @@ test('initial attribute struct merged', () => {
 test('initial array', () => {
   const x = new Types.FixedArray.Definition({
     length: 4,
-    element: new Types.Uint8.Definition({ initial: 6 }),
+    element: new Types.Uint8.Definition({initial: 6}),
   });
   expect(x.create()).toEqual([6, 6, 6, 6]);
 });
 describe('initial array merge', () => {
   const x = new Types.FixedArray.Definition({
     length: 4,
-    element: new Types.Uint8.Definition({ initial: 6 }),
+    element: new Types.Uint8.Definition({initial: 6}),
     initial: [4, 4, 4, 4],
   });
   test('simple', () => {
@@ -376,11 +376,11 @@ test('initial nested array merge', () => {
     length: 4,
     element: new Types.FixedArray.Definition<number>({
       length: 2,
-      element: new Types.Uint8.Definition({ initial: 6 }),
+      element: new Types.Uint8.Definition({initial: 6}),
     }),
     initial: Array(4)
-      .fill([0, 0])
-      .map((_, i) => [3 + i, 3 + i]),
+        .fill([0, 0])
+        .map((_, i) => [3 + i, 3 + i]),
   });
   expect(x.create()).toEqual([
     [3, 3],
@@ -414,15 +414,15 @@ test('initial outer struct', () => {
     attributes: [
       {
         name: 'test',
-        type: new Types.Int.Definition({ initial: 44 }),
+        type: new Types.Int.Definition({initial: 44}),
         // initial: 49,
       },
     ],
-    initial: { test: 59 },
+    initial: {test: 59},
   });
   expect(m.attributes[0].type.create()).toEqual(44);
   // expect(m.attributes[0].initial).toEqual(49);
-  expect(m.create()).toEqual({ test: 59 });
+  expect(m.create()).toEqual({test: 59});
 });
 // test('array init', () => {});
 
@@ -432,12 +432,12 @@ test('default init char', () => {
 });
 
 test('string init char', () => {
-  const m = new Types.Char.Definition({ initial: 'A' });
+  const m = new Types.Char.Definition({initial: 'A'});
   expect(m.create()).toBe('A'.charCodeAt(0));
 });
 
 test('number init char', () => {
-  const m = new Types.Char.Definition({ initial: 66 });
+  const m = new Types.Char.Definition({initial: 66});
   expect(m.create()).toBe(66);
 });
 
@@ -457,17 +457,17 @@ test('default to fixedcstring string', () => {
   });
   // expect(m.initial.length).toBe(10);
   const x = Array.from(ref)
-    .slice(0, 10)
-    .map((i) => i.charCodeAt(0));
+      .slice(0, 10)
+      .map((i) => i.charCodeAt(0));
   x[x.length - 1] = 0;
   expect(m.create()).toEqual(x);
 });
 
 [
-  { initial: undefined, compare: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-  { initial: [0, 0, 0, 0, 0, 0, 0, 0, 12, 13, 14], compare: [0, 0, 0, 0, 0, 0, 0, 0, 12, 0] },
-  { initial: 'HalloHallo', compare: [72, 97, 108, 108, 111, 72, 97, 108, 108, 0] },
-  { initial: 'Hallo', compare: [72, 97, 108, 108, 111, 0, 0, 0, 0, 0] },
+  {initial: undefined, compare: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]},
+  {initial: [0, 0, 0, 0, 0, 0, 0, 0, 12, 13, 14], compare: [0, 0, 0, 0, 0, 0, 0, 0, 12, 0]},
+  {initial: 'HalloHallo', compare: [72, 97, 108, 108, 111, 72, 97, 108, 108, 0]},
+  {initial: 'Hallo', compare: [72, 97, 108, 108, 111, 0, 0, 0, 0, 0]},
 ].forEach((v, i) => {
   describe('fixedcstring string', () => {
     const m = new Types.FixedCString.Definition({
@@ -480,7 +480,7 @@ test('default to fixedcstring string', () => {
       expect(c).toEqual(v.compare);
     });
     test(`create with value: ${v.initial}`, () => {
-      const c = new Types.FixedCString.Definition({ length: 10 }).create(v.initial);
+      const c = new Types.FixedCString.Definition({length: 10}).create(v.initial);
       expect(c).toEqual(v.compare);
     });
     // test(`${v.initial}`, () => {
@@ -491,61 +491,61 @@ test('default to fixedcstring string', () => {
 });
 
 test(`create with multiple value`, () => {
-  const c = new Types.FixedCString.Definition({ length: 10 }).create(
-    [1, 2, 3],
-    [4, 5, 6, 7],
-    [7, 8, 9, 10, 11],
+  const c = new Types.FixedCString.Definition({length: 10}).create(
+      [1, 2, 3],
+      [4, 5, 6, 7],
+      [7, 8, 9, 10, 11],
   );
   expect(c).toEqual([1, 2, 3, 7, 11, 0, 0, 0, 0, 0]);
 });
 
 test(`create with undefined multiple values value`, () => {
-  const c = new Types.FixedCString.Definition({ length: 10 }).create(
-    undefined,
-    [1, 2, 3],
-    undefined,
-    [4, 5, 6, 7],
-    undefined,
-    [7, 8, 9, 10, 11],
-    Array(10).fill(undefined)
-    );
+  const c = new Types.FixedCString.Definition({length: 10}).create(
+      undefined,
+      [1, 2, 3],
+      undefined,
+      [4, 5, 6, 7],
+      undefined,
+      [7, 8, 9, 10, 11],
+      Array(10).fill(undefined),
+  );
   expect(c).toEqual([1, 2, 3, 7, 11, 0, 0, 0, 0, 0]);
 });
 
 test('range error bit fields', () => {
   expect(
-    () =>
-      new Types.BitStruct.Definition({
+      () =>
+        new Types.BitStruct.Definition({
         // length: 1,
-        bits: [
-          {
-            name: '_1_1bit',
-            start: 0,
-            length: 10,
-          },
-        ],
-      }),
+          bits: [
+            {
+              name: '_1_1bit',
+              start: 0,
+              length: 10,
+            },
+          ],
+        }),
   ).toThrowError('BitStruct:_1_1bit');
 });
 
 test('double defined in bits', () => {
   expect(
-    () =>
-      new Types.BitStruct.Definition({
+      () =>
+        new Types.BitStruct.Definition({
         // length: 1,
-        bits: [
-          {
-            name: '_1_1bit',
-            start: 0,
-            length: 10,
-          },
-          {
-            name: '_1_1bit',
-            start: 0,
-            length: 10,
-          },
-        ],
-      }),
+          bits: [
+            {
+              name: '_1_1bit',
+              start: 0,
+              length: 10,
+            },
+            {
+              name: '_1_1bit',
+              start: 0,
+              length: 10,
+            },
+          ],
+        }),
   ).toThrowError('double definied');
 });
 
@@ -703,7 +703,7 @@ test('longer bit fields', () => {
         length: 32,
       },
     ],
-    initial: { _6_32bit: 0x47114711 },
+    initial: {_6_32bit: 0x47114711},
   });
   expect(m.length).toBe(6);
   // console.log(m);

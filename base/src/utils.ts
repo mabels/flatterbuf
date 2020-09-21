@@ -1,25 +1,25 @@
-import { Option, NoneOption, SomeOption, isSome, NoneType } from './optional';
+import {Option, NoneOption, SomeOption, isSome, NoneType} from './optional';
 
 function nestedAssignObject(field: string | undefined, target: unknown, without: unknown[]): Option<unknown> {
   let found = false;
   const out = without
-    .map((i) => Object.entries(i))
-    .reduce((r, entries) => {
-      entries.forEach((entry) => {
-        const key = entry[0];
-        const ival = entry[1];
-        let val: unknown[] = r[key];
-        if (val === undefined) {
-          val = [];
-          r[key] = val;
-        }
-        if (eval !== undefined) {
-          found = true;
-          val.push(ival);
-        }
-      });
-      return r;
-    }, {} as Record<string, unknown[]>);
+      .map((i) => Object.entries(i))
+      .reduce((r, entries) => {
+        entries.forEach((entry) => {
+          const key = entry[0];
+          const ival = entry[1];
+          let val: unknown[] = r[key];
+          if (val === undefined) {
+            val = [];
+            r[key] = val;
+          }
+          if (eval !== undefined) {
+            found = true;
+            val.push(ival);
+          }
+        });
+        return r;
+      }, {} as Record<string, unknown[]>);
   if (!found) {
     return NoneOption;
   }
@@ -65,18 +65,18 @@ function nestedAssignArray(field: string | undefined, target: unknown, without: 
 }
 
 export function nestedAssign<T>(
-  field: string | undefined,
-  target: unknown,
-  ...os: unknown[]
+    field: string | undefined,
+    target: unknown,
+    ...os: unknown[]
 ): NoneType | Option<unknown> {
   if (!os.length) {
     return NoneOption;
   }
   const without = os.filter((i) => i !== undefined);
   const type = without.reduce(
-    (r, v) => {
-      return r === (Array.isArray(v) ? 'array' : typeof v) ? r : 'notuniform';
-    },
+      (r, v) => {
+        return r === (Array.isArray(v) ? 'array' : typeof v) ? r : 'notuniform';
+      },
     Array.isArray(without[0]) ? 'array' : typeof without[0],
   );
   if (type === 'notuniform') {
