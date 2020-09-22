@@ -1,26 +1,26 @@
-// import { Definition } from '../src/definition';
 import {
-  FixArrayOfScalarType,
-  FixArrayOfFixArrayScalarType,
-  Samples,
-  NestedArrayOfStruct,
+  StructOfNestedArrayOfScalar,
+  StructOfNestedArrayOfStruct,
+  StructOfNestedStruct,
+  StructOfScalar,
+  Tests,
+  Utils
 } from '../src/samples';
 import {Types, Optional} from '../src';
-// import { HighLowType } from '../src/definition/types/high-low';
-// import { Uint64, Base } from '../src/definition/types';
+import { NewDefinition } from '../src/types/base';
 
-Types.SimpleScalarTypesList.forEach((scalar, len) => {
-  test(`simple scalar ${scalar.type}`, () => {
-    const my = new scalar();
-    expect(my.bytes).toBe(scalar.bytes);
-    expect(my.type).toBe(scalar.type);
+Types.SimpleScalarTypesList.forEach((Scalar: NewDefinition, len) => {
+  test(`simple scalar ${Scalar.type}`, () => {
+    const my = new Scalar();
+    expect(my.bytes).toBe(Scalar.bytes);
+    expect(my.type).toBe(Scalar.type);
   });
 
-  test(`array of scalar ${scalar.type}`, () => {
-    const my = FixArrayOfScalarType(len, () => new scalar());
-    expect(my.bytes).toBe(len * scalar.bytes);
+  test(`array of scalar ${Scalar.type}`, () => {
+    const my = Utils.FixArrayOfScalarType(len, () => new Scalar());
+    expect(my.bytes).toBe(len * Scalar.bytes);
     expect(my.type).toBe(Types.FixedArray.Definition.type);
-    expect(my.element.type).toBe(scalar.type);
+    expect(my.element.type).toBe(Scalar.type);
   });
 });
 
@@ -117,7 +117,7 @@ test(`HighLow create initial number low:high`, () => {
 });
 
 test(`nested arrays of scalar`, () => {
-  const my = FixArrayOfFixArrayScalarType(19, 17);
+  const my = Utils.FixArrayOfFixArrayScalarType(19, 17);
   expect(my.bytes).toBe(19 * 17);
   expect(my.type).toBe(Types.FixedArray.Definition.type);
   const bdef = my.element as Types.FixedArray.Definition<boolean>;
@@ -127,7 +127,7 @@ test(`nested arrays of scalar`, () => {
 });
 
 test('structed of scalar types', () => {
-  const my = Samples.StructOfScalar.Type;
+  const my = StructOfScalar.Type;
   // console.log(my);
   expect(my.type).toBe(Types.Struct.Definition.type);
   expect(my.name).toBe('StructOfScalar');
@@ -141,7 +141,7 @@ test('structed of scalar types', () => {
 });
 
 test('struct of nested struct', () => {
-  const my = Samples.StructOfNestedStruct.Type;
+  const my = StructOfNestedStruct.Type;
   expect(my.name).toBe('StructOfNestedStruct');
   expect(my.bytes).toBe(9);
   expect(my.attributes.length).toBe(2);
@@ -165,7 +165,7 @@ test('struct of nested struct', () => {
 });
 
 test('struct of nested array scalar', () => {
-  const my = Samples.StructOfNestedArrayOfScalar.Type;
+  const my = StructOfNestedArrayOfScalar.Type;
   expect(my.name).toBe('StructOfNestedArrayOfScalar');
   expect(my.bytes).toBe((2 * 3 * 4) + (10 * 10) + Types.SimpleScalarTypesList.reduce((r, i) => {
     return r + (i.bytes * 4);
@@ -185,7 +185,7 @@ test('struct of nested array scalar', () => {
 });
 
 test('struct of nested array struct', () => {
-  const my = Samples.StructOfNestedArrayOfStruct.Type;
+  const my = StructOfNestedArrayOfStruct.Type;
   expect(my.name).toBe('StructOfNestedArrayOfStruct');
   expect(my.bytes).toBe(1210);
   expect(my.attributes.length).toBe(2);
@@ -208,7 +208,7 @@ test('struct of nested array struct', () => {
 });
 
 test('nested arrays of structed', () => {
-  const my = NestedArrayOfStruct();
+  const my = Utils.NestedArrayOfStruct();
   expect(my.bytes).toBe(4);
   expect(my.element.type).toBe('Struct');
   const structType = my.element as Types.Struct.Definition;

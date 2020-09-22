@@ -10,6 +10,7 @@
     "test": "jest -c jest.unit.js",
     "lint": "eslint 'src/**'",
     "gts": "gts check 'src/**'",
+    "fix": "gts fix 'src/**'",
     "compile": "tsc",
     "publish": "npm publish",
     "pack": "npm pack"

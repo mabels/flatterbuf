@@ -122,11 +122,11 @@ export class Definition extends AbstractDefinition {
 
   // we need this defined in the class not in the prototype
   // tslint:disable-next-line: typedef
-  public fromStreamChunk = function(
+  public fromStreamChunk = (
       _chunk: ChunkBuffer,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       _name: string = this.type,
-  ): Record<string, unknown> {
+  ): Record<string, unknown> => {
     throw new Error('Method not implemented.');
   };
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -22,6 +22,12 @@ export type TypeName =
 export type FilterFunc<T> = (val: T | undefined) => Option<T>;
 export type CreateFunc<T> = (...vals: Partial<T>[]) => T;
 
+export interface NewDefinition<T = unknown> {
+  new(): Definition<T>;
+  readonly type: TypeName;
+  readonly bytes: number;
+}
+
 export abstract class Definition<T> {
   public abstract readonly type: TypeName;
   public abstract readonly bytes: number;
