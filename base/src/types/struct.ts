@@ -28,7 +28,7 @@ export interface StructArg {
 
 export const typeName: TypeName = 'Struct';
 
-export abstract class AbstractDefinition extends NamedType<StructInitial> {
+export abstract class AbstractDefinition<T = StructInitial> extends NamedType<T> {
   public readonly type: TypeName = typeName;
   public abstract readonly bytes: number;
   public abstract readonly name: string;
@@ -122,7 +122,7 @@ export class Definition extends AbstractDefinition {
 
   // we need this defined in the class not in the prototype
   // tslint:disable-next-line: typedef
-  public fromStreamChunk(
+  public fromStreamChunk = function(
       _chunk: ChunkBuffer,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       _name: string = this.type,

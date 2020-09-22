@@ -271,7 +271,7 @@ export class TSStructWriter implements TSRefWriter {
   }
 
   private writeDefinition(wl: TSWriteLine) {
-    wl.writeLine(1, `\nexport class Definition extends Types.Struct.AbstractDefinition {`);
+    wl.writeLine(1, `\nexport class Definition extends Types.Struct.AbstractDefinition<Type> {`);
     wl.writeLine(2, this.writeAttributes(wl.wr));
     // wl.writeLine(2, this.writeInitial(wl.wr));
     wl.writeLine(2, `public readonly type: Types.Base.TypeName = Types.Struct.Definition.type;`);

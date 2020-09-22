@@ -119,7 +119,7 @@ test(`[[undefined, 2], [1, 5, undefined], [ 3, 2, 1, 4]]`, () => {
 
 test('empty {[]{[]}} nestedAssign', () => {
   const v = {};
-  debugger;
+  // debugger;
   const result = SomeOption({doof: {
     a: [1, 2, 5],
     l: [{u: 4, q: 5, p: 7, r: 9}],
