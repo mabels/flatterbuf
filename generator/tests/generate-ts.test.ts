@@ -1,13 +1,13 @@
-import { TSGenerator, TSWriter, Struct } from '../src/ts';
-import { Samples } from 'flatterbuf/dist/samples';
-import { Types, StreamBuffer } from 'flatterbuf';
+import {TSGenerator, TSWriter, Struct} from '../src/ts';
+import { Tests } from 'flatterbuf/dist/samples';
+import {Types, StreamBuffer} from 'flatterbuf';
 import * as fs from 'fs';
 import * as crypto from 'crypto';
 import * as ts from 'typescript';
 
 function filterFunc(obj: any): any {
   if (Array.isArray(obj)) {
-    return obj.map(i => filterFunc(i));
+    return obj.map((i) => filterFunc(i));
   }
   if (typeof obj === 'object') {
     const ret: any = {};
@@ -38,7 +38,9 @@ fs.mkdirSync(ProjectRelativ);
 function transpile<T>(inTss: Struct[]) {
   return inTss
     .map(inTs => {
-      const config = ts.readConfigFile('./tsconfig.json', (path) => fs.readFileSync(path).toString()).config;
+      const config = ts.readConfigFile('./tsconfig.json', path =>
+        fs.readFileSync(path).toString()
+      ).config;
       const js = ts.transpileModule(inTs.written.toString(), config);
       // debugger;
       const jsfile = `${ProjectRelativ}/${inTs.writer.fname}.js`;
@@ -63,7 +65,7 @@ function transpile<T>(inTss: Struct[]) {
 }
 
 describe(`Generator:${TempDirectoryName}`, () => {
-  let Tests: {
+  let tests: {
     transpiled: {
       jsfile: string;
       tsfile: string;
@@ -75,26 +77,26 @@ describe(`Generator:${TempDirectoryName}`, () => {
       Init: any;
       Default: any;
     };
-  }[] = Samples.Tests.map(i => {
+  }[] = Tests.map(i => {
     const my = TSGenerator(
       i.Type,
       new TSWriter({
         // runtimePath: '../../src/runtime',
         // definitionPath: '../../src/definition',
-      }),
+      })
     );
     const transpiled = transpile(my.getStructs());
     const refs = transpiled.map(j => j.ref);
     // console.log(refs);
     return {
       transpiled,
-      clazzes: refs.reduce((r, j) => ({ ...r, ...j }), {}),
+      clazzes: refs.reduce((r, j) => ({...r, ...j}), {}),
       sample: i,
     };
   });
   // fs.rmdirSync(ProjectRelativ);
 
-  Tests.forEach(tcase => {
+  tests.forEach(tcase => {
     // console.log(Object.entries<any>(tcase.clazzes));
     Object.entries<any>(tcase.clazzes)
       .filter(([key]) => key.match(/struct/i))
@@ -123,7 +125,9 @@ describe(`Generator:${TempDirectoryName}`, () => {
             expect(data).toEqual(tcase.sample.Default);
             const buf = def.toStream(data, new StreamBuffer());
             // console.log('data', buf, buf.asUint8Array(), data, tcase.sample.Default);
-            const type = clazz.Definition.fromStream(new StreamBuffer([buf.asUint8Array()]));
+            const type = clazz.Definition.fromStream(
+              new StreamBuffer([buf.asUint8Array()])
+            );
             // console.log(data, type);
             expect(data).toEqual(type);
           });
@@ -133,18 +137,24 @@ describe(`Generator:${TempDirectoryName}`, () => {
             const data = def.create(tcase.sample.Init);
             expect(tcase.sample.Init).toEqual(data);
             const buf = def.toStream(data, new StreamBuffer());
-            const type = clazz.Definition.fromStream(new StreamBuffer([buf.asUint8Array()]));
+            const type = clazz.Definition.fromStream(
+              new StreamBuffer([buf.asUint8Array()])
+            );
             // console.log(data, buf.asUint8Array());
             expect(tcase.sample.Init).toEqual(type);
           });
 
           test(`def init create`, () => {
             debugger;
-            const def: Types.Struct.Definition = new clazz.Definition({initial: tcase.sample.Init});
+            const def: Types.Struct.Definition = new clazz.Definition({
+              initial: tcase.sample.Init,
+            });
             const data = def.create();
             expect(data).toEqual(tcase.sample.Init);
             const buf = def.toStream(data, new StreamBuffer());
-            const type = clazz.Definition.fromStream(new StreamBuffer([buf.asUint8Array()]));
+            const type = clazz.Definition.fromStream(
+              new StreamBuffer([buf.asUint8Array()])
+            );
             // console.log(data, buf.asUint8Array());
             expect(tcase.sample.Init).toEqual(type);
           });
