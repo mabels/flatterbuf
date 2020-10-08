@@ -29,7 +29,7 @@
     "rimraf": "*",
     "ts-jest": "^26.4.0",
     "ts-node": "^9.0.0",
-    "gts": "^2.0.2"
+    "gts": "^3.0.0"
   },
   "dependencies": {
     "flatterbuf": "^1.1.0",
