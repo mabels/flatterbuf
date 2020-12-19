@@ -4,10 +4,10 @@ import {
   StructOfNestedStruct,
   StructOfScalar,
   Tests,
-  Utils
+  Utils,
 } from '../src/samples';
 import {Types, Optional} from '../src';
-import { NewDefinition } from '../src/types/base';
+import {NewDefinition} from '../src/types/base';
 
 Types.SimpleScalarTypesList.forEach((Scalar: NewDefinition, len) => {
   test(`simple scalar ${Scalar.type}`, () => {
@@ -131,10 +131,12 @@ test('structed of scalar types', () => {
   // console.log(my);
   expect(my.type).toBe(Types.Struct.Definition.type);
   expect(my.name).toBe('StructOfScalar');
-  expect(my.bytes).toBe(Types.SimpleScalarTypesList.reduce((p, r) => p + r.bytes, 10 + 2));
+  expect(my.bytes).toBe(
+    Types.SimpleScalarTypesList.reduce((p, r) => p + r.bytes, 10 + 2)
+  );
   expect(my.attributes.length).toBe(Types.ScalarTypesList.length);
-  expect(my.attributes.map((i) => i.name)).toEqual([
-    ...Types.SimpleScalarTypesList.map((i) => `Name${i.type}`),
+  expect(my.attributes.map(i => i.name)).toEqual([
+    ...Types.SimpleScalarTypesList.map(i => `Name${i.type}`),
     'NameString',
     'NameBitStruct',
   ]);
@@ -167,19 +169,27 @@ test('struct of nested struct', () => {
 test('struct of nested array scalar', () => {
   const my = StructOfNestedArrayOfScalar.Type;
   expect(my.name).toBe('StructOfNestedArrayOfScalar');
-  expect(my.bytes).toBe((2 * 3 * 4) + (10 * 10) + Types.SimpleScalarTypesList.reduce((r, i) => {
-    return r + (i.bytes * 4);
-  }, 0));
+  expect(my.bytes).toBe(
+    2 * 3 * 4 +
+      10 * 10 +
+      Types.SimpleScalarTypesList.reduce((r, i) => {
+        return r + i.bytes * 4;
+      }, 0)
+  );
   expect(my.attributes.length).toBe(13);
   expect(my.attributes[0].name).toBe('Nested');
   expect(my.attributes[0].type.type).toBe('FixedArray');
-  const arrayType = my.attributes[0].type as Types.FixedArray.Definition<unknown>;
+  const arrayType = my.attributes[0].type as Types.FixedArray.Definition<
+    unknown
+  >;
   expect(arrayType.length).toBe(2);
   expect(arrayType.element.type).toBe('FixedArray');
   const arrayType1 = arrayType.element as Types.FixedArray.Definition<unknown>;
   expect(arrayType1.length).toBe(3);
   expect(my.attributes[1].name).toBe('FlatCstring');
-  const arrayType3 = my.attributes[1].type as Types.FixedArray.Definition<unknown>;
+  const arrayType3 = my.attributes[1].type as Types.FixedArray.Definition<
+    unknown
+  >;
   expect(arrayType3.length).toBe(10);
   expect(arrayType3.element.type).toBe('FixedCString');
 });
@@ -191,9 +201,12 @@ test('struct of nested array struct', () => {
   expect(my.attributes.length).toBe(2);
   expect(my.attributes[0].name).toBe('Nested');
   expect(my.attributes[0].type.type).toBe('FixedArray');
-  const arrayType0 = my.attributes[0].type as Types.FixedArray.ArrayTypeAttribute<unknown>;
+  const arrayType0 = my.attributes[0]
+    .type as Types.FixedArray.ArrayTypeAttribute<unknown>;
   expect(arrayType0.element.type).toBe('FixedArray');
-  const arrayType = arrayType0.element as Types.FixedArray.ArrayTypeAttribute<unknown>;
+  const arrayType = arrayType0.element as Types.FixedArray.ArrayTypeAttribute<
+    unknown
+  >;
   expect(arrayType.length).toBe(4);
   const structType = arrayType.element as Types.Struct.Definition;
   expect(structType.name).toBe('sonasNested');
@@ -201,7 +214,8 @@ test('struct of nested array struct', () => {
   expect(structType.attributes[0].type.bytes).toBe(1);
   expect(structType.attributes[0].type.type).toBe('Boolean');
   expect(my.attributes[1].name).toBe('Flat');
-  const arrayType1 = my.attributes[1].type as Types.FixedArray.ArrayTypeAttribute<unknown>;
+  const arrayType1 = my.attributes[1]
+    .type as Types.FixedArray.ArrayTypeAttribute<unknown>;
   expect(arrayType1.type).toBe('FixedArray');
   expect(arrayType1.length).toBe(10);
   expect(arrayType1.element.type).toBe('Struct');
@@ -248,7 +262,7 @@ test('initial to fixed array struct complete', () => {
 });
 test('initial to fixed array struct partial', () => {
   // The Partial test? is not right
-  const m = new Types.FixedArray.Definition<{ test?: number}>({
+  const m = new Types.FixedArray.Definition<{test?: number}>({
     length: 10,
     element: new Types.Struct.Definition({
       name: 'Bla',
@@ -262,7 +276,11 @@ test('initial to fixed array struct partial', () => {
     initial: [{test: 1}, {test: 2}],
   });
   // expect(m.initial.length).toBe(10);
-  expect(m.create()).toEqual([{test: 1}, {test: 2}, ...Array(8).fill({test: 0})]);
+  expect(m.create()).toEqual([
+    {test: 1},
+    {test: 2},
+    ...Array(8).fill({test: 0}),
+  ]);
 });
 
 test('initial from attribute type', () => {
@@ -379,8 +397,8 @@ test('initial nested array merge', () => {
       element: new Types.Uint8.Definition({initial: 6}),
     }),
     initial: Array(4)
-        .fill([0, 0])
-        .map((_, i) => [3 + i, 3 + i]),
+      .fill([0, 0])
+      .map((_, i) => [3 + i, 3 + i]),
   });
   expect(x.create()).toEqual([
     [3, 3],
@@ -394,7 +412,9 @@ test('initial nested array merge', () => {
     [5, 5],
     [6, 6],
   ]);
-  expect(x.create([undefined, [5, undefined]], [undefined, [undefined, 6]])).toEqual([
+  expect(
+    x.create([undefined, [5, undefined]], [undefined, [undefined, 6]])
+  ).toEqual([
     [3, 3],
     [5, 6],
     [5, 5],
@@ -457,16 +477,22 @@ test('default to fixedcstring string', () => {
   });
   // expect(m.initial.length).toBe(10);
   const x = Array.from(ref)
-      .slice(0, 10)
-      .map((i) => i.charCodeAt(0));
+    .slice(0, 10)
+    .map(i => i.charCodeAt(0));
   x[x.length - 1] = 0;
   expect(m.create()).toEqual(x);
 });
 
 [
   {initial: undefined, compare: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]},
-  {initial: [0, 0, 0, 0, 0, 0, 0, 0, 12, 13, 14], compare: [0, 0, 0, 0, 0, 0, 0, 0, 12, 0]},
-  {initial: 'HalloHallo', compare: [72, 97, 108, 108, 111, 72, 97, 108, 108, 0]},
+  {
+    initial: [0, 0, 0, 0, 0, 0, 0, 0, 12, 13, 14],
+    compare: [0, 0, 0, 0, 0, 0, 0, 0, 12, 0],
+  },
+  {
+    initial: 'HalloHallo',
+    compare: [72, 97, 108, 108, 111, 72, 97, 108, 108, 0],
+  },
   {initial: 'Hallo', compare: [72, 97, 108, 108, 111, 0, 0, 0, 0, 0]},
 ].forEach((v, i) => {
   describe('fixedcstring string', () => {
@@ -480,7 +506,9 @@ test('default to fixedcstring string', () => {
       expect(c).toEqual(v.compare);
     });
     test(`create with value: ${v.initial}`, () => {
-      const c = new Types.FixedCString.Definition({length: 10}).create(v.initial);
+      const c = new Types.FixedCString.Definition({length: 10}).create(
+        v.initial
+      );
       expect(c).toEqual(v.compare);
     });
     // test(`${v.initial}`, () => {
@@ -492,60 +520,60 @@ test('default to fixedcstring string', () => {
 
 test(`create with multiple value`, () => {
   const c = new Types.FixedCString.Definition({length: 10}).create(
-      [1, 2, 3],
-      [4, 5, 6, 7],
-      [7, 8, 9, 10, 11],
+    [1, 2, 3],
+    [4, 5, 6, 7],
+    [7, 8, 9, 10, 11]
   );
   expect(c).toEqual([1, 2, 3, 7, 11, 0, 0, 0, 0, 0]);
 });
 
 test(`create with undefined multiple values value`, () => {
   const c = new Types.FixedCString.Definition({length: 10}).create(
-      undefined,
-      [1, 2, 3],
-      undefined,
-      [4, 5, 6, 7],
-      undefined,
-      [7, 8, 9, 10, 11],
-      Array(10).fill(undefined),
+    undefined,
+    [1, 2, 3],
+    undefined,
+    [4, 5, 6, 7],
+    undefined,
+    [7, 8, 9, 10, 11],
+    Array(10).fill(undefined)
   );
   expect(c).toEqual([1, 2, 3, 7, 11, 0, 0, 0, 0, 0]);
 });
 
 test('range error bit fields', () => {
   expect(
-      () =>
-        new Types.BitStruct.Definition({
+    () =>
+      new Types.BitStruct.Definition({
         // length: 1,
-          bits: [
-            {
-              name: '_1_1bit',
-              start: 0,
-              length: 10,
-            },
-          ],
-        }),
+        bits: [
+          {
+            name: '_1_1bit',
+            start: 0,
+            length: 10,
+          },
+        ],
+      })
   ).toThrowError('BitStruct:_1_1bit');
 });
 
 test('double defined in bits', () => {
   expect(
-      () =>
-        new Types.BitStruct.Definition({
+    () =>
+      new Types.BitStruct.Definition({
         // length: 1,
-          bits: [
-            {
-              name: '_1_1bit',
-              start: 0,
-              length: 10,
-            },
-            {
-              name: '_1_1bit',
-              start: 0,
-              length: 10,
-            },
-          ],
-        }),
+        bits: [
+          {
+            name: '_1_1bit',
+            start: 0,
+            length: 10,
+          },
+          {
+            name: '_1_1bit',
+            start: 0,
+            length: 10,
+          },
+        ],
+      })
   ).toThrowError('double definied');
 });
 
@@ -709,5 +737,55 @@ test('longer bit fields', () => {
   // console.log(m);
   expect(m.create()).toEqual({
     _6_32bit: 0x47114711,
+  });
+});
+
+test('Bits in Struct', () => {
+  const FrameDescription = new Types.BitStruct.Definition({
+    name: 'FrameDescription',
+    bits: [
+      {name: 'addressable', start: 0}, // color Red = (1u << 0)
+      /// \brief color Green
+      /// Green is bit_flag with value (1u << 1)
+      {name: 'tagged', start: 1},
+      /// \brief color Blue (1u << 3)
+      {name: 'origin', start: 3},
+      {name: 'protocolVersion', start: 4, length: 4},
+    ],
+  });
+  const Site = new Types.FixedArray.Definition({
+    length: 6,
+    element: new Types.Uint8.Definition(),
+  });
+  const Header = new Types.Struct.Definition({
+    name: 'Header',
+    attributes: [
+      {name: 'size', type: new Types.Uint16.Definition()},
+      {name: 'frameDescription', type: FrameDescription},
+      // addressable: bool;
+      // tagged: bool;
+      // origin: bool;
+      // protocolVersion: number;
+
+      {name: 'source', type: new Types.Uint32.Definition()},
+      {name: 'target', type: new Types.Uint32.Definition()},
+
+      {name: 'reserved1', type: new Types.Uint16.Definition()},
+
+      {name: 'site', type: Site},
+    ],
+  });
+  expect(Header.create()).toEqual({
+    frameDescription: {
+      addressable: false,
+      origin: false,
+      protocolVersion: 0,
+      tagged: false,
+    },
+    reserved1: 0,
+    site: [0, 0, 0, 0, 0, 0],
+    size: 0,
+    source: 0,
+    target: 0,
   });
 });
