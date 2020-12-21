@@ -1,6 +1,6 @@
-import {Types, Optional} from 'flatterbuf';
-import {TSWriteLine, TSWriterArgs, TSWriter, TSRefWriter, tsStringify} from './ts';
-import {TSImports} from './ts-imports';
+import { Types, Optional } from 'flatterbuf';
+import { TSWriteLine, TSWriterArgs, TSWriter, TSRefWriter, tsStringify } from './ts';
+import { TSImports } from './ts-imports';
 
 export class TSBitStructWriter implements TSRefWriter {
   public readonly fname: string;
@@ -17,6 +17,10 @@ export class TSBitStructWriter implements TSRefWriter {
     });
     wl.writeLine(1, '}');
     wl.writeLine(1, 'export type Type = Readonly<MutableType>;');
+
+    wl.writeLine(1, 'export type PartialType = Partial<Type>;');
+    wl.writeLine(1, 'export type PartialMutableType = Partial<MutableType>;');
+
     wl.writeLine(1, 'export type ValueType = Readonly<MutableType>;');
   }
 
@@ -42,11 +46,11 @@ export class TSBitStructWriter implements TSRefWriter {
 
   private writeStaticGivenInitial(wr: TSWriter) {
     const wl = new TSWriteLine(wr);
-    wl.write(0, `public static readonly givenInitial: Optional.Option<NestedPartial<Type>>`);
+    wl.write(0, `public static readonly givenInitial: Optional.Option<PartialType>`);
     if (Optional.isSome(this.def.givenInitial)) {
       wl.writeLine(
-          0,
-          ` = Optional.SomeOption(${tsStringify(this.def.givenInitial.some, this.def, wr)});`,
+        0,
+        ` = Optional.SomeOption(${tsStringify(this.def.givenInitial.some, this.def, wr)});`,
       );
     } else {
       wl.writeLine(0, ' = Optional.NoneOption;');
@@ -86,59 +90,59 @@ export class TSBitStructWriter implements TSRefWriter {
     wl.writeLine(2, `public readonly length: number = ${this.def.length};`);
     wl.writeLine(2, `public readonly bytes: number = ${this.def.bytes};`);
     wl.writeLine(
-        2,
-        `public readonly alignFuncs: Align.Funcs<string> = { element: ${wl.wr.quote(
-            this.def.alignFuncs.element,
-        )}, overall: ${wl.wr.quote(this.def.alignFuncs.overall)} };`,
+      2,
+      `public readonly alignFuncs: Align.Funcs<string> = { element: ${wl.wr.quote(
+        this.def.alignFuncs.element,
+      )}, overall: ${wl.wr.quote(this.def.alignFuncs.overall)} };`,
     );
     wl.writeLine(2, `public readonly bits: typeof Definition.Bits = Definition.Bits;`);
     wl.writeLine(
-        2,
-        `public readonly bitsByName: typeof Definition.BitsByName = Definition.BitsByName;`,
+      2,
+      `public readonly bitsByName: typeof Definition.BitsByName = Definition.BitsByName;`,
     );
-    wl.writeLine(2, `public readonly givenInitial: Optional.Option<Partial<Type>>;\n`);
+    wl.writeLine(2, `public readonly givenInitial: Optional.Option<PartialType>;\n`);
     wl.writeLine(2, this.writeCreateFunction(wl.wr));
     wl.writeLine(2, this.writeFilterFunction(wl.wr));
     wl.writeLine(2, this.writeToStream(wl.wr));
     wl.writeLine(2, this.writeFromStream(wl.wr));
     wl.writeLine(2, `constructor(props?: {`);
-    wl.writeLine(3, `initial?: Partial<Type>`);
+    wl.writeLine(3, `initial?: PartialType`);
     wl.writeLine(2, `}) {`);
     wl.writeLine(3, `super();`);
     wl.writeLine(3, `const my = (props || {}).initial;`);
     wl.writeLine(3, `this.givenInitial = Utils.nestedAssign(undefined, {},`);
-    wl.writeLine(4, `Optional.OrUndefined(this.coerce(my)),`);
-    wl.writeLine(4, `Optional.OrUndefined(Definition.givenInitial));`);
+    wl.writeLine(4, `Optional.OrUndefined(this.coerce(my)) || {},`);
+    wl.writeLine(4, `Optional.OrUndefined(Definition.givenInitial) || {});`);
     wl.writeLine(2, `}\n`);
     wl.writeLine(1, `}\n`);
   }
 
   private emptyNestedArray<B>(type: Types.Base.Definition<B>): string {
     switch (Types.toAttributeType(type)) {
-      case Types.AttributeType.FixedArray:
-        const adef = (type as unknown) as Types.FixedArray.ArrayTypeAttribute<B>;
-        if (Types.toAttributeType(adef.element) !== Types.AttributeType.FixedArray) {
-          return '[]';
-        }
-        return `[ ${Array(adef.length)
-            .fill(0)
-            .map((_, i) => this.emptyNestedArray(adef.element))
-            .join(', ')} ]`;
-      case Types.AttributeType.Scalar:
-      case Types.AttributeType.Struct:
+    case Types.AttributeType.FixedArray:
+      const adef = (type as unknown) as Types.FixedArray.ArrayTypeAttribute<B>;
+      if (Types.toAttributeType(adef.element) !== Types.AttributeType.FixedArray) {
         return '[]';
+      }
+      return `[ ${Array(adef.length)
+        .fill(0)
+        .map((_, i) => this.emptyNestedArray(adef.element))
+        .join(', ')} ]`;
+    case Types.AttributeType.Scalar:
+    case Types.AttributeType.Struct:
+      return '[]';
     }
   }
   private writeFilterFunction(wr: TSWriter) {
     const wl = new TSWriteLine(wr);
-    wl.writeLine(0, 'public coerce(ival?: Partial<Type>): Optional.Option<Partial<Type>> {');
+    wl.writeLine(0, 'public coerce(ival?: PartialType): Optional.Option<PartialType> {');
     wl.writeLine(1, 'const val = ival || {};');
-    wl.writeLine(1, 'let ret: Optional.Option<Partial<MutableType>> = Optional.NoneOption;');
+    wl.writeLine(1, 'let ret: Optional.Option<PartialMutableType> = Optional.NoneOption;');
     this.def.bits.forEach((i) => {
       wl.writeLine(2, `if (['boolean', 'number'].includes(typeof val.${i.name})) {`);
       wl.writeLine(
-          3,
-          `ret = Optional.isNone(ret) ? Optional.SomeOption<Partial<MutableType>>({}) : ret;`,
+        3,
+        `ret = Optional.isNone(ret) ? Optional.SomeOption<PartialMutableType>({}) : ret;`,
       );
       wl.writeLine(3, `ret.some.${i.name} = ${i.length === 1 ? '!!' : ''}val.${i.name};`);
       wl.writeLine(2, `}`);
@@ -151,27 +155,29 @@ export class TSBitStructWriter implements TSRefWriter {
 
   private writeCreateFunction(wr: TSWriter) {
     const wl = new TSWriteLine(wr);
-    // / wl.writeLine(0, 'export function create(...rargs: Partial<Type>[]): Type {');
-    wl.writeLine(0, 'public create(...rargs: Partial<Type>[]): Type {');
+    wl.writeLine(0, 'public create(...rargs: (undefined | PartialType)[]): Type {');
     wl.writeLine(1, `const data = rargs`);
     wl.writeLine(2, `.concat([Optional.OrUndefined(this.givenInitial)])`);
-    wl.writeLine(2, `.filter(i => typeof i === 'object').reduce((r, i) => {`);
+    wl.writeLine(2, `.reduce((r, i) => {`);
+    wl.writeLine(2, `if (typeof i !== 'object') {`);
+    wl.writeLine(2, `  return r;`);
+    wl.writeLine(2, `}`);
     this.def.bits.forEach((i) => {
       wl.writeLine(3, `if (['boolean', 'number'].includes(typeof i.${i.name})) {`);
-      wl.writeLine(4, `r.${i.name}.push(${i.length === 1 ? '!!' : ''}i.${i.name});`);
+      wl.writeLine(4, `r.${i.name}.push(${i.length === 1 ? '!!' : '~~'}i.${i.name}!);`);
       wl.writeLine(3, `}`);
     });
     wl.writeLine(2, 'return r;');
     wl.writeLine(1, `}, {`);
     this.def.bits.forEach((i) => {
-      wl.writeLine(2, `${i.name}: [],`);
+      wl.writeLine(2, `${i.name}: [] as ${i.length === 1 ? 'boolean':'number'}[],`);
     });
     wl.writeLine(1, '});');
     wl.writeLine(1, `return {`);
     this.def.bits.forEach((attr) => {
       wl.writeLine(
-          2,
-          `${attr.name}: Definition.BitsByName.${attr.name}.type.create(...data.${attr.name}),`,
+        2,
+        `${attr.name}: Definition.BitsByName.${attr.name}.type.create(...data.${attr.name}),`,
       );
     });
     wl.writeLine(1, `};`);
@@ -183,19 +189,19 @@ export class TSBitStructWriter implements TSRefWriter {
     const wl = new TSWriteLine(wr);
     wl.writeLine(0, 'public fromStreamChunk(nrb: ChunkBuffer, name: string = this.name): Type {');
     wl.writeLine(
-        1,
-        Array(this.def.bytes)
-            .fill(undefined)
-            .reduce((r, _, i, a) => {
-              return `${r} (nrb.readUint8() << ${i * 8})${i + 1 == a.length ? ';' : ' |\n'}`;
-            }, 'let _32bit = '),
+      1,
+      Array(this.def.bytes)
+        .fill(undefined)
+        .reduce((r, _, i, a) => {
+          return `${r} (nrb.readUint8() << ${i * 8})${i + 1 == a.length ? ';' : ' |\n'}`;
+        }, 'let _32bit = '),
     );
     wl.writeLine(1, 'return {');
     this.def.bits.forEach((i) => {
       // tslint:disable-next-line: max-line-length
       wl.writeLine(
-          2,
-          `${i.name}: ${i.length == 1 ? '!!' : ''}((_32bit >> ${i.start}) & ${2 ** i.length - 1}),`,
+        2,
+        `${i.name}: ${i.length == 1 ? '!!' : ''}((_32bit >> ${i.start}) & ${2 ** i.length - 1}),`,
       );
     });
     wl.writeLine(1, '};');
@@ -209,18 +215,18 @@ export class TSBitStructWriter implements TSRefWriter {
     wl.writeLine(0, 'public value32bit(data: Type): number {');
     this.def.bits.reduce((pipe, i, idx, bits) => {
       wl.writeLine(
-          1,
-          `${pipe}((~~(data.${i.name}) & ${2 ** i.length - 1}) << ${i.start})${
+        1,
+        `${pipe}((~~(data.${i.name}) & ${2 ** i.length - 1}) << ${i.start})${
           idx === bits.length - 1 ? ';' : ''
-          }`,
+        }`,
       );
       return '| ';
     }, 'return ');
     wl.writeLine(0, '}');
     wl.writeLine(0, '');
     wl.writeLine(
-        0,
-        'public toStreamChunk(data: Partial<Type>, nwb: ChunkBuffer, name: string = this.name): void {',
+      0,
+      'public toStreamChunk(data: PartialType, nwb: ChunkBuffer, name: string = this.name): void {',
     );
     wl.writeLine(1, 'const _32bit = this.value32bit(this.create(data));');
     for (let i = 0; i < this.def.bytes; ++i) {

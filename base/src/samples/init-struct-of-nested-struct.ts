@@ -1,5 +1,5 @@
-import {Types} from '..';
-import {StructOfNestedStruct} from './struct-of-nested-struct';
+import { Types } from '..';
+import { StructOfNestedStruct } from './struct-of-nested-struct';
 
 export class InitStructOfNestedStruct {
   constructor(public readonly StructOfNestedStruct: StructOfNestedStruct) {
@@ -11,7 +11,7 @@ export class InitStructOfNestedStruct {
       attributes: [
         {
           name: 'Yu',
-          type: new Types.Int.Definition({initial: 4711}),
+          type: new Types.Int.Definition({ initial: 4711 }),
         },
         {
           name: 'Max',
@@ -20,7 +20,7 @@ export class InitStructOfNestedStruct {
             attributes: [
               {
                 name: 'Zu',
-                type: new Types.Int.Definition({initial: 4712}),
+                type: new Types.Int.Definition({ initial: 4712 }),
               },
               {
                 name: 'Plax',
@@ -29,7 +29,7 @@ export class InitStructOfNestedStruct {
                   attributes: [
                     {
                       name: 'Uhu',
-                      type: new Types.Char.Definition({initial: 'a'}),
+                      type: new Types.Char.Definition({ initial: 'a' }),
                     },
                   ],
                 }),

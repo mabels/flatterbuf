@@ -1,16 +1,16 @@
-import {ExternInitStructofScalar as MyExternInitStructofScalar} from './extern-init-structof-scalar';
+import { ExternInitStructofScalar as MyExternInitStructofScalar } from './extern-init-structof-scalar';
 import {
   InitStructOfNestedArrayOfScalar as MyInitStructOfNestedArrayOfScalar,
 } from './init-struct-of-nested-array-of-scalar';
 import {
   InitStructOfNestedArrayOfStruct as MyInitStructOfNestedArrayOfStruct,
 } from './init-struct-of-nested-array-of-struct';
-import {InitStructOfNestedStruct as MyInitStructOfNestedStruct} from './init-struct-of-nested-struct';
-import {InitStructOfScalar as MyInitStructOfScalar} from './init-struct-of-scalar';
-import {StructOfNestedArrayOfScalar as MyStructOfNestedArrayOfScalar} from './struct-of-nested-array-of-scalar';
-import {StructOfNestedArrayOfStruct as MyStructOfNestedArrayOfStruct} from './struct-of-nested-array-of-struct';
-import {StructOfNestedStruct as MyStructOfNestedStruct} from './struct-of-nested-struct';
-import {StructOfScalar as MyStructOfScalar} from './struct-of-scalar';
+import { InitStructOfNestedStruct as MyInitStructOfNestedStruct } from './init-struct-of-nested-struct';
+import { InitStructOfScalar as MyInitStructOfScalar } from './init-struct-of-scalar';
+import { StructOfNestedArrayOfScalar as MyStructOfNestedArrayOfScalar } from './struct-of-nested-array-of-scalar';
+import { StructOfNestedArrayOfStruct as MyStructOfNestedArrayOfStruct } from './struct-of-nested-array-of-struct';
+import { StructOfNestedStruct as MyStructOfNestedStruct } from './struct-of-nested-struct';
+import { StructOfScalar as MyStructOfScalar } from './struct-of-scalar';
 
 export * as Utils from './utils';
 
@@ -24,7 +24,7 @@ export const StructOfNestedArrayOfScalar = new MyStructOfNestedArrayOfScalar();
 export const StructOfNestedArrayOfStruct = new MyStructOfNestedArrayOfStruct(StructOfScalar);
 export const InitStructOfNestedArrayOfScalar = new MyInitStructOfNestedArrayOfScalar();
 export const InitStructOfNestedArrayOfStruct = new MyInitStructOfNestedArrayOfStruct(
-    StructOfNestedArrayOfStruct, InitStructOfScalar);
+  StructOfNestedArrayOfStruct, InitStructOfScalar);
 
 export const Tests = [
   StructOfScalar,

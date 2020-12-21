@@ -1,7 +1,7 @@
-import {Option, SomeOption, NoneOption, OrUndefined} from '../optional';
+import { Option, SomeOption, NoneOption, OrUndefined } from '../optional';
 
-import {Definition as Base, TypeName, ScalarTypeArg} from './base';
-import {ChunkBuffer} from '../stream-buffer';
+import { Definition as Base, TypeName, ScalarTypeArg } from './base';
+import { ChunkBuffer } from '../stream-buffer';
 
 export type ValueType = number;
 
@@ -17,10 +17,12 @@ export class Definition extends Base<number> {
   public readonly givenInitial: Option<number>;
 
   public create(...vals: CharInitType[]): number {
-    const found = vals.concat(OrUndefined(this.givenInitial)).find((val) => {
-      const typ = typeof val;
-      return typ === 'number' || typ === 'string';
-    });
+    const found = vals
+      .concat(OrUndefined(this.givenInitial) || [])
+      .find((val) => {
+        const typ = typeof val;
+        return typ === 'number' || typ === 'string';
+      });
     if (typeof found === 'string') {
       return found.charCodeAt(0);
     }

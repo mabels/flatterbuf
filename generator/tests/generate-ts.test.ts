@@ -41,12 +41,12 @@ function transpile<T>(inTss: Struct[]) {
       const config = ts.readConfigFile('./tsconfig.json', path =>
         fs.readFileSync(path).toString()
       ).config;
-      const js = ts.transpileModule(inTs.written.toString(), config);
+      const js = ts.transpileModule(inTs.written!.toString(), config);
       // debugger;
       const jsfile = `${ProjectRelativ}/${inTs.writer.fname}.js`;
       fs.writeFileSync(jsfile, js.outputText);
       const tsfile = `${ProjectRelativ}/${inTs.writer.fname}.ts`;
-      fs.writeFileSync(tsfile, inTs.written.toString());
+      fs.writeFileSync(tsfile, inTs.written!.toString());
       return {
         jsfile,
         tsfile,

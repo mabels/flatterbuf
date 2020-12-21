@@ -1,16 +1,18 @@
 {
   "name": "flatterbuf-generator",
   "version": "1.0.0",
-  "main": "dist",
+  "main": "ncc/index.js",
   "author": "Meno Abels",
   "license": "AFL-2.0",
   "scripts": {
     "clean": "gts clean",
-    "build": "tsc",
+    "build": "tsc && npm run ncc",
     "test": "jest -c jest.unit.js",
     "lint": "eslint 'src/**'",
     "gts": "gts check 'src/**'",
+    "fix": "gts fix 'src/**'",
     "compile": "tsc",
+    "ncc": "ncc build -o ./ncc dist",
     "publish": "npm publish",
     "pack": "npm pack"
   },
@@ -32,9 +34,10 @@
     "gts": "^2.0.2"
   },
   "dependencies": {
+    "@vercel/ncc": "^0.26.1",
     "flatterbuf": "^1.1.0",
     "mkdirp": "^1.0.4",
-    "typescript": "^4.0.3",
+    "typescript": "^4.1.3",
     "yargs": "^15.3.1"
   }
 }

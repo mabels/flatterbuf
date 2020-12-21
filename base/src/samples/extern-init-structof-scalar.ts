@@ -1,6 +1,6 @@
-import {TypeTester} from './type-tester';
-import {StructOfScalar} from './struct-of-scalar';
-import {Types} from '..';
+import { TypeTester } from './type-tester';
+import { StructOfScalar } from './struct-of-scalar';
+import { Types } from '..';
 
 export class ExternInitStructofScalar implements TypeTester {
   constructor(public readonly StructOfScalar: StructOfScalar) {
@@ -14,7 +14,7 @@ export class ExternInitStructofScalar implements TypeTester {
       }));
       m.push({
         name: `NameString`,
-        type: new Types.FixedCString.Definition({length: 10}),
+        type: new Types.FixedCString.Definition({ length: 10 }),
       });
       // debugger;
       m.push({
@@ -23,9 +23,9 @@ export class ExternInitStructofScalar implements TypeTester {
           name: `DefBitInit${name.replace(/struct/i, 'Xtruct')}`,
           length: 2,
           bits: [
-            {name: '_1bit', start: 1},
-            {name: '_3bit', start: 2, length: 3},
-            {name: '_8bit', start: 4, length: 8},
+            { name: '_1bit', start: 1 },
+            { name: '_3bit', start: 2, length: 3 },
+            { name: '_8bit', start: 4, length: 8 },
           ],
         }),
       });

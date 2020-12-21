@@ -1,10 +1,10 @@
-import {Option, SomeOption, NoneOption, OrUndefined, isSome} from '../optional';
-import {Definition as Base, TypeName} from './base';
-import {CharInitType, Definition as Char} from './char';
-import {Funcs, funcsMapper} from '../align';
-import {ChunkBuffer} from '../stream-buffer';
+import { Option, SomeOption, NoneOption, OrUndefined, isSome, SomeType } from '../optional';
+import { Definition as Base, TypeName } from './base';
+import { CharInitType, Definition as Char } from './char';
+import { Funcs, funcsMapper } from '../align';
+import { ChunkBuffer } from '../stream-buffer';
 
-export type FixedCStringInitType = string | CharInitType[];
+export type FixedCStringInitType = string | number[];
 export interface FixedCStringArg {
   readonly length: number;
   readonly initial?: FixedCStringInitType;
@@ -28,19 +28,19 @@ export class Definition extends Base<number[]> {
   public create(...initials: FixedCStringInitType[]): number[] {
     const gi = OrUndefined(this.givenInitial);
     const datas = initials
-        .concat(gi ? [gi] : undefined)
-        .map((i) => this.coerce(i))
-        .filter((i) => isSome(i))
-        .map((i) => isSome(i) && i.some)
-        .concat([new Array(this.length).fill(Definition.element.create())]);
+      .concat(gi ? [gi] : [])
+      .map((i) => this.coerce(i))
+      .filter((i) => isSome(i))
+      .map((i) => (i as SomeType<number[]>).some)
+      .concat([new Array(this.length).fill(Definition.element.create())]);
     const items = datas.reduce(
-        (r, bArray) => {
-          bArray.forEach((item, idx) => {
-            r[idx].push(item);
-          });
-          return r;
-        },
-        new Array(this.length).fill(undefined).map(() => []),
+      (r, bArray) => {
+        bArray.forEach((item, idx) => {
+          r[idx].push(item);
+        });
+        return r;
+      },
+      new Array(this.length).fill(undefined).map(() => [] as number[]),
     );
     return items.reduce((r, item, idx) => {
       r[idx] = Definition.element.create(...item);
@@ -48,9 +48,9 @@ export class Definition extends Base<number[]> {
     }, new Array(this.length).fill(Definition.element.create()));
   }
 
-  public coerce(m: FixedCStringInitType | undefined): Option<number[]> {
-    if (typeof m === 'string' || Array.isArray(m)) {
-      const r = Array.from(m.slice(0, this.length - 1)).map((item) => {
+  public coerce(m?: FixedCStringInitType): Option<number[]> {
+    if (typeof m == 'string' || Array.isArray(m)) {
+      const r = Array.from(m.slice(0, this.length - 1) as CharInitType[]).map((item) => {
         const x = Definition.element.coerce(item);
         return isSome(x) ? x.some : 0;
       });
@@ -65,7 +65,7 @@ export class Definition extends Base<number[]> {
   constructor(iel: FixedCStringArg) {
     super();
     const el: FixedCStringArg = iel; // artefact
-    const al = funcsMapper({...el.alignFuncs, element: 'byte'});
+    const al = funcsMapper({ ...el.alignFuncs, element: 'byte' });
     this.alignFuncs = al.names;
     this.length = el.length;
     this.bytes = al.funcs.overall(el.length);

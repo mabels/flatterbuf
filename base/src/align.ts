@@ -36,8 +36,8 @@ export function funcsMapper(funcs?: Partial<Funcs<string>>): FuncNames {
   const element = funcMapper((funcs || {}).element);
   const overall = funcMapper((funcs || {}).overall);
   return {
-    names: {element: element.name, overall: overall.name},
-    funcs: {element: element.func, overall: overall.func},
+    names: { element: element.name, overall: overall.name },
+    funcs: { element: element.func, overall: overall.func },
   };
 }
 
@@ -45,9 +45,9 @@ export function funcMapper(a?: string): FuncAndName {
   const fname = (a || '').toLowerCase();
   const fn = Functions[fname];
   if (fn) {
-    return {name: fname, func: fn};
+    return { name: fname, func: fn };
   }
-  return {name: 'byte', func: Byte};
+  return { name: 'byte', func: Byte };
 }
 
 export function funcName(name?: string): string {

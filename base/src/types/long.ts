@@ -1,8 +1,15 @@
-import {Definition as HighLowType, Type as HighLow, MutableType as MutableHighLow} from './high-low';
-import {TypeName, ScalarTypeArg} from './base';
+import { Definition as HighLowType,
+         Type as HighLow,
+         MutableType as MutableHighLow,
+         PartialType as PartialHighLow,
+         PartialMutableType as PartialMutableHighLow
+       } from './high-low';
+import { TypeName, ScalarTypeArg } from './base';
 
 export type Type = HighLow;
 export type MutableType = MutableHighLow;
+export type PartialType = PartialHighLow;
+export type PartialMutableType = PartialMutableHighLow;
 export type ValueType = HighLow;
 
 export class Definition extends HighLowType {

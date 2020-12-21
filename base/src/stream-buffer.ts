@@ -104,13 +104,13 @@ export class StreamBuffer {
   public constructor(u8s: Uint8Array[] = []) {
     const totalLen = u8s.reduce((r, u8) => r + u8.length, 0);
     const buf = u8s.reduce(
-        (b, u8) => {
+      (b, u8) => {
         // console.log(b.ofs, u8);
-          b.buf.set(u8, b.ofs);
-          b.ofs += u8.length;
-          return b;
-        },
-        {buf: Buffer.alloc(totalLen), ofs: 0},
+        b.buf.set(u8, b.ofs);
+        b.ofs += u8.length;
+        return b;
+      },
+      { buf: Buffer.alloc(totalLen), ofs: 0 },
     );
     if (totalLen > 0) {
       // console.log('Read:', totalLen, buf.buf);
@@ -119,16 +119,16 @@ export class StreamBuffer {
   }
 
   public currentWriteChunk(name: string, bytes: number): ChunkBuffer {
-    let lastPos = this.buffers.length - 1;
+    const lastPos = this.buffers.length - 1;
     let last: ChunkBuffer;
     if (lastPos >= 0) {
       last = this.buffers[lastPos];
       if (last.ofs + bytes > last.bytes) {
-        // not nice but fast
-        lastPos = -1;
+        // double but the compile is stupid last is not assigned
+        last = new ChunkBuffer(name, bytes, this);
+        this.buffers.push(last);
       }
-    }
-    if (lastPos < 0) {
+    } else {
       last = new ChunkBuffer(name, bytes, this);
       this.buffers.push(last);
     }

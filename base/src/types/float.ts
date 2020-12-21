@@ -1,6 +1,6 @@
-import {NumberType} from './number-type';
-import {TypeName, ScalarTypeArg} from './base';
-import {ChunkBuffer} from '../stream-buffer';
+import { NumberType } from './number-type';
+import { TypeName, ScalarTypeArg } from './base';
+import { ChunkBuffer } from '../stream-buffer';
 
 export type ValueType = number;
 

@@ -1,5 +1,5 @@
-import {Option, SomeOption, NoneOption, OrUndefined, isSome} from '../optional';
-import {TypeName, ScalarTypeArg, FilterFunc, Definition} from './base';
+import { Option, SomeOption, NoneOption, OrUndefined, isSome } from '../optional';
+import { TypeName, ScalarTypeArg, FilterFunc, Definition } from './base';
 
 export abstract class NumberType extends Definition<number> {
   // public readonly initial: number;
@@ -10,7 +10,9 @@ export abstract class NumberType extends Definition<number> {
   public coerce: FilterFunc<number>;
 
   public create(...vals: number[]): number {
-    return vals.concat(OrUndefined(this.givenInitial)).find((i) => isSome(this.coerce(i))) || 0;
+    return vals
+      .concat(OrUndefined(this.givenInitial) || [])
+      .find((i) => isSome(this.coerce(i))) || 0;
   }
 
   constructor(ival: ScalarTypeArg<number> | undefined, fn: (filter: number) => number) {

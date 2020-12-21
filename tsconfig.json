@@ -1,30 +1,26 @@
 {
   "compilerOptions": {
-    "target": "es2018",
+    "target": "esnext",
     "module": "commonjs",
     "outDir": "dist",
+    "jsx": "react",
+    "experimentalDecorators": true,
     "noImplicitAny": true,
     "pretty": true,
     "sourceMap": true,
     "declaration": true,
-    "declarationMap": true,
     "moduleResolution": "node",
-    "strict": true,        
     "stripInternal": true,
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
     "plugins": [{ "name": "typescript-tslint-plugin" }]
   },
-
+  "include": [
+    "./src/**/*"
+  ],
   "exclude": [
-    "**/*.off/**",
     "**/*.test-helper.ts",
     "**/*.test-helper.tsx",
     "**/*.test.ts",
     "**/*.test.tsx",
     "./node_modules"
-  ],
-  "include": [
-    "./src/**/*"
   ]
 }

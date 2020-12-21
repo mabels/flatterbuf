@@ -1,4 +1,4 @@
-import {Types, Align, Optional} from 'flatterbuf';
+import { Types, Align, Optional } from 'flatterbuf';
 // import { Runtime } from '../runtime';
 import {
   TSWriteLine,
@@ -9,7 +9,7 @@ import {
   TSRefWriter,
   tsStringify,
 } from './ts';
-import {TSImports, TSImport} from './ts-imports';
+import { TSImports, TSImport } from './ts-imports';
 
 export class TSStructWriter implements TSRefWriter {
   public readonly fname: string;
@@ -40,26 +40,26 @@ export class TSStructWriter implements TSRefWriter {
   }
   private arrayInitial<B>(wr: TSWriter, length: number, vals: B[]): string {
     return vals
-        .slice(0, length)
-        .map((i) => {
-          switch (typeof i) {
-            case 'number':
-              return `${i}`;
-            case 'string':
-              return `${wr.quote(i)}`;
-            case 'object':
-              return JSON.stringify(i);
-            default:
-              return `[]`;
-          }
-        })
-        .join(', ');
+      .slice(0, length)
+      .map((i) => {
+        switch (typeof i) {
+          case 'number':
+            return `${i}`;
+          case 'string':
+            return `${wr.quote(i)}`;
+          case 'object':
+            return JSON.stringify(i);
+          default:
+            return `[]`;
+        }
+      })
+      .join(', ');
   }
 
   private initialArg<B>(
-      wr: TSWriter,
-      tdef: Types.Base.Definition<B>,
-      _initial: Optional.Option<B>,
+    wr: TSWriter,
+    tdef: Types.Base.Definition<B>,
+    _initial: Optional.Option<B>,
   ): string {
     const wl = new TSWriteLine(wr);
     if (Optional.isSome(tdef.givenInitial)) {
@@ -86,10 +86,10 @@ export class TSStructWriter implements TSRefWriter {
   }
 
   private getTypeDefinition<B>(
-      wr: TSWriter,
-      attrName: string,
-      tdef: Types.Base.Definition<B>,
-      initial: Optional.Option<B>,
+    wr: TSWriter,
+    attrName: string,
+    tdef: Types.Base.Definition<B>,
+    initial: Optional.Option<B>,
   ): string {
     const wl = new TSWriteLine(wr);
     switch (tdef.type) {
@@ -131,19 +131,19 @@ export class TSStructWriter implements TSRefWriter {
         wl.writeLine(1, `alignFuncs: ${this.alignFuncs(wr, adef.alignFuncs)},`);
         if (tdef.type !== Types.FixedCString.Definition.type) {
           wl.writeLine(
-              1,
-              `element: ${this.getTypeDefinition(
-                  wr,
-                  `Item.${attrName || tdef.type}`,
-                  adef.element,
-                  Optional.NoneOption,
-              )},`,
+            1,
+            `element: ${this.getTypeDefinition(
+              wr,
+              `Item.${attrName || tdef.type}`,
+              adef.element,
+              Optional.NoneOption,
+            )},`,
           );
         }
         if (Optional.isSome(adef.givenInitial)) {
           wl.writeLine(
-              1,
-              `initial: [${this.arrayInitial(wr, adef.length, adef.givenInitial.some)}]`,
+            1,
+            `initial: [${this.arrayInitial(wr, adef.length, adef.givenInitial.some)}]`,
           );
         }
         wl.write(0, `})`);
@@ -159,7 +159,7 @@ export class TSStructWriter implements TSRefWriter {
       if (def.type === Types.BitStruct.Definition.type) {
         const bdef = (def as unknown) as Types.BitStruct.Definition;
         const tsw = wr.bitStructClass(bdef, this.level + 1);
-        this.imports.add(new TSImport({sWriter: tsw.writer}));
+        this.imports.add(new TSImport({ sWriter: tsw.writer }));
       }
       return;
     }
@@ -171,25 +171,34 @@ export class TSStructWriter implements TSRefWriter {
     if (Types.isStruct(def)) {
       const sdef = (def as unknown) as Types.Struct.Definition;
       const tsw = wr.structClass(sdef, this.level + 1);
-      this.imports.add(new TSImport({sWriter: tsw.writer}));
+      this.imports.add(new TSImport({ sWriter: tsw.writer }));
       return;
     }
     throw Error(`addTypeReferenced for unknown type:${def.type}`);
   }
   public writeInterface(wl: TSWriteLine) {
-    wl.writeLine(1, `export interface MutableType {`);
-    const sdef = this.def as Types.Struct.Definition;
-    sdef.attributes.forEach((i) => {
-      this.addTypeReference(wl.wr, i.type);
-      wl.writeLine(2, `${attributeDefinition(i)}: ${typeDefinition(i.type, 'MutableType')};`);
+    [{
+      prefix: "",
+      optional: ""
+    }, {
+      prefix: "Partial",
+      optional: "?"
+    }].forEach(j => {
+      wl.writeLine(1, `export interface ${j.prefix}MutableType {`);
+      const sdef = this.def as Types.Struct.Definition;
+      sdef.attributes.forEach((i) => {
+        this.addTypeReference(wl.wr, i.type);
+        wl.writeLine(2, `${attributeDefinition(i)}${j.optional}: ${typeDefinition(i.type, `${j.prefix}MutableType`)};`);
+      });
+      wl.writeLine(1, '}');
+      wl.writeLine(1, `export interface ${j.prefix}Type {`);
+      sdef.attributes.forEach((i) => {
+        this.addTypeReference(wl.wr, i.type);
+        wl.writeLine(2, `readonly ${attributeDefinition(i)}${j.optional}: ${typeDefinition(i.type, `${j.prefix}Type`)};`);
+      });
+      wl.writeLine(1, '}');
     });
-    wl.writeLine(1, '}');
-    wl.writeLine(1, `export interface Type {`);
-    sdef.attributes.forEach((i) => {
-      this.addTypeReference(wl.wr, i.type);
-      wl.writeLine(2, `readonly ${attributeDefinition(i)}: ${typeDefinition(i.type, 'Type')};`);
-    });
-    wl.writeLine(1, '}');
+
     wl.writeLine(1, 'export type ValueType = Type;');
     // wl.writeLine(1, 'export type FromStreamFN  = (rb: StreamBuffer, name?: string) => Type;');
   }
@@ -206,8 +215,8 @@ export class TSStructWriter implements TSRefWriter {
   }
   private writeTSObject(wr: TSWriter, hl: { [id: string]: any }): string {
     const mid = Array.from(Object.entries(hl))
-        .filter((v) => v[1] !== undefined)
-        .map((v) => this.writeTSObjectItem(wr, v[1]));
+      .filter((v) => v[1] !== undefined)
+      .map((v) => this.writeTSObjectItem(wr, v[1]));
     return [`{\n`, ...mid, `\n},`].join('');
   }
 
@@ -230,20 +239,19 @@ export class TSStructWriter implements TSRefWriter {
 
   private writeFilterFunction(wr: TSWriter) {
     const wl = new TSWriteLine(wr);
-    wl.writeLine(0, 'public coerce(val?: NestedPartial<Type>):');
-    wl.writeLine(1, 'Optional.Option<NestedPartial<Type>> {');
+    wl.writeLine(0, 'public coerce(val?: PartialType):');
+    wl.writeLine(1, 'Optional.Option<PartialType> {');
     wl.writeLine(1, `if (typeof val !== 'object') {`);
     wl.writeLine(2, 'return Optional.NoneOption;');
     wl.writeLine(1, '}');
 
-    wl.writeLine(1, 'let ret: NestedPartial<MutableType> = {};');
+    wl.writeLine(1, 'let ret: PartialMutableType = {};');
     wl.writeLine(1, 'let found = false;');
     this.def.attributes.forEach((i) => {
       wl.writeLine(
-          1,
-          `const my${i.name} = this.attributeByName.${i.name}.type.coerce(val.${
-            i.name
-          }) as Optional.Option<${typeDefinition(i.type, 'Type')}>;`,
+        1,
+        `const my${i.name} = this.attributeByName.${i.name}.type.coerce(val.${i.name
+        }) as Optional.Option<${typeDefinition(i.type, 'Type')}>;`,
       );
       wl.writeLine(1, `if (Optional.isSome(my${i.name})) {`);
       wl.writeLine(2, `found = true;`);
@@ -258,11 +266,11 @@ export class TSStructWriter implements TSRefWriter {
 
   private writeStaticGivenInitial(wr: TSWriter) {
     const wl = new TSWriteLine(wr);
-    wl.write(0, `public static readonly givenInitial: Optional.Option<NestedPartial<Type>>`);
+    wl.write(0, `public static readonly givenInitial: Optional.Option<PartialType>`);
     if (Optional.isSome(this.def.givenInitial)) {
       wl.writeLine(
-          0,
-          ` = Optional.SomeOption(${tsStringify(this.def.givenInitial.some, this.def, wr)});`,
+        0,
+        ` = Optional.SomeOption(${tsStringify(this.def.givenInitial.some, this.def, wr)});`,
       );
     } else {
       wl.writeLine(0, ' = Optional.NoneOption;');
@@ -271,28 +279,28 @@ export class TSStructWriter implements TSRefWriter {
   }
 
   private writeDefinition(wl: TSWriteLine) {
-    wl.writeLine(1, `\nexport class Definition extends Types.Struct.AbstractDefinition<Type> {`);
+    wl.writeLine(1, `\nexport class Definition extends Types.Struct.AbstractDefinition<Type, PartialType> {`);
     wl.writeLine(2, this.writeAttributes(wl.wr));
     // wl.writeLine(2, this.writeInitial(wl.wr));
     wl.writeLine(2, `public readonly type: Types.Base.TypeName = Types.Struct.Definition.type;`);
     wl.writeLine(2, `public readonly name: string = '${this.def.name}';`);
     wl.writeLine(2, `public readonly bytes: number = ${this.def.bytes};`);
     wl.writeLine(
-        2,
-        `public readonly alignFuncs: Align.Funcs<string> = { element: ${wl.wr.quote(
-            this.def.alignFuncs.element,
-        )}, overall: ${wl.wr.quote(this.def.alignFuncs.overall)} };`,
+      2,
+      `public readonly alignFuncs: Align.Funcs<string> = { element: ${wl.wr.quote(
+        this.def.alignFuncs.element,
+      )}, overall: ${wl.wr.quote(this.def.alignFuncs.overall)} };`,
     );
     wl.writeLine(
-        2,
-        `public readonly attributes: typeof Definition.Attributes = Definition.Attributes;`,
+      2,
+      `public readonly attributes: typeof Definition.Attributes = Definition.Attributes;`,
     );
     wl.writeLine(
-        2,
-        `public readonly attributeByName: typeof Definition.AttributeByName = Definition.AttributeByName;`,
+      2,
+      `public readonly attributeByName: typeof Definition.AttributeByName = Definition.AttributeByName;`,
     );
     // wl.writeLine(2, `public readonly initial: Partial<Type>;`);
-    wl.writeLine(2, `public readonly givenInitial: Optional.Option<NestedPartial<Type>>;`);
+    wl.writeLine(2, `public readonly givenInitial: Optional.Option<PartialType>;`);
     wl.writeLine(2, ``);
     // wl.writeLine(2, 'public readonly fromStream: FromStreamFN = Definition.fromStream;');
 
@@ -305,8 +313,8 @@ export class TSStructWriter implements TSRefWriter {
     wl.writeLine(3, `super();`);
     wl.writeLine(3, `const my = (props || {}).initial;`);
     wl.writeLine(3, `this.givenInitial = Utils.nestedAssign(undefined, {},`);
-    wl.writeLine(4, `Optional.OrUndefined(this.coerce(my)),`);
-    wl.writeLine(4, `Optional.OrUndefined(Definition.givenInitial));`);
+    wl.writeLine(4, `Optional.OrUndefined(this.coerce(my)) || {},`);
+    wl.writeLine(4, `Optional.OrUndefined(Definition.givenInitial) || {});`);
     // wl.writeLine(3, `this.initial = this.create(my);`);
     wl.writeLine(2, `}`);
 
@@ -324,14 +332,14 @@ export class TSStructWriter implements TSRefWriter {
     return ret;
   }
   public writeCreateAttribute<B>(
-      _level: number,
-      _attr: Types.Base.Definition<B>,
-      aname: string,
-      vname: string,
+    _level: number,
+    _attr: Types.Base.Definition<B>,
+    aname: string,
+    vname: string,
   ): string {
     return `Definition.AttributeByName.${aname}.type.create(${vname}) as ${typeDefinition(
-        _attr,
-        'Type',
+      _attr,
+      'Type',
     )}`;
   }
   private emptyNestedArray<B>(type: Types.Base.Definition<B>): string {
@@ -342,9 +350,9 @@ export class TSStructWriter implements TSRefWriter {
           return '[]';
         }
         return `[ ${Array(adef.length)
-            .fill(0)
-            .map((_, i) => this.emptyNestedArray(adef.element))
-            .join(', ')} ]`;
+          .fill(0)
+          .map((_, i) => this.emptyNestedArray(adef.element))
+          .join(', ')} ]`;
       case Types.AttributeType.Scalar:
       case Types.AttributeType.Struct:
         return '[]';
@@ -353,8 +361,8 @@ export class TSStructWriter implements TSRefWriter {
   private writeCreateFunction(wr: TSWriter) {
     const wl = new TSWriteLine(wr);
     // wl.writeLine(0, 'export function create(...rargs: Partial<Type>[]): Type {');
-    wl.writeLine(0, 'public create(...rargs: NestedPartial<Type>[]): Type {');
-    wl.writeLine(1, `const data = rargs.concat(Optional.OrUndefined(this.givenInitial))`);
+    wl.writeLine(0, 'public create(...rargs: PartialType[]): Type {');
+    wl.writeLine(1, `const data = rargs.concat(Optional.OrUndefined(this.givenInitial) || [])`);
     wl.writeLine(2, `.filter(i => Optional.isSome(this.coerce(i))).reduce((r, i) => {`);
     this.def.attributes.forEach((i) => {
       wl.writeLine(2, `if (i.${i.name} !== undefined) {`);
@@ -365,12 +373,12 @@ export class TSStructWriter implements TSRefWriter {
     wl.writeLine(1, `}, {`);
     this.def.attributes.forEach((i) => {
       wl.writeLine(
-          2,
-          `${i.name}: ${this.emptyNestedArray(i.type)} as ${typeDefinition(
-              i.type,
-              'Type',
-              (s) => `NestedPartial<${s}>`,
-          )}[],`,
+        2,
+        `${i.name}: ${this.emptyNestedArray(i.type)} as ${typeDefinition(
+          i.type,
+          'PartialType',
+          (s) => `${s}`,
+        )}[],`,
       );
       this.addTypeReference(wl.wr, i.type);
     });
@@ -378,13 +386,13 @@ export class TSStructWriter implements TSRefWriter {
     wl.writeLine(1, `return {`);
     this.def.attributes.forEach((attr) => {
       wl.writeLine(
-          2,
-          `${attr.name}: ${this.writeCreateAttribute(
-              0,
-              attr.type,
-              attr.name,
-              `...data.${attr.name}`,
-          )},`,
+        2,
+        `${attr.name}: ${this.writeCreateAttribute(
+          0,
+          attr.type,
+          attr.name,
+          `...data.${attr.name}`,
+        )},`,
       );
     });
     wl.writeLine(1, `};`);
@@ -393,38 +401,38 @@ export class TSStructWriter implements TSRefWriter {
   }
 
   private fromStreamAction<B>(
-      wr: TSWriter,
-      attrName: string,
-      def: Types.Base.Definition<B>,
-      stype: string,
-      level = 0,
-      itemName?: string,
+    wr: TSWriter,
+    attrName: string,
+    def: Types.Base.Definition<B>,
+    stype: string,
+    level = 0,
+    itemName?: string,
   ): string {
     switch (Types.toAttributeType(def)) {
       case Types.AttributeType.Scalar:
         if (def.type === Types.FixedCString.Definition.type) {
           // const cdef = (def as unknown) as Types.FixedCString.Definition;
           return `Definition.AttributeByName.${attrName}.${stype}.fromStreamChunk(nrb, ${wr.backQuote(
-              itemName || attrName,
+            itemName || attrName,
           )}) as number[]`;
         } else if (def.type === Types.BitStruct.Definition.type) {
           // const bdef = (def as unknown) as Types.BitStruct.Definition;
           return `Definition.AttributeByName.${attrName}.${stype}.fromStreamChunk(nrb, ${wr.backQuote(
-              itemName || attrName,
+            itemName || attrName,
           )})`;
         }
         return `Definition.AttributeByName.${attrName}.${stype}.fromStreamChunk(nrb, ${wr.backQuote(
-            itemName || attrName,
+          itemName || attrName,
         )})`;
       // return `nrb.read${def.type}()`;
       case Types.AttributeType.Struct:
         // const sdef = def as Types.Base.NamedType<B>;
         return `Definition.AttributeByName.${attrName}.${stype}.fromStreamChunk(nrb, ${wr.backQuote(
-            itemName || attrName,
+          itemName || attrName,
         )})`;
       case Types.AttributeType.FixedArray:
         return `Definition.AttributeByName.${attrName}.${stype}.fromStreamChunk(nrb, ${wr.backQuote(
-            itemName || attrName,
+          itemName || attrName,
         )}) as ${typeDefinition(def, 'Type')}`;
       // return this.writeStreamArrayAction(wr, attrName, def, 'type.element', level, itemName || attrName);
     }
@@ -433,8 +441,8 @@ export class TSStructWriter implements TSRefWriter {
   private writeFromStream(wr: TSWriter) {
     const wl = new TSWriteLine(wr);
     wl.writeLine(
-        0,
-        'public static fromStreamChunk(nrb: ChunkBuffer, name: string = this.name): Type {',
+      0,
+      'public static fromStreamChunk(nrb: ChunkBuffer, name: string = this.name): Type {',
     );
     wl.writeLine(1, 'return {');
     this.def.attributes.forEach((i) => {
@@ -445,8 +453,8 @@ export class TSStructWriter implements TSRefWriter {
     wl.writeLine(0, '');
     wl.writeLine(0, 'public static fromStream(rb: StreamBuffer, name: string = this.name): Type {');
     wl.writeLine(
-        1,
-        `return rb.prepareRead(name, ${this.def.bytes}, (nrb) => this.fromStreamChunk(nrb, name));`,
+      1,
+      `return rb.prepareRead(name, ${this.def.bytes}, (nrb) => this.fromStreamChunk(nrb, name));`,
     );
     wl.writeLine(0, '}');
 
@@ -457,11 +465,11 @@ export class TSStructWriter implements TSRefWriter {
     return wl.toString();
   }
   private toStreamAction<B>(
-      level: number,
-      wr: TSWriter,
-      aname: string,
-      vname: string,
-      def: Types.Base.Definition<B>,
+    level: number,
+    wr: TSWriter,
+    aname: string,
+    vname: string,
+    def: Types.Base.Definition<B>,
   ): string {
     switch (Types.toAttributeType(def)) {
       case Types.AttributeType.Scalar:
@@ -498,8 +506,8 @@ export class TSStructWriter implements TSRefWriter {
   private writeToStream(wr: TSWriter) {
     const wl = new TSWriteLine(wr);
     wl.writeLine(
-        0,
-        'public toStreamChunk(data: Partial<Type>, nwb: ChunkBuffer, name: string = this.name): void {',
+      0,
+      'public toStreamChunk(data: Partial<Type>, nwb: ChunkBuffer, name: string = this.name): void {',
     );
     wl.writeLine(1, 'const tmp = this.create(data);');
     this.def.attributes.forEach((i) => {
@@ -508,12 +516,12 @@ export class TSStructWriter implements TSRefWriter {
     wl.writeLine(0, '}');
     wl.writeLine(0, '');
     wl.writeLine(
-        0,
-        'public toStream(data: Partial<Type>, wb: StreamBuffer, name: string = this.name): StreamBuffer {',
+      0,
+      'public toStream(data: Partial<Type>, wb: StreamBuffer, name: string = this.name): StreamBuffer {',
     );
     wl.writeLine(
-        1,
-        `return wb.prepareWrite(name, ${this.def.bytes}, (nwb) => this.toStreamChunk(data, nwb, name));`,
+      1,
+      `return wb.prepareWrite(name, ${this.def.bytes}, (nwb) => this.toStreamChunk(data, nwb, name));`,
     );
     wl.writeLine(0, '}');
     return wl.toString();

@@ -1,6 +1,6 @@
-import {Types} from '..';
-import {InitStructOfScalar} from './init-struct-of-scalar';
-import {StructOfNestedArrayOfStruct} from './struct-of-nested-array-of-struct';
+import { Types } from '..';
+import { InitStructOfScalar } from './init-struct-of-scalar';
+import { StructOfNestedArrayOfStruct } from './struct-of-nested-array-of-struct';
 
 export class InitStructOfNestedArrayOfStruct {
   constructor(

@@ -1,7 +1,7 @@
-import {Option, SomeOption, NoneOption, OrUndefined, isSome} from '../optional';
+import { Option, SomeOption, NoneOption, OrUndefined, isSome } from '../optional';
 
-import {Definition as Base, TypeName, ScalarTypeArg} from './base';
-import {ChunkBuffer} from '../stream-buffer';
+import { Definition as Base, TypeName, ScalarTypeArg } from './base';
+import { ChunkBuffer } from '../stream-buffer';
 
 export type ValueType = boolean;
 
@@ -18,8 +18,9 @@ export class Definition extends Base<boolean> {
 
   public create(...vals: boolean[]): boolean {
     return (
-      vals.concat(OrUndefined(this.givenInitial)).find((i: boolean) => isSome(this.coerce(i))) ||
-      false
+      vals
+        .concat(OrUndefined(this.givenInitial) || [])
+        .find((i: boolean) => isSome(this.coerce(i))) || false
     );
   }
 

@@ -1,6 +1,6 @@
-import {Option} from '../optional';
-import {NestedPartial} from '../nested';
-import {ChunkBuffer, StreamBuffer} from '../stream-buffer';
+import { Option } from '../optional';
+// import { NestedPartial } from '../nested.ts-off';
+import { ChunkBuffer, StreamBuffer } from '../stream-buffer';
 
 export type TypeName =
   | 'Boolean'
@@ -28,17 +28,15 @@ export interface NewDefinition<T = unknown> {
   readonly bytes: number;
 }
 
-export abstract class Definition<T> {
+export abstract class Definition<T, M = T> {
   public abstract readonly type: TypeName;
   public abstract readonly bytes: number;
   public abstract readonly givenInitial: Option<unknown>;
   public abstract coerce(val: unknown): Option<unknown>;
-  public abstract create(...vals: (undefined | T | NestedPartial<T>)[]): T;
+  public abstract create(...vals: (unknown | undefined | M)[]): T;
 
   public abstract fromStreamChunk(chunk: ChunkBuffer, name: string): T;
   public abstract toStreamChunk(val: T, chunk: ChunkBuffer, name: string): void;
-
-  // public abstract new(): Definition<T>;
 
   public fromStream(rb: StreamBuffer, name: string): T {
     return rb.prepareRead(name, this.bytes, (nrb) => this.fromStreamChunk(nrb, name));

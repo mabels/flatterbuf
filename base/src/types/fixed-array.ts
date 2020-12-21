@@ -1,15 +1,16 @@
-import {Option, SomeOption, NoneOption, OrUndefined, isSome, isNone} from '../optional';
-import {Definition as Base, TypeName} from './base';
-import {NestedPartial} from '../nested';
-import {Funcs, funcsMapper} from '../align';
-import {ChunkBuffer} from '../stream-buffer';
+import { Option, SomeOption, NoneOption, OrUndefined, isSome, isNone } from '../optional';
+import { Definition as Base, TypeName } from './base';
+import { Funcs, funcsMapper } from '../align';
+import { ChunkBuffer } from '../stream-buffer';
 
 export abstract class ArrayTypeAttribute<B> extends Base<B[]> {
   public abstract readonly element: Base<B>;
   public abstract readonly length: number;
 }
 
-export type ElementType<B> = B | NestedPartial<B>;
+export type ElementType<B> = undefined | B; // | NestedPartial<B>;
+
+export type FixedArrayInitType<B> = undefined | ElementType<B> | FixedArrayInitType<B>[];
 
 export interface FixedArrayArg<B, T extends Base<B> = Base<B>> {
   readonly element: T;
@@ -54,24 +55,22 @@ export class Definition<B, T extends Base<B> = Base<B>> extends ArrayTypeAttribu
     }
   }
 
-  public create(...initials: ElementType<B>[][]): B[] {
-    const datas = initials
-        .concat([
-          OrUndefined(this.givenInitial),
-          new Array(this.length).fill(this.element.create()),
-        ] as unknown[][])
-        .filter((i) => Array.isArray(i));
+  public create(...initials: FixedArrayInitType<B>[]): B[] {
+    const datas = initials.concat([
+        OrUndefined(this.givenInitial),
+        new Array(this.length).fill(this.element.create())
+      ]).filter((i) => Array.isArray(i)) as ElementType<B>[][];
     const items: ElementType<B>[][] = datas.reduce(
-        (r: ElementType<B>[][], bArray) => {
-          bArray.slice(0, this.length).forEach((item, idx) => {
-            const v = this.element.coerce(item);
-            if (isSome(v)) {
-              r[idx].push(v.some as ElementType<B>);
-            }
-          });
-          return r;
-        },
-        new Array(this.length).fill(undefined).map(() => []),
+      (r: ElementType<B>[][], bArray) => {
+        bArray.slice(0, this.length).forEach((item, idx) => {
+          const v = this.element.coerce(item);
+          if (isSome(v)) {
+            r[idx].push(v.some as ElementType<B>);
+          }
+        });
+        return r;
+      },
+      new Array(this.length).fill(undefined).map(() => []),
     ) as ElementType<B>[][];
     return items.reduce((r: B[], item, idx) => {
       r[idx] = this.element.create(...item);
@@ -79,12 +78,13 @@ export class Definition<B, T extends Base<B> = Base<B>> extends ArrayTypeAttribu
     }, new Array<B>(this.length)) as B[];
   }
 
-  public coerce(vals: unknown[]): Option<ElementType<B>[]> {
+  public coerce(vals: FixedArrayInitType<B>): Option<ElementType<B>[]> {
     if (!Array.isArray(vals)) {
       return NoneOption;
     }
+    const my = vals as ElementType<B>[];
     let found = false;
-    const ret: ElementType<B>[] = vals.map((i: unknown) => {
+    const ret = my.map((i: unknown) => {
       const e = this.element.coerce(i);
       if (isNone(e)) {
         return undefined;

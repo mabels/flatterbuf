@@ -1,32 +1,32 @@
-import {Option, NoneOption, SomeOption, isSome, NoneType} from './optional';
+import { Option, NoneOption, SomeOption, isSome } from './optional';
 
-function nestedAssignObject(field: string | undefined, target: unknown, without: unknown[]): Option<unknown> {
+function nestedAssignObject<T>(field: string | undefined, target: T, without: T[]): Option<T> {
   let found = false;
   const out = without
-      .map((i) => Object.entries(i))
-      .reduce((r, entries) => {
-        entries.forEach((entry) => {
-          const key = entry[0];
-          const ival = entry[1];
-          let val: unknown[] = r[key];
-          if (val === undefined) {
-            val = [];
-            r[key] = val;
-          }
-          if (eval !== undefined) {
-            found = true;
-            val.push(ival);
-          }
-        });
-        return r;
-      }, {} as Record<string, unknown[]>);
+    .map((i) => Object.entries(i))
+    .reduce((r, entries) => {
+      entries.forEach((entry) => {
+        const key = entry[0];
+        const ival = entry[1];
+        let val: unknown[] = r[key];
+        if (val === undefined) {
+          val = [];
+          r[key] = val;
+        }
+        if (eval !== undefined) {
+          found = true;
+          val.push(ival);
+        }
+      });
+      return r;
+    }, {} as Record<string, unknown[]>);
   if (!found) {
     return NoneOption;
   }
   let theTarget = target;
   if (field !== undefined) {
-    const my: Record<string, unknown> = target as Record<string, unknown>;
-    theTarget = my[field] = my[field] || {};
+    const my: Record<string, T> = target as unknown as Record<string, T>;
+    theTarget = my[field] = my[field] || ({} as T);
   }
   // console.log(out);
   Object.entries(out).reduce((r, [key, args]) => {
@@ -36,26 +36,32 @@ function nestedAssignObject(field: string | undefined, target: unknown, without:
   return SomeOption(target);
 }
 
-function nestedAssignArray(field: string | undefined, target: unknown, without: unknown[]): Option<unknown> {
+function nestedAssignArray<T>(
+  field: string | undefined,
+  target: T | undefined,
+  without: T[]): Option<T> {
   if (!without.length) {
     return NoneOption;
   }
-  let found = false;
-  let theTarget: unknown[] = [];
+  // console.log("target:", target)
+  // console.log("without:", without)
+  let theTarget: T = [] as unknown as T;
   if (field !== undefined && typeof target === 'object') {
-    const my: Record<string, unknown[]> = target as Record<string, unknown[]>;
-    theTarget = my[field] = my[field] || theTarget;
+    const my: Record<string, T> = target as unknown as Record<string, T>;
+    theTarget = my[field] = my[field] || ([] as unknown as T);
   } else if (Array.isArray(target)) {
     theTarget = target;
   }
-  const tmp = (without as unknown[][]).reverse().reduce((ret, arr) => {
-    arr.forEach((item, idx) => {
+  let found = false;
+  const tmp = without.reverse().reduce((ret, arr) => {
+    (arr as unknown as never[]).forEach((item, idx) => {
       if (item === undefined) {
         return;
       }
-      const o = nestedAssign(undefined, ret[idx] || {}, item);
+      const my = ret as unknown as (keyof typeof ret)[];
+      const o = nestedAssign(undefined, my[idx] || ({} as unknown as (keyof typeof ret)), item);
       if (isSome(o)) {
-        ret[idx] = o.some;
+        my[idx] = o.some;
         found = true;
       }
     });
@@ -65,18 +71,18 @@ function nestedAssignArray(field: string | undefined, target: unknown, without: 
 }
 
 export function nestedAssign<T>(
-    field: string | undefined,
-    target: unknown,
-    ...os: unknown[]
-): NoneType | Option<unknown> {
+  field: string | undefined,
+  target: T,
+  ...os: T[]
+): Option<T> {
   if (!os.length) {
     return NoneOption;
   }
   const without = os.filter((i) => i !== undefined);
   const type = without.reduce(
-      (r, v) => {
-        return r === (Array.isArray(v) ? 'array' : typeof v) ? r : 'notuniform';
-      },
+    (r, v) => {
+      return r === (Array.isArray(v) ? 'array' : typeof v) ? r : 'notuniform';
+    },
     Array.isArray(without[0]) ? 'array' : typeof without[0],
   );
   if (type === 'notuniform') {

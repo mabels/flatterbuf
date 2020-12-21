@@ -1,5 +1,5 @@
-import {Types} from '..';
-import {StructOfScalar} from './struct-of-scalar';
+import { Types } from '..';
+import { StructOfScalar } from './struct-of-scalar';
 
 export class StructOfNestedArrayOfStruct {
   constructor(public readonly StructOfScalar: StructOfScalar) {

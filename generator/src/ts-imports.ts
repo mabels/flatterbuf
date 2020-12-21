@@ -1,6 +1,6 @@
-import {Types} from 'flatterbuf';
+import { Types } from 'flatterbuf';
 
-import {TSWriter, TSRefWriter, TSWriterArgs, TSWriteLine} from './ts';
+import { TSWriter, TSRefWriter, TSWriterArgs, TSWriteLine } from './ts';
 
 export interface Import {
   readonly name: string;
@@ -28,16 +28,16 @@ export class TSImport {
   public toString(wr: TSWriter) {
     if (this.imp.external) {
       const imports = this.imp.external.defs
-          .sort((a, b) => {
-            if (a.name < b.name) {
-              return 1;
-            } else if (a.name > b.name) {
-              return -1;
-            }
-            return 0;
-          })
-          .map((def) => `${def.name}${def.as ? ` as ${def.as}` : ''}`)
-          .join(', ');
+        .sort((a, b) => {
+          if (a.name < b.name) {
+            return 1;
+          } else if (a.name > b.name) {
+            return -1;
+          }
+          return 0;
+        })
+        .map((def) => `${def.name}${def.as ? ` as ${def.as}` : ''}`)
+        .join(', ');
       return `import { ${imports} } from ${wr.quote(this.imp.external.fname)};`;
     } else {
       return `import { ${this.imp.sWriter!.def.name} } from ${wr.quote(this.imp.sWriter!.fname)};`;
@@ -50,37 +50,37 @@ export class TSImports {
 
   constructor(public readonly args: TSWriterArgs) {
     this.add(
-        new TSImport({
-          external: {
-            defs: [
-              {
-                name: 'Types',
-              },
-              {
-                name: 'Align',
-              },
-              {
-                name: 'Optional',
-              },
-              {
-                name: 'Utils',
-              },
-              {
-                name: 'ChunkBuffer',
-              },
-              {
-                name: 'StreamBuffer',
-              },
-              {
-                name: 'NestedReadonly',
-              },
-              {
-                name: 'NestedPartial',
-              },
-            ],
-            fname: args.definitionPath || 'flatterbuf/definition',
-          },
-        }),
+      new TSImport({
+        external: {
+          defs: [
+            {
+              name: 'Types',
+            },
+            {
+              name: 'Align',
+            },
+            {
+              name: 'Optional',
+            },
+            {
+              name: 'Utils',
+            },
+            {
+              name: 'ChunkBuffer',
+            },
+            {
+              name: 'StreamBuffer',
+            },
+            // {
+            //   name: 'NestedReadonly',
+            // },
+            // {
+            //   name: 'NestedPartial',
+            // },
+          ],
+          fname: args.definitionPath || 'flatterbuf/definition',
+        },
+      }),
     );
   }
 
@@ -100,9 +100,9 @@ export class TSImports {
   public prepend<T>(wl: TSWriteLine, def: Types.Base.NamedType<T>) {
     wl.prependLine(0, ``);
     this.values()
-        .filter((i) => !(i.imp.sWriter && i.imp.sWriter.def == def))
-        .reverse()
-        .forEach((i) => wl.prependLine(0, i.toString(wl.wr)));
+      .filter((i) => !(i.imp.sWriter && i.imp.sWriter.def == def))
+      .reverse()
+      .forEach((i) => wl.prependLine(0, i.toString(wl.wr)));
     wl.prependLine(0, `// generated ${def.name}`);
   }
 }

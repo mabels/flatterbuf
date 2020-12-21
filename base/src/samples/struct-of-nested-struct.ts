@@ -1,4 +1,4 @@
-import {Types} from '..';
+import { Types } from '..';
 
 export class StructOfNestedStruct {
     public readonly Type = new Types.Struct.Definition({

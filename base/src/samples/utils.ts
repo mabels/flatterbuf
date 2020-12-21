@@ -1,10 +1,10 @@
-import {Types} from '..';
+import { Types } from '..';
 
 export type FactoryFN<T> = () => Types.Base.Definition<T>;
 
 export function FixArrayOfScalarType<T = unknown>(
-    len: number,
-    cb: FactoryFN<T>): Types.FixedArray.Definition<T> {
+  len: number,
+  cb: FactoryFN<T>): Types.FixedArray.Definition<T> {
   return new Types.FixedArray.Definition({
     element: cb(),
     length: len,
