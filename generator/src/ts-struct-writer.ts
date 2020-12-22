@@ -43,14 +43,14 @@ export class TSStructWriter implements TSRefWriter {
       .slice(0, length)
       .map((i) => {
         switch (typeof i) {
-          case 'number':
-            return `${i}`;
-          case 'string':
-            return `${wr.quote(i)}`;
-          case 'object':
-            return JSON.stringify(i);
-          default:
-            return `[]`;
+        case 'number':
+          return `${i}`;
+        case 'string':
+          return `${wr.quote(i)}`;
+        case 'object':
+          return JSON.stringify(i);
+        default:
+          return `[]`;
         }
       })
       .join(', ');
@@ -93,63 +93,63 @@ export class TSStructWriter implements TSRefWriter {
   ): string {
     const wl = new TSWriteLine(wr);
     switch (tdef.type) {
-      case Types.Boolean.Definition.type:
-        wl.writeLine(0, `new Types.Boolean.Definition(${this.initialArg(wr, tdef, initial)})`);
-        break;
-      case Types.Char.Definition.type:
-      case Types.Uint8.Definition.type:
-      case Types.Uint16.Definition.type:
-      case Types.Short.Definition.type:
-      case Types.Uint32.Definition.type:
-      case Types.Int.Definition.type:
-      case Types.Float.Definition.type:
-      case Types.Double.Definition.type:
-        wl.writeLine(0, `new Types.${tdef.type}.Definition(${this.initialArg(wr, tdef, initial)})`);
-        break;
-      case Types.Uint64.Definition.type:
-      case Types.Long.Definition.type:
-        wl.writeLine(0, `new Types.${tdef.type}.Definition(${this.initialArg(wr, tdef, initial)})`);
-        break;
-      case Types.BitStruct.Definition.type:
-        const bdef = (tdef as unknown) as Types.BitStruct.Definition;
-        this.addTypeReference(wr, bdef);
-        wl.writeLine(0, `new ${bdef.name}.Definition(${this.initialArg(wr, tdef, initial)})`);
+    case Types.Boolean.Definition.type:
+      wl.writeLine(0, `new Types.Boolean.Definition(${this.initialArg(wr, tdef, initial)})`);
+      break;
+    case Types.Char.Definition.type:
+    case Types.Uint8.Definition.type:
+    case Types.Uint16.Definition.type:
+    case Types.Short.Definition.type:
+    case Types.Uint32.Definition.type:
+    case Types.Int.Definition.type:
+    case Types.Float.Definition.type:
+    case Types.Double.Definition.type:
+      wl.writeLine(0, `new Types.${tdef.type}.Definition(${this.initialArg(wr, tdef, initial)})`);
+      break;
+    case Types.Uint64.Definition.type:
+    case Types.Long.Definition.type:
+      wl.writeLine(0, `new Types.${tdef.type}.Definition(${this.initialArg(wr, tdef, initial)})`);
+      break;
+    case Types.BitStruct.Definition.type:
+      const bdef = (tdef as unknown) as Types.BitStruct.Definition;
+      this.addTypeReference(wr, bdef);
+      wl.writeLine(0, `new ${bdef.name}.Definition(${this.initialArg(wr, tdef, initial)})`);
 
-        break;
-      case Types.Struct.Definition.type:
-        const sdef = tdef as Types.Base.NamedType<B>;
-        this.addTypeReference(wr, sdef);
-        wl.write(1, `new ${sdef.name}.Definition()`);
-        break;
-      case Types.FixedArray.Definition.type:
-      case Types.FixedCString.Definition.type:
-        const adef = (tdef as unknown) as Types.FixedArray.Definition<B>;
+      break;
+    case Types.Struct.Definition.type:
+      const sdef = tdef as Types.Base.NamedType<B>;
+      this.addTypeReference(wr, sdef);
+      wl.write(1, `new ${sdef.name}.Definition()`);
+      break;
+    case Types.FixedArray.Definition.type:
+    case Types.FixedCString.Definition.type:
+      const adef = (tdef as unknown) as Types.FixedArray.Definition<B>;
 
-        const typeName = this.writeArrayDefinition(wr, tdef);
-        wl.writeLine(0, `new ${typeName}({`);
-        wl.writeLine(1, `length: ${adef.length},`);
-        wl.writeLine(1, `alignFuncs: ${this.alignFuncs(wr, adef.alignFuncs)},`);
-        if (tdef.type !== Types.FixedCString.Definition.type) {
-          wl.writeLine(
-            1,
-            `element: ${this.getTypeDefinition(
-              wr,
-              `Item.${attrName || tdef.type}`,
-              adef.element,
-              Optional.NoneOption,
-            )},`,
-          );
-        }
-        if (Optional.isSome(adef.givenInitial)) {
-          wl.writeLine(
-            1,
-            `initial: [${this.arrayInitial(wr, adef.length, adef.givenInitial.some)}]`,
-          );
-        }
-        wl.write(0, `})`);
-        break;
-      default:
-        throw Error(`getTypeDefinition failed for: ${tdef.type}`);
+      const typeName = this.writeArrayDefinition(wr, tdef);
+      wl.writeLine(0, `new ${typeName}({`);
+      wl.writeLine(1, `length: ${adef.length},`);
+      wl.writeLine(1, `alignFuncs: ${this.alignFuncs(wr, adef.alignFuncs)},`);
+      if (tdef.type !== Types.FixedCString.Definition.type) {
+        wl.writeLine(
+          1,
+          `element: ${this.getTypeDefinition(
+            wr,
+            `Item.${attrName || tdef.type}`,
+            adef.element,
+            Optional.NoneOption,
+          )},`,
+        );
+      }
+      if (Optional.isSome(adef.givenInitial)) {
+        wl.writeLine(
+          1,
+          `initial: [${this.arrayInitial(wr, adef.length, adef.givenInitial.some)}]`,
+        );
+      }
+      wl.write(0, `})`);
+      break;
+    default:
+      throw Error(`getTypeDefinition failed for: ${tdef.type}`);
     }
     return wl.toString();
   }
@@ -178,12 +178,12 @@ export class TSStructWriter implements TSRefWriter {
   }
   public writeInterface(wl: TSWriteLine) {
     [{
-      prefix: "",
-      optional: ""
+      prefix: '',
+      optional: '',
     }, {
-      prefix: "Partial",
-      optional: "?"
-    }].forEach(j => {
+      prefix: 'Partial',
+      optional: '?',
+    }].forEach((j) => {
       wl.writeLine(1, `export interface ${j.prefix}MutableType {`);
       const sdef = this.def as Types.Struct.Definition;
       sdef.attributes.forEach((i) => {
@@ -194,7 +194,8 @@ export class TSStructWriter implements TSRefWriter {
       wl.writeLine(1, `export interface ${j.prefix}Type {`);
       sdef.attributes.forEach((i) => {
         this.addTypeReference(wl.wr, i.type);
-        wl.writeLine(2, `readonly ${attributeDefinition(i)}${j.optional}: ${typeDefinition(i.type, `${j.prefix}Type`)};`);
+        wl.writeLine(2, `readonly ${attributeDefinition(i)}${j.optional}: ` +
+          `${typeDefinition(i.type, `${j.prefix}Type`)};`);
       });
       wl.writeLine(1, '}');
     });
@@ -344,18 +345,18 @@ export class TSStructWriter implements TSRefWriter {
   }
   private emptyNestedArray<B>(type: Types.Base.Definition<B>): string {
     switch (Types.toAttributeType(type)) {
-      case Types.AttributeType.FixedArray:
-        const adef = (type as unknown) as Types.FixedArray.ArrayTypeAttribute<B>;
-        if (Types.toAttributeType(adef.element) !== Types.AttributeType.FixedArray) {
-          return '[]';
-        }
-        return `[ ${Array(adef.length)
-          .fill(0)
-          .map((_, i) => this.emptyNestedArray(adef.element))
-          .join(', ')} ]`;
-      case Types.AttributeType.Scalar:
-      case Types.AttributeType.Struct:
+    case Types.AttributeType.FixedArray:
+      const adef = (type as unknown) as Types.FixedArray.ArrayTypeAttribute<B>;
+      if (Types.toAttributeType(adef.element) !== Types.AttributeType.FixedArray) {
         return '[]';
+      }
+      return `[ ${Array(adef.length)
+        .fill(0)
+        .map((_, i) => this.emptyNestedArray(adef.element))
+        .join(', ')} ]`;
+    case Types.AttributeType.Scalar:
+    case Types.AttributeType.Struct:
+      return '[]';
     }
   }
   private writeCreateFunction(wr: TSWriter) {
@@ -409,31 +410,31 @@ export class TSStructWriter implements TSRefWriter {
     itemName?: string,
   ): string {
     switch (Types.toAttributeType(def)) {
-      case Types.AttributeType.Scalar:
-        if (def.type === Types.FixedCString.Definition.type) {
-          // const cdef = (def as unknown) as Types.FixedCString.Definition;
-          return `Definition.AttributeByName.${attrName}.${stype}.fromStreamChunk(nrb, ${wr.backQuote(
-            itemName || attrName,
-          )}) as number[]`;
-        } else if (def.type === Types.BitStruct.Definition.type) {
-          // const bdef = (def as unknown) as Types.BitStruct.Definition;
-          return `Definition.AttributeByName.${attrName}.${stype}.fromStreamChunk(nrb, ${wr.backQuote(
-            itemName || attrName,
-          )})`;
-        }
+    case Types.AttributeType.Scalar:
+      if (def.type === Types.FixedCString.Definition.type) {
+        // const cdef = (def as unknown) as Types.FixedCString.Definition;
+        return `Definition.AttributeByName.${attrName}.${stype}.fromStreamChunk(nrb, ${wr.backQuote(
+          itemName || attrName,
+        )}) as number[]`;
+      } else if (def.type === Types.BitStruct.Definition.type) {
+        // const bdef = (def as unknown) as Types.BitStruct.Definition;
         return `Definition.AttributeByName.${attrName}.${stype}.fromStreamChunk(nrb, ${wr.backQuote(
           itemName || attrName,
         )})`;
+      }
+      return `Definition.AttributeByName.${attrName}.${stype}.fromStreamChunk(nrb, ${wr.backQuote(
+        itemName || attrName,
+      )})`;
       // return `nrb.read${def.type}()`;
-      case Types.AttributeType.Struct:
-        // const sdef = def as Types.Base.NamedType<B>;
-        return `Definition.AttributeByName.${attrName}.${stype}.fromStreamChunk(nrb, ${wr.backQuote(
-          itemName || attrName,
-        )})`;
-      case Types.AttributeType.FixedArray:
-        return `Definition.AttributeByName.${attrName}.${stype}.fromStreamChunk(nrb, ${wr.backQuote(
-          itemName || attrName,
-        )}) as ${typeDefinition(def, 'Type')}`;
+    case Types.AttributeType.Struct:
+      // const sdef = def as Types.Base.NamedType<B>;
+      return `Definition.AttributeByName.${attrName}.${stype}.fromStreamChunk(nrb, ${wr.backQuote(
+        itemName || attrName,
+      )})`;
+    case Types.AttributeType.FixedArray:
+      return `Definition.AttributeByName.${attrName}.${stype}.fromStreamChunk(nrb, ${wr.backQuote(
+        itemName || attrName,
+      )}) as ${typeDefinition(def, 'Type')}`;
       // return this.writeStreamArrayAction(wr, attrName, def, 'type.element', level, itemName || attrName);
     }
     throw Error(`fromStreamAction: ${def.type}`);
@@ -472,24 +473,24 @@ export class TSStructWriter implements TSRefWriter {
     def: Types.Base.Definition<B>,
   ): string {
     switch (Types.toAttributeType(def)) {
-      case Types.AttributeType.Scalar:
-        if (def.type === Types.BitStruct.Definition.type) {
-          // const bdef = (def as unknown) as Definition.Types.BitStruct;
-          return `Definition.AttributeByName.${aname}.type.toStreamChunk(${vname}, nwb, name)`;
-        } else if (def.type === Types.FixedCString.Definition.type) {
-          // const cdef = (def as unknown) as Types.FixedCString.Definition;
-          return `Definition.AttributeByName.${aname}.type.toStreamChunk(${vname}, nwb, name)`;
-        }
+    case Types.AttributeType.Scalar:
+      if (def.type === Types.BitStruct.Definition.type) {
+        // const bdef = (def as unknown) as Definition.Types.BitStruct;
         return `Definition.AttributeByName.${aname}.type.toStreamChunk(${vname}, nwb, name)`;
+      } else if (def.type === Types.FixedCString.Definition.type) {
+        // const cdef = (def as unknown) as Types.FixedCString.Definition;
+        return `Definition.AttributeByName.${aname}.type.toStreamChunk(${vname}, nwb, name)`;
+      }
+      return `Definition.AttributeByName.${aname}.type.toStreamChunk(${vname}, nwb, name)`;
       // return `nwb.write${def.type}(${vname})`;
-      case Types.AttributeType.Struct:
-        // const sdef = def as Types.Type.DefinitionNameAttribute<B>;
-        // return `${sdef.name}.toStream(${aname}, nwb.sbuf)`;
-        return `Definition.AttributeByName.${aname}.type.toStreamChunk(${vname}, nwb, name)`;
-        break;
-      case Types.AttributeType.FixedArray:
-        // const adef = (def as unknown) as Types.FixedArray.ArrayTypeAttribute<B>;
-        return `Definition.AttributeByName.${aname}.type.toStreamChunk(${vname}, nwb, name)`;
+    case Types.AttributeType.Struct:
+      // const sdef = def as Types.Type.DefinitionNameAttribute<B>;
+      // return `${sdef.name}.toStream(${aname}, nwb.sbuf)`;
+      return `Definition.AttributeByName.${aname}.type.toStreamChunk(${vname}, nwb, name)`;
+      break;
+    case Types.AttributeType.FixedArray:
+      // const adef = (def as unknown) as Types.FixedArray.ArrayTypeAttribute<B>;
+      return `Definition.AttributeByName.${aname}.type.toStreamChunk(${vname}, nwb, name)`;
       /*
           ${
           adef.length

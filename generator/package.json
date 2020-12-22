@@ -31,7 +31,7 @@
     "rimraf": "*",
     "ts-jest": "^26.4.0",
     "ts-node": "^9.0.0",
-    "gts": "^2.0.2"
+    "gts": "^3.0.3"
   },
   "dependencies": {
     "@vercel/ncc": "^0.26.1",

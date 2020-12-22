@@ -74,7 +74,6 @@ async function tscompile(config: Config, tsconfig: any): Promise<TSCompiled[]> {
         if (jsfile.sourceMapText) {
           await writeFileAsync(`${jsfileName}.map`, jsfile.sourceMapText);
         }
-
       } catch (e) {
         error = e;
       }
@@ -152,7 +151,7 @@ export async function cmd(...args: string[]) {
   // console.log(tsResult, filesToImport)
   const imported = filesToImport.map((i) => {
     try {
-      const my = require(i || "");
+      const my = require(i || '');
       return { jsFile: i, exports: my };
     } catch (e) {
       return { jsFile: i, error: e };

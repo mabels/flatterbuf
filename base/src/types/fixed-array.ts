@@ -57,9 +57,9 @@ export class Definition<B, T extends Base<B> = Base<B>> extends ArrayTypeAttribu
 
   public create(...initials: FixedArrayInitType<B>[]): B[] {
     const datas = initials.concat([
-        OrUndefined(this.givenInitial),
-        new Array(this.length).fill(this.element.create())
-      ]).filter((i) => Array.isArray(i)) as ElementType<B>[][];
+      OrUndefined(this.givenInitial),
+      new Array(this.length).fill(this.element.create()),
+    ]).filter((i) => Array.isArray(i)) as ElementType<B>[][];
     const items: ElementType<B>[][] = datas.reduce(
       (r: ElementType<B>[][], bArray) => {
         bArray.slice(0, this.length).forEach((item, idx) => {

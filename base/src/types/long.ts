@@ -1,9 +1,9 @@
 import { Definition as HighLowType,
-         Type as HighLow,
-         MutableType as MutableHighLow,
-         PartialType as PartialHighLow,
-         PartialMutableType as PartialMutableHighLow
-       } from './high-low';
+  Type as HighLow,
+  MutableType as MutableHighLow,
+  PartialType as PartialHighLow,
+  PartialMutableType as PartialMutableHighLow,
+} from './high-low';
 import { TypeName, ScalarTypeArg } from './base';
 
 export type Type = HighLow;
