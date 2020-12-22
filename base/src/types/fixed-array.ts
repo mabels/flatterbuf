@@ -8,9 +8,13 @@ export abstract class ArrayTypeAttribute<B> extends Base<B[]> {
   public abstract readonly length: number;
 }
 
-export type ElementType<B> = undefined | B; // | NestedPartial<B>;
+export type ElementType<B> = B; // | NestedPartial<B>;
 
-export type FixedArrayInitType<B> = undefined | ElementType<B> | FixedArrayInitType<B>[];
+// [undefined, [5, undefined]]
+export type InitType<B> = undefined | B;
+// export type FixedArrayInitType<B> = InitType<B> | InitType<B|InitType<B>[]>[];
+export type FixedArrayInitType<B> = InitType<B> | (InitType<B> | (InitType<B>)[])[];
+// undefined | B | (undefined|B|((undefined|B)[]))[];
 
 export interface FixedArrayArg<B, T extends Base<B> = Base<B>> {
   readonly element: T;
@@ -58,8 +62,8 @@ export class Definition<B, T extends Base<B> = Base<B>> extends ArrayTypeAttribu
   public create(...initials: FixedArrayInitType<B>[]): B[] {
     const datas = initials.concat([
       OrUndefined(this.givenInitial),
-      new Array(this.length).fill(this.element.create()),
-    ]).filter((i) => Array.isArray(i)) as ElementType<B>[][];
+      (new Array(this.length)).fill(undefined).map((i) => this.element.create()),
+    ]).filter((i) => Array.isArray(i)) as unknown as ElementType<B>[][];
     const items: ElementType<B>[][] = datas.reduce(
       (r: ElementType<B>[][], bArray) => {
         bArray.slice(0, this.length).forEach((item, idx) => {
@@ -91,7 +95,7 @@ export class Definition<B, T extends Base<B> = Base<B>> extends ArrayTypeAttribu
       }
       found = true;
       return e.some as ElementType<B>;
-    });
+    }) as ElementType<B>[];
     if (!found) {
       return NoneOption;
     }

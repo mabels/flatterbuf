@@ -4,7 +4,7 @@ import { CharInitType, Definition as Char } from './char';
 import { Funcs, funcsMapper } from '../align';
 import { ChunkBuffer } from '../stream-buffer';
 
-export type FixedCStringInitType = string | number[];
+export type FixedCStringInitType<A = number> = undefined | string | A[];
 export interface FixedCStringArg {
   readonly length: number;
   readonly initial?: FixedCStringInitType;
@@ -25,7 +25,7 @@ export class Definition extends Base<number[]> {
   // public readonly initial: number[];
   public readonly givenInitial: Option<FixedCStringInitType>;
 
-  public create(...initials: FixedCStringInitType[]): number[] {
+  public create(...initials: FixedCStringInitType<number|undefined>[]): number[] {
     const gi = OrUndefined(this.givenInitial);
     const datas = initials
       .concat(gi ? [gi] : [])
@@ -48,7 +48,7 @@ export class Definition extends Base<number[]> {
     }, new Array(this.length).fill(Definition.element.create()));
   }
 
-  public coerce(m?: FixedCStringInitType): Option<number[]> {
+  public coerce(m?: FixedCStringInitType<number | undefined>): Option<number[]> {
     if (typeof m == 'string' || Array.isArray(m)) {
       const r = Array.from(m.slice(0, this.length - 1) as CharInitType[]).map((item) => {
         const x = Definition.element.coerce(item);

@@ -28,12 +28,12 @@ export interface NewDefinition<T = unknown> {
   readonly bytes: number;
 }
 
-export abstract class Definition<T, M = T> {
+export abstract class Definition<T> {
   public abstract readonly type: TypeName;
   public abstract readonly bytes: number;
   public abstract readonly givenInitial: Option<unknown>;
   public abstract coerce(val: unknown): Option<unknown>;
-  public abstract create(...vals: (unknown | undefined | M)[]): T;
+  public abstract create(...vals: unknown[]): T;
 
   public abstract fromStreamChunk(chunk: ChunkBuffer, name: string): T;
   public abstract toStreamChunk(val: T, chunk: ChunkBuffer, name: string): void;
