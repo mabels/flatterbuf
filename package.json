@@ -14,6 +14,6 @@
     "auditfix": "lerna run 'audit --fix'"
   },
   "devDependencies": {
-    "lerna": "^3.22.1"
+    "lerna": "^5.0.0"
   }
 }
